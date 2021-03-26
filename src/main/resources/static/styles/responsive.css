@@ -1,0 +1,67 @@
+/* -------------------------------- Responsive layout (PC First)------------------------------------- */
+
+@media screen and (min-width: 1200px) {
+    #debug {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 1200px) {
+    #topics {
+        display: flex;
+    }
+    #debug small:after {
+        color: blueviolet;
+        content: "max-width: 1200px";
+    }
+}
+
+/* ##Device = Tablets, Ipads (portrait), ##Screen = B/w 768px to 1024px */
+/* @media (min-width: 768px) and (max-width: 1024px) {
+    #topics {
+        display: none;
+    }
+    #debug small:after {
+        content: "(min-width: 768px) and (max-width: 1024px)";
+        color: blue;
+    }
+} */
+
+/* Responsive layout - when the screen is less than 700px wide, make the two columns stack on top of each other instead of next to each other */
+@media screen and (max-width: 700px) {
+    #topics {
+        display: none;
+    }
+    .exercise {
+        flex-direction: row;
+    }
+
+    #debug small:after {
+        content: "max-width: 700px";
+        color: red;
+    }
+}
+
+
+/* Responsive layout - when the screen is less than 400px wide, make the navigation links stack on top of each other instead of next to each other */
+@media screen and (max-width: 400px) {
+    .menu li {
+        float: none;
+        width: 100%;
+    }
+    .row {
+        flex-direction: column;
+    }
+    #debug small:after {
+        content: "max-width: 400px";
+        color:green;
+    }
+}
+
+/* Less from iPhone 4 */
+@media screen and (max-device-width: 320px) {
+    #debug small:after {
+        content: "max-device-width: 320px";
+        color:green;
+    }
+}
