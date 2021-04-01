@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:fragment="head">
+    <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0">
+    <title>Learning Geist</title>
+
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
+    <script type="module" src="/js/main.js"></script>
+</head>
+<body>
+
+    <header th:fragment="header1">
+        <small class="version">...</small>
+        <a target="_blank" href="https://github.com/deianov/learninggeist" data-hotkey="g d" aria-label="github.com">
+            <svg height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true">
+                <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+            </svg>
+        </a>
+    </header>
+
+    <nav th:fragment="navigation" class="menu">
+        <ul>
+            <li class="logo"><a href=".."><span>Learning</span><span>Geist</span></a></li>
+            <li><a value="1" href="javascript:void(0)" >Cards</a></li>
+            <li><a value="2" href="javascript:void(0)">Quiz</a></li>
+            <li><a value="3" href="javascript:void(0)">Games</a></li>
+        </ul>
+        <ul class="right-menu">
+            <li sec:authorize="isAuthenticated()"><a class="logout" href="#"><svg width="18" height="18" viewBox="0 0 113.525 122.879"><title>Logout</title><g><path fill="#FFFFFF" d="M78.098,13.509l0.033,0.013h0.008c2.908,1.182,5.699,2.603,8.34,4.226c2.621,1.612,5.121,3.455,7.467,5.491 c11.992,10.408,19.58,25.764,19.58,42.879v0.016h-0.006c-0.006,15.668-6.361,29.861-16.633,40.127 c-10.256,10.256-24.434,16.605-40.09,16.613v0.006h-0.033h-0.015v-0.006c-15.666-0.004-29.855-6.357-40.123-16.627l-0.005,0.004 C6.365,95.994,0.015,81.814,0.006,66.15H0v-0.033v-0.039h0.006c0.004-6.898,1.239-13.511,3.492-19.615 c0.916-2.486,2.009-4.897,3.255-7.21C13.144,27.38,23.649,18.04,36.356,13.142l2.634-1.017v2.817v18.875v1.089l-0.947,0.569 l-0.007,0.004l-0.008,0.005l-0.007,0.004c-1.438,0.881-2.809,1.865-4.101,2.925l0.004,0.004c-1.304,1.079-2.532,2.242-3.659,3.477 h-0.007c-5.831,6.375-9.393,14.881-9.393,24.22v0.016h-0.007c0.002,9.9,4.028,18.877,10.527,25.375l-0.004,0.004 c6.492,6.488,15.457,10.506,25.349,10.512v-0.006h0.033h0.015v0.006c9.907-0.002,18.883-4.025,25.374-10.518 S92.66,76.045,92.668,66.148H92.66v-0.033V66.09h0.008c-0.002-6.295-1.633-12.221-4.484-17.362 c-0.451-0.811-0.953-1.634-1.496-2.453c-2.719-4.085-6.252-7.591-10.359-10.266l-0.885-0.577v-1.042V15.303v-2.857L78.098,13.509 L78.098,13.509z M47.509,0h18.507h1.938v1.937v49.969v1.937h-1.938H47.509h-1.937v-1.937V1.937V0H47.509L47.509,0z"/></g></svg></a></li>
+            <li><i>EN - DE</i></li>
+            <li sec:authorize="hasRole('ROLE_ADMIN')"><a href="#">admin</a></li>
+            <li><i th:text="${fullname}">fullname</i></li>
+        </ul>
+    </nav>
+
+    <main th:fragment="main" class="row">
+        <aside class="column"></aside>
+
+        <article class="column">
+            <header id="header"></header>
+            <section id="control"></section>
+            <section id="content"></section>
+            <section id="messages">
+                <div id="debug"><small>media:</small></div>
+            </section>
+            <section id="bottom"></section>
+        </article>
+    </main>
+
+    <!-- Scroll Back To Top Button -->
+    <button th:fragment="go-top" class="go-top">
+        <svg viewBox="0 0 16 16" width="16" height="16">
+            <title>Go to top</title>
+            <g stroke-width="1" stroke="currentColor">
+                <polyline fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" points="15.5,11.5 8,4 0.5,11.5 "></polyline>
+            </g>
+        </svg>
+    </button>
+
+    <footer th:fragment="footer">
+        <small>Copyright &copy; <span id="cdate">2019</span> <a href="#">Company &amp; Co</a>. All Rights Reserved &reg;</small>
+    </footer>
+</body>
+</html>

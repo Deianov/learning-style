@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<head>
+    <title>Error page</title>
+    <link rel="stylesheet" href="/css/external/bootstrap.min.css" th:href="@{/css/external/bootstrap.min.css}"/>
+</head>
+<body>
+<div class="container">
+    <div class="alert alert-danger" role="alert">
+        <h4 class="alert-heading">Error</h4>
+        <p th:text="${#dates.format(#dates.createNow(), 'dd MMM yyyy HH:mm')}"></p>
+        <p>There was an unexpected error (status: '<span th:text="${status}"></span>', code: '<span th:text="${statusCode}"></span>').</p>
+        <p th:text="${url}"></p>
+        <p th:text="${message}"></p>
+        <p th:text="${exeption}"></p>
+        <hr>
+        <p class="mb-0">Please contact the operator with the above information.</p>
+    </div>
+    <p><a href="/" th:href="@{/}">Back to Home Page</a></p>
+</div>
+</body>
+</html>

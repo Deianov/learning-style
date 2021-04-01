@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="layouts/layout :: layout(~{::title}, ~{::#links}, ~{::nav}, ~{::#content})">
+
+<head>
+    <title>Login</title>
+    <th:block id="links">
+        <link rel="stylesheet" href="/css/external/bootstrap.min.css"/>
+        <link rel="stylesheet" href="/css/style.css" type="text/css">
+        <link rel="stylesheet" href="/css/styles/login.css" type="text/css">
+    </th:block>
+</head>
+<body>
+
+    <nav class="menu">
+        <ul>
+            <li class="logo"><a href="./" th:href="@{/}"><span>Learning</span><span>Geist</span></a></li>
+        </ul>
+        <ul class="right-menu">
+            <li><a href="/users/register">Register</a></li>
+            <li><a class="active" href="/users/login">Login</a></li>
+        </ul>
+    </nav>
+
+    <section id="content">
+        <p th:if="${error}" class="alert alert-danger">There was an error, please try again</p>
+        <p sec:authorize="isAuthenticated()" class="alert alert-danger">Error 304 - This account is already logged in: <span sec:authentication="name"></span></p>
+
+        <h2 class="form-signin-heading">Please sign in</h2>
+        <hr>
+        <form class="form-signin" th:action="@{/users/login}" method="POST">
+            <div th:if="${bad_credentials}" class="alert alert-danger" role="alert">
+                This username and password combination does not exist.
+            </div>
+            <p>
+                <!--                           id="username"-->
+                <label for="username" class="sr-only">Username</label>
+                <input id="username"
+                       type="text"
+                       th:value="${username}"
+                       name="username"
+                       class="form-control"
+                       placeholder="Username"
+                       autocomplete="off"
+                       spellcheck="false"
+                       required=""
+                       autofocus=""
+                >
+            </p>
+            <p>
+                <label for="password" class="sr-only">Password</label>
+                <input type="password"
+                       id="password"
+                       name="password"
+                       class="form-control"
+                       placeholder="Password"
+                       required=""
+                >
+            </p>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+
+            <div class="form-group">
+                <p class="text-left">Don't have account? <a href="/users/register">Sign up here</a></p>
+            </div>
+        </form>
+    </section>
+
+</body>
+</html>
