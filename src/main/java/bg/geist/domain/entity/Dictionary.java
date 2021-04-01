@@ -1,14 +1,12 @@
 package bg.geist.domain.entity;
 
-import bg.geist.domain.enums.Lang;
-import bg.geist.domain.enums.Level;
-import bg.geist.domain.enums.TextRole;
-import bg.geist.domain.enums.TextType;
+import bg.geist.domain.entity.enums.Lang;
+import bg.geist.domain.entity.enums.Level;
+import bg.geist.domain.entity.enums.TextRole;
+import bg.geist.domain.entity.enums.TextType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Stream;
 

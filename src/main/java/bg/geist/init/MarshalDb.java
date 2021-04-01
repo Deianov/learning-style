@@ -1,9 +1,9 @@
 package bg.geist.init;
 
-import bg.geist.domain.enums.ModelType;
-import bg.geist.domain.model.CardsModel;
-import bg.geist.domain.model.QuizModel;
-import bg.geist.domain.model.QuizSimpleModel;
+import bg.geist.constant.enums.ModelType;
+import bg.geist.domain.model.service.CardsModel;
+import bg.geist.domain.model.service.QuizModel;
+import bg.geist.domain.model.service.QuizSimpleModel;
 import bg.geist.repository.CardsRepository;
 import bg.geist.repository.QuizRepository;
 import bg.geist.service.CardsService;

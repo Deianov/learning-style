@@ -5,9 +5,9 @@ import bg.geist.domain.entity.Cards;
 import bg.geist.domain.entity.Category;
 import bg.geist.domain.entity.Dictionary;
 import bg.geist.domain.entity.Options;
-import bg.geist.domain.enums.EntityName;
-import bg.geist.domain.model.CardsModel;
-import bg.geist.exception.EntityNotFoundException;
+import bg.geist.exception.EntityName;
+import bg.geist.domain.model.service.CardsModel;
+import bg.geist.exception.ObjectNotFoundException;
 import bg.geist.repository.CardsRepository;
 import bg.geist.repository.CategoryRepository;
 import bg.geist.web.api.exercise.ExerciseIndexModel;
@@ -52,7 +52,7 @@ public class CardsServiceImpl implements CardsService {
     @Override
     public CardsModel getById(Long id) {
         Cards cards = repository.fetchById(id)
-                .orElseThrow(() -> new EntityNotFoundException(EntityName.CARDS, id));
+                .orElseThrow(() -> new ObjectNotFoundException(EntityName.CARDS, id));
 
         CardsModel cardsModel = mapper.map(cards, CardsModel.class);
         categoryRepository.findById(cards.getCategoryId())

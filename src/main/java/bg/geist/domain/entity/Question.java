@@ -1,7 +1,7 @@
 package bg.geist.domain.entity;
 
-import bg.geist.domain.enums.Lang;
-import bg.geist.domain.enums.Level;
+import bg.geist.domain.entity.enums.Lang;
+import bg.geist.domain.entity.enums.Level;
 
 import javax.persistence.*;
 

@@ -1,8 +1,9 @@
 package bg.geist.web.api.cards;
 
-import bg.geist.domain.model.CardsModel;
+import bg.geist.domain.model.service.CardsModel;
 import bg.geist.service.CardsService;
 import bg.geist.web.api.exercise.ExerciseIndexModel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ public class CardsController {
 
     private final CardsService cardsService;
 
+    @Autowired
     public CardsController(CardsService cardsService) {
         this.cardsService = cardsService;
     }

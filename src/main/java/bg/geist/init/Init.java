@@ -37,6 +37,7 @@ public class Init implements CommandLineRunner {
 
         if (DO_INIT && categoryRepository.count() == 0) {
             seedDb.showVersion();
+            seedDb.seedUsers();
             seedDb.seedCategories();
             seedDb.seedCards();
             seedDb.seedAnswersCollectionTemplates();

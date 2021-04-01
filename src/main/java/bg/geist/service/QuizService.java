@@ -1,10 +1,10 @@
 package bg.geist.service;
 
 
-import bg.geist.domain.model.ExerciseModel;
+import bg.geist.domain.model.service.ExerciseModel;
 import bg.geist.web.api.exercise.ExerciseIndexModel;
-import bg.geist.web.api.quiz.models.QuizValidationRequestModel;
-import bg.geist.web.api.quiz.models.QuizValidationResponseModel;
+import bg.geist.web.api.quiz.models.QuizCertificationRequestModel;
+import bg.geist.web.api.quiz.models.QuizCertificationResponseModel;
 
 import java.util.Collection;
 
@@ -15,5 +15,5 @@ public interface QuizService {
     <T extends ExerciseModel> T getModel(Long id, Class<T> tClass);
     Object getResponseModel(Long id);
 
-    QuizValidationResponseModel validate(QuizValidationRequestModel requestModel);
+    QuizCertificationResponseModel certificate(QuizCertificationRequestModel requestModel);
 }

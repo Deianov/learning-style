@@ -2,11 +2,12 @@ package bg.geist.web.api.quiz;
 
 import bg.geist.service.QuizService;
 import bg.geist.web.api.exercise.ExerciseIndexModel;
-import bg.geist.web.api.quiz.models.QuizValidationRequestModel;
-import bg.geist.web.api.quiz.models.QuizValidationResponseModel;
+import bg.geist.web.api.quiz.models.QuizCertificationRequestModel;
+import bg.geist.web.api.quiz.models.QuizCertificationResponseModel;
 import com.sun.istack.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +20,11 @@ import java.util.Collection;
 @RequestMapping(path="/api/quiz", produces = MediaType.APPLICATION_JSON_VALUE)
 public class QuizController {
     private static final Logger logger = LoggerFactory.getLogger(QuizController.class);
-    private static final String VALIDATED_QUIZ = "Quiz was validated, id:{}";
+    private static final String CERTIFICATED_QUIZ = "Quiz was certificated, id:{}";
 
     private final QuizService quizService;
 
+    @Autowired
     public QuizController(QuizService quizService) {
         this.quizService = quizService;
     }
@@ -39,25 +41,18 @@ public class QuizController {
         return new ResponseEntity<>(index, HttpStatus.OK);
     }
 
-    /*
-        // send correct answers if there is not server validation
-        if (ExerciseValidation.byOrdinal(map.get("validation")) != ExerciseValidation.NONE) {
-            quizModel.setCorrect(null);
-        }
-    */
-
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public Object getQuiz(@PathVariable Long id) {
         return quizService.getResponseModel(id);
     }
 
-    @PostMapping("/{id}/validate")
-    public ResponseEntity<QuizValidationResponseModel> validate(
+    @PostMapping("/{id}/certification")
+    public ResponseEntity<QuizCertificationResponseModel> certification(
             @NotNull @PathVariable Long id,
-            @RequestBody QuizValidationRequestModel validationModel) {
-        QuizValidationResponseModel responseModel = quizService.validate(validationModel.setQuizId(id));
-        logger.info(VALIDATED_QUIZ, id);
-        return new ResponseEntity<>(responseModel, HttpStatus.ACCEPTED);
+            @RequestBody QuizCertificationRequestModel requestModel) {
+        QuizCertificationResponseModel response = quizService.certificate(requestModel.setQuizId(id));
+        logger.info(CERTIFICATED_QUIZ, id);
+        return new ResponseEntity<>(response, HttpStatus.ACCEPTED);
     }
 }

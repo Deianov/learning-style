@@ -5,7 +5,6 @@ spring:
     username: "root"
     password: "1234"
     continueOnError: true
-
   jpa:
     #For MySQL 8
 #    database-platform: org.hibernate.dialect.MySQL8Dialect
@@ -13,18 +12,22 @@ spring:
     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
     hibernate:
       ddl-auto: update
-
     open-in-view: false
     properties:
       hibernate:
         format_sql: true
         jdbc:
           time_zone: UTC
-
   jackson:
     serialization:
       FAIL_ON_EMPTY_BEANS: false
       EAGER_SERIALIZER_FETCH: false
+
+server:
+  error:
+    include-message: always
+    include-stacktrace: always
+
 
 logging:
   level:

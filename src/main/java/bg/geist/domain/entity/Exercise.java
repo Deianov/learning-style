@@ -1,8 +1,8 @@
 package bg.geist.domain.entity;
 
 
-import bg.geist.domain.enums.ExerciseType;
-import bg.geist.domain.enums.ExerciseValidation;
+import bg.geist.domain.entity.enums.ExerciseType;
+import bg.geist.domain.entity.enums.Certification;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -10,7 +10,6 @@ import javax.persistence.*;
 import java.util.Date;
 
 // TODO: 15.03.2021 current user
-import static bg.geist.constant.Constants.CURRENT_USER;
 
 
 @MappedSuperclass
@@ -42,7 +41,7 @@ public abstract class Exercise extends BaseEntity {
     private Date timeStamp;
 
     @Column(name = "created_by", nullable = false)
-    private String createdBy = CURRENT_USER;
+    private String createdBy;
 
     @Column(name = "updated", nullable = false)
     @UpdateTimestamp
@@ -59,7 +58,7 @@ public abstract class Exercise extends BaseEntity {
 
     @Enumerated(value = EnumType.ORDINAL)
     @Basic
-    private ExerciseValidation validation;
+    private Certification certification;
 
     public Integer getOption(String key) {
         return (this.options != null) ? this.options.toMap().get(key) : null;
@@ -194,12 +193,11 @@ public abstract class Exercise extends BaseEntity {
         return this;
     }
 
-    public ExerciseValidation getValidation() {
-        return validation;
+    public Certification getCertification() {
+        return certification;
     }
 
-    public Exercise setValidation(ExerciseValidation validation) {
-        this.validation = validation;
-        return this;
+    public void setCertification(Certification certification) {
+        this.certification = certification;
     }
 }

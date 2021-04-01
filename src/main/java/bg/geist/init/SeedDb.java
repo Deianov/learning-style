@@ -1,7 +1,9 @@
 package bg.geist.init;
 
+import bg.geist.constant.Constants;
+import bg.geist.constant.ConstantsInit;
 import bg.geist.domain.entity.*;
-import bg.geist.domain.enums.*;
+import bg.geist.domain.entity.enums.*;
 import bg.geist.init.adapter.ArrayToMatrixAdapter;
 import bg.geist.init.dto.*;
 import bg.geist.repository.*;
@@ -12,19 +14,27 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 import static bg.geist.constant.Constants.*;
+import static bg.geist.constant.ConstantsInit.*;
 
 @Component
 public class SeedDb {
     private final Resource jsonFile;
     private final ObjectMapper objectMapper;
+    private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
+    private final PasswordEncoder passwordEncoder;
     private final QuizRepository quizRepository;
     private final QuestionRepository questionRepository;
     private final AnswersCollectionRepository answersCollectionRepository;
@@ -36,9 +46,12 @@ public class SeedDb {
     private final DictionaryRepository dictionaryRepository;
 
 
-    public SeedDb(@Value("classpath:myapp.json") Resource jsonFile, ObjectMapper objectMapper, QuizRepository quizRepository, QuestionRepository questionRepository, AnswersCollectionRepository answersCollectionRepository, AnswerRepository answerRepository, CategoryRepository categoryRepository, CardsRepository cardsRepository, OptionsRepository optionsRepository, DictionaryCollectionRepository dictionaryCollectionRepository, DictionaryRepository dictionaryRepository) {
+    public SeedDb(@Value("classpath:myapp.json") Resource jsonFile, ObjectMapper objectMapper, UserRepository userRepository, UserRoleRepository userRoleRepository, PasswordEncoder passwordEncoder, QuizRepository quizRepository, QuestionRepository questionRepository, AnswersCollectionRepository answersCollectionRepository, AnswerRepository answerRepository, CategoryRepository categoryRepository, CardsRepository cardsRepository, OptionsRepository optionsRepository, DictionaryCollectionRepository dictionaryCollectionRepository, DictionaryRepository dictionaryRepository) {
         this.jsonFile = jsonFile;
         this.objectMapper = objectMapper;
+        this.userRepository = userRepository;
+        this.userRoleRepository = userRoleRepository;
+        this.passwordEncoder = passwordEncoder;
         this.quizRepository = quizRepository;
         this.questionRepository = questionRepository;
         this.answersCollectionRepository = answersCollectionRepository;
@@ -55,6 +68,25 @@ public class SeedDb {
         HashMap<String, String> options = objectMapper
                 .readValue(jsonFile.getFile(), new TypeReference<HashMap<String, String>>() {});
         System.out.printf("version: %s%n", options.get("version"));
+    }
+
+    public void seedUsers() {
+        UserRoleEntity adminRole = new UserRoleEntity().setRole(UserRole.ADMIN);
+        UserRoleEntity userRole = new UserRoleEntity().setRole(UserRole.USER);
+        userRoleRepository.saveAll(List.of(adminRole, userRole));
+
+        UserEntity admin = new UserEntity(ADMIN_NAME, passwordEncoder.encode(ADMIN_PASSWORD), ADMIN_FULLNAME, ADMIN_EMAIL);
+        admin.setRoles(List.of(adminRole, userRole));
+
+        UserEntity user = new UserEntity(USER_NAME, passwordEncoder.encode(USER_PASSWORD), USER_FULLNAME, USER_EMAIL);
+        user.setRoles(List.of(userRole));
+
+        userRepository.saveAll(List.of(admin, user));
+    }
+
+    public String currentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getName();
     }
 
     public void seedCategories() {
@@ -74,7 +106,7 @@ public class SeedDb {
     public void seedCards() throws IOException {
         for (String fileName: new String[]{"1", "2", "3", "test"}) {
 
-            Resource resource = new ClassPathResource(String.format("static/json/cards/%s.json", fileName));
+            Resource resource = new ClassPathResource(String.format("json/cards/%s.json", fileName));
             JsonNode jsonNode = objectMapper.readTree(resource.getFile());
             CardsDto cardsDto = objectMapper.readValue(jsonNode.traverse(), CardsDto.class);
 
@@ -112,7 +144,8 @@ public class SeedDb {
         Cards cards = new Cards(cardsDto.name, cardsDto.description, value);
         cards.setSource(cardsDto.source)
                 .setSourceUrl(cardsDto.sourceUrl).setAuthor(cardsDto.author).setAuthorUrl(cardsDto.authorUrl)
-                .setCategoryId(categoryRepository.findByName(cardsDto.category).getId());
+                .setCategoryId(categoryRepository.findByName(cardsDto.category).getId())
+                .setCreatedBy(ADMIN_NAME);
 
         Options labels = new Options();
         Arrays.stream(cardsDto.labels).forEach(labels::add);
@@ -160,7 +193,7 @@ public class SeedDb {
 
         for (int i = 1; i < 12; i++) {
             // unmarshal from json
-            Resource resource = new ClassPathResource(String.format("static/json/quiz/%s.json", i));
+            Resource resource = new ClassPathResource(String.format("json/quiz/%s.json", i));
             QuizDto quizDto = objectMapper.readValue(resource.getFile(), QuizDto.class);
 
             // category
@@ -178,13 +211,14 @@ public class SeedDb {
             quiz.setSource(quizDto.source);
             quiz.setSourceUrl(quizDto.sourceUrl);
             quiz.setCategoryId(categoryId);
+            quiz.setCreatedBy(ADMIN_NAME);
 
-            // validation
-            if (quizDto.options != null && quizDto.options.containsKey(QUIZ_KEY_VALIDATION)) {
-                quiz.setValidation(ExerciseValidation.byOrdinal(quizDto.options.get(QUIZ_KEY_VALIDATION)));
-                quizDto.options.remove(QUIZ_KEY_VALIDATION);
+            // certification (Certification.NONE, ON_SERVER; ON_SERVER_STRICT)
+            if (quizDto.options != null && quizDto.options.containsKey(QUIZ_CERTIFICATION_KEY)) {
+                quiz.setCertification(Certification.byOrdinal(quizDto.options.get(QUIZ_CERTIFICATION_KEY)));
+                quizDto.options.remove(QUIZ_CERTIFICATION_KEY);
             } else {
-                quiz.setValidation(QUIZ_DEFAULT_VALIDATION);
+                quiz.setCertification(QUIZ_CERTIFICATION);
             }
 
             // options

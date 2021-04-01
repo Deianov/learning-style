@@ -1,25 +1,28 @@
 package bg.geist.service;
 
+import bg.geist.exception.EntityName;
+import bg.geist.constant.enums.ModelType;
 import bg.geist.domain.entity.Category;
 import bg.geist.domain.entity.Options;
 import bg.geist.domain.entity.Quiz;
-import bg.geist.domain.enums.EntityName;
-import bg.geist.domain.enums.ExerciseValidation;
-import bg.geist.domain.enums.ModelType;
-import bg.geist.domain.model.ExerciseModel;
-import bg.geist.domain.model.QuizModel;
-import bg.geist.domain.model.QuizSimpleModel;
-import bg.geist.exception.EntityNotFoundException;
+import bg.geist.domain.entity.enums.Certification;
+import bg.geist.domain.model.service.ExerciseModel;
+import bg.geist.domain.model.service.QuizModel;
+import bg.geist.domain.model.service.QuizSimpleModel;
+import bg.geist.exception.ObjectNotFoundException;
 import bg.geist.repository.CategoryRepository;
 import bg.geist.repository.QuizRepository;
 import bg.geist.web.api.exercise.ExerciseIndexModel;
-import bg.geist.web.api.quiz.models.QuizValidationRequestModel;
-import bg.geist.web.api.quiz.models.QuizValidationResponseModel;
+import bg.geist.web.api.quiz.models.QuizCertificationRequestModel;
+import bg.geist.web.api.quiz.models.QuizCertificationResponseModel;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import static bg.geist.constant.Constants.*;
 
@@ -38,14 +41,13 @@ public class QuizServiceImpl implements QuizService {
         this.categoryRepository = categoryRepository;
     }
 
+    // skip(destination.getCorrect());  don't work
     PropertyMap<Quiz, QuizModel> typeMap1 = new PropertyMap<>() {
         @Override
         protected void configure() {
-//            skip(destination.getCorrect());  don't work
             skip().setCorrect(null);
         }
     };
-
     PropertyMap<Quiz, QuizSimpleModel> typeMap2 = new PropertyMap<>() {
         @Override
         protected void configure() {
@@ -66,19 +68,17 @@ public class QuizServiceImpl implements QuizService {
                 result.add(exerciseCategory);
             }
         }
-
         return result;
     }
 
     @Override
     public Collection<Integer> getCorrect(Long id) {
-        return repository.getCorrectAnswers(id)
-                .orElseThrow(() -> new EntityNotFoundException(EntityName.QUIZ, id));
+        return repository.getCorrectAnswers(id);
     }
 
-    private Quiz getBy(Long id) throws EntityNotFoundException {
+    private Quiz getBy(Long id) throws ObjectNotFoundException {
         return repository.fetchById(id)
-                .orElseThrow(() -> new EntityNotFoundException(EntityName.QUIZ, id));
+                .orElseThrow(() -> new ObjectNotFoundException(EntityName.QUIZ, id));
     }
 
     @Override
@@ -89,9 +89,9 @@ public class QuizServiceImpl implements QuizService {
     @Override
     public Object getResponseModel(Long id) {
         Quiz quiz = getBy(id);
-        if (quiz.getValidation() == ExerciseValidation.NONE &&
-                QUIZ_DEFAULT_VALIDATION == ExerciseValidation.NONE &&
-                QUIZ_DEFAULT_MODEL == ModelType.MODEL) {
+        if (quiz.getCertification() == Certification.NONE &&
+                QUIZ_CERTIFICATION == Certification.NONE &&
+                QUIZ_RESPONSE_MODEL == ModelType.MODEL) {
             return map(quiz, QuizModel.class);
         } else {
             return map(quiz, QuizSimpleModel.class);
@@ -102,15 +102,15 @@ public class QuizServiceImpl implements QuizService {
         T quizModel = mapper.map(quiz, tClass);
 
         // skips correct answers when validation is on the server (ExerciseValidation.ON_SERVER)
-        ExerciseValidation validation = quiz.getValidation();
-        if (validation == ExerciseValidation.NONE) {
+        Certification validation = quiz.getCertification();
+        if (validation == Certification.NONE) {
             quizModel.setCorrect(quiz.getCorrect());
         }
 
         Options options = quiz.getOptions();
         if (options != null) {
             HashMap<String, Integer> opts = options.toMap();
-            opts.putIfAbsent(QUIZ_KEY_VALIDATION, quiz.getValidation().ordinal());
+            opts.putIfAbsent(QUIZ_CERTIFICATION_KEY, quiz.getCertification().ordinal());
             quizModel.setOptions(opts);
         }
         categoryRepository.findById(quiz.getCategoryId())
@@ -119,9 +119,9 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
-    public QuizValidationResponseModel validate(QuizValidationRequestModel requestModel) {
+    public QuizCertificationResponseModel certificate(QuizCertificationRequestModel requestModel) {
         Quiz quiz = getBy(requestModel.getQuizId());
-        QuizValidationResponseModel responseModel = new QuizValidationResponseModel();
+        QuizCertificationResponseModel responseModel = new QuizCertificationResponseModel();
         Collection<Integer> answers = requestModel.getAnswers();
         Collection<Integer> correct = quiz.getCorrect();
         responseModel.setCorrect(correct);

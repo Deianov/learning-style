@@ -1,6 +1,6 @@
 package bg.geist.domain.entity;
 
-import bg.geist.domain.enums.ExerciseType;
+import bg.geist.domain.entity.enums.ExerciseType;
 
 import javax.persistence.*;
 import java.util.ArrayList;
