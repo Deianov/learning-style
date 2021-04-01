@@ -6,28 +6,27 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
-import static bg.geist.constant.Constants.*;
 
 @FieldMatch(
         first = "password",
         second = "confirmPassword",
-        message = PASSWORDS_DOES_NOT_MATCH_MESSAGE
+        message = "{password.match}"
 )
 public class UserRegistrationBindingModel {
     @NotEmpty
-    @Size(min = 4, message = USERNAME_LENGTH_MESSAGE)
+    @Size(min = 4, message = "{username.length.min}")
     private String username;
 
     @NotEmpty
-    @Email(message = EMAIL_MESSAGE)
+    @Email(message = "{email.invalid}")
     private String email;
 
     @NotEmpty
-    @Size(min = 4, message = FULLNAME_LENGTH_MESSAGE)
+    @Size(min = 4, message = "{fullname.length.min}")
     private String fullname;
 
     @NotEmpty
-    @Size(min = 4, max = 20, message = PASSWORD_LENGTH_MESSAGE)
+    @Size(min = 4, max = 20, message = "{password.length}")
     private String password;
 
     @NotEmpty

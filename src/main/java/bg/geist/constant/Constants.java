@@ -11,15 +11,13 @@ public final class Constants {
     public static final String USER_ROLE_NOT_FOUND = "USER role not found. Please seed the roles.";
 
     public static final String USERNAME_EMPTY_MESSAGE = "Username cannot be empty.";
-    public static final String USERNAME_LENGTH_MESSAGE = "Username length must be more than 3 characters.";
     public static final String USERNAME_EXISTS_MESSAGE = "Username is already occupied.";
 
     public static final String FULLNAME_EMPTY_MESSAGE = "Full name cannot be empty.";
     public static final String FULLNAME_LENGTH_MESSAGE = "Full name length must be more than 3 characters.";
 
     public static final String PASSWORD_EMPTY_MESSAGE = "Password cannot be empty.";
-    public static final String PASSWORD_LENGTH_MESSAGE = "Password length must be between 5 and 20 characters.";
-    public static final String PASSWORDS_DOES_NOT_MATCH_MESSAGE = "Password and Confirm Password does not match.";
+    public static final String PASSWORDS_MATCH_MESSAGE = "Password and Confirm Password does not match.";
 
     public static final String EMAIL_EMPTY_MESSAGE = "Email cannot be empty.";
     public static final String EMAIL_REGEX = "\\b[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,63}\\b";
