@@ -1,0 +1,96 @@
+.questions {
+    list-style: decimal inside none;
+    padding: 0;
+    margin: 0;
+    font-weight: normal;
+    line-height: 1.4;
+    font-size: 100%;
+}
+
+.question {
+    background-color: #f1f1f1;
+    border-radius: 10px;
+    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.2);
+    /* padding: 0; */
+    margin: 0 0 10px 0;
+    font-weight: 600;
+}
+
+.question li {
+    margin: 0;
+    padding: 8px;
+}
+
+.question li::marker {
+    font-size: 100%;
+}
+
+.question span {
+    /* display: inline; */
+    margin: 2px;
+}
+
+.answer {
+    display: block;
+    padding-left: 20px;
+    line-height: 2;
+    font-size: 90%;
+    font-weight: normal;
+}
+
+.answer span {
+    padding-left: 6px;
+}
+
+
+.answer:hover {
+    background-color: #ddd;
+}
+
+.correct {
+    background-color: rgb(153, 229, 183);
+}
+
+.wrong {
+    background-color: rgb(231, 190, 190);
+}
+
+.validate {
+    width: 250px;
+    background-color: #4CAF50;
+    color: black;
+    border-radius: 10px;
+    padding: 12px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 16px;
+    border: solid 1px white;
+}
+
+.clear {
+    background-color: #DC3545;
+}
+
+.validate:hover {
+    font-weight: 600;
+    cursor: pointer;
+    border: solid 1px black;
+}
+
+.results > div {
+    margin-top: 0;
+    padding: 10px;
+    width: 100%;
+}
+
+.results > div {
+    margin-top: 0;
+    padding: 10px;
+    width: 100%;
+}
+
+.results a {
+    float: right;
+    color: black;
+    font-weight: bold;
+}

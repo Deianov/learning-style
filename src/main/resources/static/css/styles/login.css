@@ -1,0 +1,17 @@
+
+/* reset from bootstrap */
+body {
+    line-height: 1.15;
+}
+
+form {
+    max-width: 450px;
+}
+
+small {
+    line-height: 1.5;
+}
+
+.form-group {
+    margin: 40px 0 0 0;
+}
