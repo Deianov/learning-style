@@ -20,6 +20,9 @@ public class UserEntity extends BaseEntity{
     @Column(nullable = false)
     private String email;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @ManyToMany(fetch = FetchType.EAGER)
     private Collection<UserRoleEntity> roles = new ArrayList<>();
 
@@ -62,6 +65,10 @@ public class UserEntity extends BaseEntity{
     public void setEmail(String email) {
         this.email = email;
     }
+
+    public String getImageUrl() { return imageUrl; }
+
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
     public Collection<UserRoleEntity> getRoles() {
         return roles;

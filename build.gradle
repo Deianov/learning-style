@@ -18,6 +18,7 @@ dependencies {
 //	implementation 'com.google.code.gson:gson:2.8.6' -> Jackson
 	// Swagger
 	implementation group: 'io.springfox', name: 'springfox-boot-starter', version: '3.0.0'
+	implementation 'com.cloudinary:cloudinary:1.0.14'
 	implementation 'org.modelmapper:modelmapper:2.3.9'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-security'

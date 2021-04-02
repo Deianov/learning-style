@@ -1,9 +1,9 @@
 spring:
   datasource:
-    driverClassName: "com.mysql.cj.jdbc.Driver"
-    url: jdbc:mysql://localhost:3306/geist_db?allowPublicKeyRetrieval=true&useSSL=false&createDatabaseIfNotExist=true
-    username: "root"
-    password: "1234"
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQLHOST:localhost}:3306/geist_db?allowPublicKeyRetrieval=true&useSSL=false&createDatabaseIfNotExist=true
+    username: root
+    password: ${MYSQLPASS:1234}
     continueOnError: true
   jpa:
     #For MySQL 8
@@ -22,18 +22,28 @@ spring:
     serialization:
       FAIL_ON_EMPTY_BEANS: false
       EAGER_SERIALIZER_FETCH: false
+  servlet:
+    multipart:
+      max-file-size: 1MB
+      max-request-size: 1MB
+      enabled: true
 
 server:
   error:
     include-message: always
     include-stacktrace: always
 
-
 logging:
   level:
-#    org.springframework.security: DEBUG
-#    org.hibernate.SQL: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: OFF
     org.hibernate.type.descriptor.sql.BasicBinder: OFF
+
+cloudinary:
+  cloud-name: ${CLOUDINARYNAME:deianov}
+  api-key: ${CLOUDINARYKEY:113975441742847}
+  api-secret: ${CLOUDINARYSECRET:}
+  url: ${CLOUDINARY_URL}
 
 myapp:
   version: 21.03.2021

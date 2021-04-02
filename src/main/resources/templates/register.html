@@ -31,6 +31,7 @@
         <hr>
         <div>
             <form   class="form-signup"
+                    enctype="multipart/form-data"
                     th:action="@{/users/register}"
                     th:object="${registrationBindingModel}"
                     method="POST">
@@ -117,6 +118,14 @@
                     <small th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="invalid-feedback"></small>
                 </div>
                 <!-- EO: Password confirm -->
+
+                <!--  Image  -->
+                <div>
+                    <label for="image">Select profile image (Optional):</label>
+                    <input type="file" id="image" name="image" th:field="*{image}" accept="image/*">
+                    <small th:if="${#fields.hasErrors('image')}" th:errors="*{image}" class="invalid-feedback"></small>
+                </div>
+                <!-- EO: Image -->
 
                 <div class="form-group">
                     <label class="custom-control custom-checkbox">

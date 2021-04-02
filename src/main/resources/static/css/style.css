@@ -521,6 +521,7 @@ table th {
 input[type=text],
 input[type=email],
 input[type=password],
+input[type=file],
 textarea {
     width: 100%;
     padding: 12px;

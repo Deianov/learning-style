@@ -5,6 +5,7 @@ public class UserRegistrationModel {
     private String email;
     private String fullname;
     private String password;
+    private String imageUrl;
 
 
     public String getUsername() {
@@ -38,4 +39,8 @@ public class UserRegistrationModel {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public String getImageUrl() { return imageUrl; }
+
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

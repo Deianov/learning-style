@@ -1,7 +1,9 @@
 package bg.geist.domain.model.binding;
 
 import bg.geist.domain.model.validators.FieldMatch;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.Basic;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
@@ -31,6 +33,9 @@ public class UserRegistrationBindingModel {
 
     @NotEmpty
     private String confirmPassword;
+
+    @Basic
+    private MultipartFile image;
 
 
     public String getUsername() {
@@ -71,5 +76,13 @@ public class UserRegistrationBindingModel {
 
     public void setConfirmPassword(String confirmPassword) {
         this.confirmPassword = confirmPassword;
+    }
+
+    public MultipartFile getImage() {
+        return image;
+    }
+
+    public void setImage(MultipartFile image) {
+        this.image = image;
     }
 }
