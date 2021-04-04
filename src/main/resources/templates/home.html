@@ -1,27 +1,14 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="layouts/layout-server :: layout(~{::title}, ~{::#header}, ~{::#content}, ~{::#links})">
 
-<head th:replace="fragments/commons :: head">
-    <title></title>
-</head>
+<title>Learning Geist</title>
+<header id="header"></header>
+<section id="content"></section>
 
-<body>
-    <form th:action="@{/logout}" method="post" th:hidden="true" name="logoutForm">
-        <input type="submit" value="Logout" />
-    </form>
-    <header th:replace="fragments/commons :: header1"></header>
-    <nav th:replace="fragments/commons :: navigation"></nav>
-    <main th:replace="fragments/commons :: main"></main>
-
-    <button th:replace="fragments/commons :: go-top"></button>
-    <footer th:replace="fragments/commons :: footer"></footer>
-</body>
-<script>
-    document.addEventListener("DOMContentLoaded", function(event) {
-        document.getElementsByClassName("logout")[0].addEventListener("click", function (e) {
-            e.preventDefault();
-            document.logoutForm.submit();
-        })
-    });
-</script>
+<th:block id="links">
+    <!-- javascript, css source files -->
+    <script type="module" src="/js/main.js"></script>
+</th:block>
 </html>

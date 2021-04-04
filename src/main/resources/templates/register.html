@@ -1,148 +1,129 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      th:replace="layouts/layout :: layout(~{::title}, ~{::#links}, ~{::nav}, ~{::#content})">
+      th:replace="layouts/layout-server :: layout(~{::title}, ~{::#header}, ~{::#content}, ~{::#links})">
 
-<head>
-    <title>Login</title>
-    <th:block id="links">
-        <link rel="stylesheet" href="/css/external/bootstrap.min.css"/>
-        <link rel="stylesheet" href="/css/style.css" type="text/css">
-        <link rel="stylesheet" href="/css/styles/login.css" type="text/css">
-    </th:block>
-</head>
-<body>
+<title>Register</title>
+<header id="header">
+    <h2>Register</h2>
+    <hr>
+</header>
 
-    <nav class="menu">
-        <ul>
-            <li class="logo"><a href="./" th:href="@{/}"><span>Learning</span><span>Geist</span></a></li>
-        </ul>
-        <ul class="right-menu">
-            <li><a class="active" href="/users/register">Register</a></li>
-            <li><a href="/users/login" >Login</a></li>
-        </ul>
-    </nav>
+<section id="content">
+    <p sec:authorize="isAuthenticated()" class="alert alert-danger">Error 304 - This account is already logged in: <span sec:authentication="name"></span></p>
+    <div>
+        <form   class="form-signup"
+                enctype="multipart/form-data"
+                th:action="@{/users/register}"
+                th:object="${registrationBindingModel}"
+                method="POST">
+            <!-- Username -->
+            <div>
+                <label for="username" class="sr-only">Username</label>
+                <input id="username"
+                       th:field="*{username}"
+                       th:errorclass="is-invalid"
+                       type="text"
+                       class="form-control"
+                       placeholder="Username"
+                       name="username"
+                       aria-describedby="usernameHelpInline"
+                       required=""
+                       autofocus="">
+                <small th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="invalid-feedback">a</small>
+            </div>
+            <!-- EO: Username -->
 
-    <section id="content">
-        <p th:if="${error}" class="alert alert-danger">There was an error, please try again</p>
-        <p sec:authorize="isAuthenticated()" class="alert alert-danger">Error 304 - This account is already logged in: <span sec:authentication="name"></span></p>
+            <!-- Full name -->
+            <div>
+                <label for="fullname" class="sr-only">Full Name</label>
+                <input id="fullname"
+                       th:value="*{fullname}"
+                       th:errorclass="is-invalid"
+                       type="text"
+                       class="form-control"
+                       placeholder="Full Name"
+                       name="fullname"
+                       aria-describedby="fullNameHelpInline"
+                       required="">
+                <small th:if="${#fields.hasErrors('fullname')}" th:errors="*{fullname}" class="invalid-feedback"></small>
+            </div>
+            <!-- EO: Full -->
 
-        <h2 class="form-signin-heading">Register</h2>
-        <hr>
-        <div>
-            <form   class="form-signup"
-                    enctype="multipart/form-data"
-                    th:action="@{/users/register}"
-                    th:object="${registrationBindingModel}"
-                    method="POST">
-                <!-- Username -->
-                <div>
-                    <label for="username" class="sr-only">Username</label>
-                    <input id="username"
-                           th:field="*{username}"
-                           th:errorclass="is-invalid"
-                           type="text"
-                           class="form-control"
-                           placeholder="Username"
-                           name="username"
-                           aria-describedby="usernameHelpInline"
-                           required=""
-                           autofocus=""
-                    >
-                    <small th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="invalid-feedback">a</small>
-                </div>
-                <!-- EO: Username -->
+            <!-- Email -->
+            <div>
+                <label for="email" class="sr-only">Email</label>
+                <input id="email"
+                       th:value="*{email}"
+                       th:errorclass="is-invalid"
+                       type="email"
+                       class="form-control"
+                       placeholder="Email"
+                       name="email"
+                       aria-describedby="emailHelpInline"
+                       required="">
+                <small th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="invalid-feedback"></small>
+            </div>
+            <!-- EO: Email -->
 
-                <!-- Full name -->
-                <div>
-                    <label for="fullname" class="sr-only">Full Name</label>
-                    <input id="fullname"
-                           th:value="*{fullname}"
-                           th:errorclass="is-invalid"
-                           type="text"
-                           class="form-control"
-                           placeholder="Full Name"
-                           name="fullname"
-                           aria-describedby="fullNameHelpInline"
-                           required=""
-                    >
-                    <small th:if="${#fields.hasErrors('fullname')}" th:errors="*{fullname}" class="invalid-feedback"></small>
-                </div>
-                <!-- EO: Full -->
+            <!-- Password -->
+            <div>
+                <label for="password" class="sr-only">Password</label>
+                <input id="password"
+                       th:errorclass="is-invalid"
+                       type="password"
+                       class="form-control"
+                       placeholder="Password"
+                       name="password"
+                       aria-describedby="passwordHelpInline"
+                       required="">
+                <small th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="invalid-feedback"></small>
+            </div>
+            <!-- EO: Password -->
 
-                <!-- Email -->
-                <div>
-                    <label for="email" class="sr-only">Email</label>
-                    <input id="email"
-                           th:value="*{email}"
-                           th:errorclass="is-invalid"
-                           type="email"
-                           class="form-control"
-                           placeholder="Email"
-                           name="email"
-                           aria-describedby="emailHelpInline"
-                           required=""
-                    >
-                    <small th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="invalid-feedback"></small>
-                </div>
-                <!-- EO: Email -->
+            <!-- Password confirm -->
+            <div>
+                <label for="confirmPassword" class="sr-only">Confirm Password</label>
+                <input id="confirmPassword"
+                       th:errorclass="is-invalid"
+                       type="password"
+                       class="form-control"
+                       placeholder="Confirm Password"
+                       name="confirmPassword"
+                       aria-describedby="confirmPasswordHelpInline"
+                       required="">
+                <small th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="invalid-feedback"></small>
+            </div>
+            <!-- EO: Password confirm -->
 
-                <!-- Password -->
-                <div>
-                    <label for="password" class="sr-only">Password</label>
-                    <input id="password"
-                           th:errorclass="is-invalid"
-                           type="password"
-                           class="form-control"
-                           placeholder="Password"
-                           name="password"
-                           aria-describedby="passwordHelpInline"
-                           required=""
-                    >
-                    <small th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="invalid-feedback"></small>
-                </div>
-                <!-- EO: Password -->
+            <!--  Image  -->
+            <div>
+                <label for="image">Select profile image (Optional):</label>
+                <input type="file" id="image" name="image" th:field="*{image}" accept="image/*">
+                <small th:if="${#fields.hasErrors('image')}" th:errors="*{image}" class="invalid-feedback"></small>
+            </div>
+            <!-- EO: Image -->
 
-                <!-- Password confirm -->
-                <div>
-                    <label for="confirmPassword" class="sr-only">Confirm Password</label>
-                    <input id="confirmPassword"
-                           th:errorclass="is-invalid"
-                           type="password"
-                           class="form-control"
-                           placeholder="Confirm Password"
-                           name="confirmPassword"
-                           aria-describedby="confirmPasswordHelpInline"
-                           required=""
-                    >
-                    <small th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="invalid-feedback"></small>
-                </div>
-                <!-- EO: Password confirm -->
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" checked="">
+                    <span class="custom-control-label"> I am agree with <a href="#">terms and contitions</a></span>
+                </label>
+            </div>
 
-                <!--  Image  -->
-                <div>
-                    <label for="image">Select profile image (Optional):</label>
-                    <input type="file" id="image" name="image" th:field="*{image}" accept="image/*">
-                    <small th:if="${#fields.hasErrors('image')}" th:errors="*{image}" class="invalid-feedback"></small>
-                </div>
-                <!-- EO: Image -->
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Register</button>
 
-                <div class="form-group">
-                    <label class="custom-control custom-checkbox">
-                        <input type="checkbox" class="custom-control-input" checked="">
-                        <span class="custom-control-label"> I am agree with <a href="#">terms and contitions</a></span>
-                    </label>
-                </div>
+            <div class="form-group">
+                <p class="text-left">Have an account? <a href="/users/login">Log In</a> </p>
+            </div>
+        </form>
+    </div>
+</section>
 
-                <button class="btn btn-lg btn-primary btn-block" type="submit">Register</button>
-
-                <div class="form-group">
-                    <p class="text-left">Have an account? <a href="/users/login">Log In</a> </p>
-                </div>
-            </form>
-        </div>
-
-    </section>
-
-</body>
+<th:block id="links">
+    <!-- javascript, css source files -->
+    <link rel="stylesheet" href="/css/external/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+    <link rel="stylesheet" href="/css/styles/server.css" type="text/css">
+</th:block>
 </html>

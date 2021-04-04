@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="layouts/layout-server :: layout(~{::title}, ~{::#header}, ~{::#content}, ~{::#links})">
+
+<title>User profile</title>
+<header id="header">
+    <h2>User profile</h2>
+    <hr>
+</header>
+
+<section id="content">
+    <form   class="form-signup"
+            enctype="multipart/form-data"
+            method="POST">
+
+        <!--  Image  -->
+        <div>
+            <label for="image">Select profile image (Optional):</label>
+            <input type="file" id="image" name="image" th:text="*{profile.imageUrl}" accept="image/*" disabled>
+            <!--            <small th:if="${#fields.hasErrors('image')}" th:errors="*{image}" class="invalid-feedback"></small>-->
+        </div>
+        <!-- EO: Image -->
+
+<!--        <button class="btn btn-lg btn-primary btn-block" type="submit">Register</button>-->
+    </form>
+</section>
+
+<th:block id="links">
+    <!-- javascript, css source files -->
+    <link rel="stylesheet" href="/css/external/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+    <link rel="stylesheet" href="/css/styles/server.css" type="text/css">
+</th:block>
+
+</html>

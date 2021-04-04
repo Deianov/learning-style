@@ -1,7 +1,10 @@
 
-/* reset from bootstrap */
 body {
-    line-height: 1.15;
+    line-height: 1.15; /* reset from bootstrap */
+}
+
+h2{
+    margin-top: 30px;
 }
 
 form {
@@ -18,4 +21,8 @@ small {
 
 label {
     margin: 0;
+}
+
+.navbar {
+    padding: 0;
 }
