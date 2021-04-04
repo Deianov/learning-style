@@ -1,6 +1,5 @@
 package bg.geist.init;
 
-import bg.geist.constant.Constants;
 import bg.geist.constant.ConstantsInit;
 import bg.geist.domain.entity.*;
 import bg.geist.domain.entity.enums.*;
@@ -34,6 +33,7 @@ public class SeedDb {
     private final ObjectMapper objectMapper;
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
+    private final UserProfileRepository userProfileRepository;
     private final PasswordEncoder passwordEncoder;
     private final QuizRepository quizRepository;
     private final QuestionRepository questionRepository;
@@ -46,11 +46,12 @@ public class SeedDb {
     private final DictionaryRepository dictionaryRepository;
 
 
-    public SeedDb(@Value("classpath:myapp.json") Resource jsonFile, ObjectMapper objectMapper, UserRepository userRepository, UserRoleRepository userRoleRepository, PasswordEncoder passwordEncoder, QuizRepository quizRepository, QuestionRepository questionRepository, AnswersCollectionRepository answersCollectionRepository, AnswerRepository answerRepository, CategoryRepository categoryRepository, CardsRepository cardsRepository, OptionsRepository optionsRepository, DictionaryCollectionRepository dictionaryCollectionRepository, DictionaryRepository dictionaryRepository) {
+    public SeedDb(@Value("classpath:myapp.json") Resource jsonFile, ObjectMapper objectMapper, UserRepository userRepository, UserRoleRepository userRoleRepository, UserProfileRepository userProfileRepository, PasswordEncoder passwordEncoder, QuizRepository quizRepository, QuestionRepository questionRepository, AnswersCollectionRepository answersCollectionRepository, AnswerRepository answerRepository, CategoryRepository categoryRepository, CardsRepository cardsRepository, OptionsRepository optionsRepository, DictionaryCollectionRepository dictionaryCollectionRepository, DictionaryRepository dictionaryRepository) {
         this.jsonFile = jsonFile;
         this.objectMapper = objectMapper;
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
+        this.userProfileRepository = userProfileRepository;
         this.passwordEncoder = passwordEncoder;
         this.quizRepository = quizRepository;
         this.questionRepository = questionRepository;
@@ -79,6 +80,8 @@ public class SeedDb {
         admin.setRoles(List.of(adminRole, userRole));
 
         UserEntity user = new UserEntity(USER_NAME, passwordEncoder.encode(USER_PASSWORD), USER_FULLNAME, USER_EMAIL);
+        UserProfile userProfile = userProfileRepository.save(new UserProfile(USER_IMAGE));
+        user.setProfile(userProfile);
         user.setRoles(List.of(userRole));
 
         userRepository.saveAll(List.of(admin, user));

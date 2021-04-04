@@ -29,7 +29,7 @@ public class HomeController {
 
     @GetMapping("/home")
     public String home(@AuthenticationPrincipal UserDetails principal, Model model) {
-        model.addAttribute("fullname", userService.getFullname(principal.getUsername()));
+        model.addAttribute("profile", userService.profile(principal.getUsername()));
         return "home";
     }
 }

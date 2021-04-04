@@ -11,6 +11,8 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -103,5 +105,12 @@ public class UserController {
                         .getUrl());
         userService.register(registrationModel, true);
         return "redirect:/home";
+    }
+
+    @GetMapping("/profile")
+    public String profile(@AuthenticationPrincipal UserDetails principal, Model model){
+        // todo : add profile with interceptor
+        model.addAttribute("profile", userService.profile(principal.getUsername()));
+        return "profile";
     }
 }

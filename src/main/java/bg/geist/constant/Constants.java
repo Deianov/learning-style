@@ -24,6 +24,9 @@ public final class Constants {
     public static final String EMAIL_MESSAGE = "Enter valid email address.";
     public static final String EMAIL_EXISTS_MASSAGE = "This email address is already being used.";
 
+    // USER PROFILE
+    public static final String PROFILE_DEFAULT_AVATAR = "./assets/images/avatar.png";
+
     // CARDS
     public static final long CARDS_BASE_CATEGORY_ID = 1L;
 

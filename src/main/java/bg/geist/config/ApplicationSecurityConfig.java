@@ -30,20 +30,23 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
         http.
             authorizeRequests()
                 // allow access to static resources to anyone // .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                .antMatchers(HttpMethod.GET,"/assets/**", "/css/**", "/js/**").permitAll()
+                .antMatchers("/assets/**", "/css/**", "/js/**").permitAll()
                 // allow access to cards and quiz by id
                 .antMatchers(HttpMethod.GET,"/cards/{id:\\d+}", "/quiz/{id:\\d+}").permitAll()
                 // allow access to index, user login and registration to anyone
-                .antMatchers("/", "/cards*", "/quiz*", "/games*", "/users/login*", "/users/register*").permitAll()
+                .antMatchers("/", "/cards", "/quiz", "/games", "/error", "/users/login", "/users/register").permitAll()
                 // allow GET requests to api and swagger
                 .antMatchers(HttpMethod.GET,"/api", "/v2/api-docs").permitAll()
 //                .antMatchers(HttpMethod.POST, "/api/**/certification").hasAnyAuthority()
 //                .antMatchers(HttpMethod.GET,"/api/**").permitAll()
                 // protect all other pages
+            .and()
+                .authorizeRequests()
+                .antMatchers("/users/profile").hasRole("USER")
                 .antMatchers("/**").authenticated()
 //            .and()
 //                .exceptionHandling()
-//                .accessDeniedPage("/forbidden") // todo: api/server
+//                .accessDeniedPage("/forbidden")
             .and()
                 .formLogin()
                 // our login page will be served by the controller with mapping /users/login

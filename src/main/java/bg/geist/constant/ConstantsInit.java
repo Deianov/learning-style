@@ -10,4 +10,5 @@ public class ConstantsInit {
     public static final String USER_PASSWORD = "user";
     public static final String USER_FULLNAME = "TEST USER";
     public static final String USER_EMAIL = "user@user.com";
+    public static final String USER_IMAGE = "https://res.cloudinary.com/deianov/image/upload/v1617366058/user.jpg";
 }
