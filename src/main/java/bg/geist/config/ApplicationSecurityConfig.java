@@ -1,5 +1,6 @@
 package bg.geist.config;
 
+import bg.geist.exception.CustomAccessDeniedHandler;
 import bg.geist.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -18,11 +19,13 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final UserDetailsServiceImpl userDetailsService;
     private final PasswordEncoder passwordEncoder;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
     @Autowired
-    public ApplicationSecurityConfig(UserDetailsServiceImpl userDetailsService, PasswordEncoder passwordEncoder) {
+    public ApplicationSecurityConfig(UserDetailsServiceImpl userDetailsService, PasswordEncoder passwordEncoder, CustomAccessDeniedHandler accessDeniedHandler) {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Override
@@ -37,18 +40,18 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/", "/cards", "/quiz", "/error", "/users/login", "/users/register").permitAll()
                 // allow GET requests to api and swagger
                 .antMatchers(HttpMethod.GET,"/api", "/v2/api-docs").permitAll()
-//                .antMatchers(HttpMethod.POST, "/api/**/certification").hasAnyAuthority()
+//                .antMatchers(HttpMethod.POST, "/api/**/certification").authenticated()
 //                .antMatchers(HttpMethod.GET,"/api/**").permitAll()
             .and()
                 .authorizeRequests()
                 .antMatchers("/home", "/logout").authenticated()
                 .antMatchers("/users/profile").hasRole("USER")
-                .antMatchers("/games").hasRole("ADMIN")
+                .antMatchers("/users/profiles/*", "/games").hasRole("ADMIN")
                 // protect all other pages
                 .antMatchers("/**").authenticated()
-//            .and()
-//                .exceptionHandling()
-//                .accessDeniedPage("/forbidden")
+            .and()
+                .exceptionHandling()
+                .accessDeniedHandler(accessDeniedHandler)
             .and()
                 .formLogin()
                 // our login page will be served by the controller with mapping /users/login

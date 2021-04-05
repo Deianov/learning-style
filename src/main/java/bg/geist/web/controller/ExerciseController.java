@@ -12,6 +12,7 @@ public class ExerciseController {
     // single page redirects (by page/router.js)
     private static final String PAGE_CARDS = "cards";
     private static final String PAGE_QUIZZES = "quiz";
+    private static final String PAGE_GAMES = "games";
     private static final String REDIRECT_PAGE = "redirect:/?page=%s";
     private static final String REDIRECT_ID = "redirect:/?page=%s&id=%d";
 
@@ -41,5 +42,14 @@ public class ExerciseController {
     @GetMapping("/quiz/{id}")
     public String quizId(@NotNull @PathVariable Long id) {
         return String.format(REDIRECT_ID, PAGE_QUIZZES, id);
+    }
+
+
+    @GetMapping("/games")
+    public String games(@RequestParam(required = false) Long id) {
+        if(id != null) {
+            return String.format(REDIRECT_ID, PAGE_GAMES, id);
+        }
+        return String.format(REDIRECT_PAGE, PAGE_GAMES);
     }
 }

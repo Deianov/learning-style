@@ -7,6 +7,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
@@ -20,13 +21,6 @@ import java.sql.SQLException;
 /*
     Important Note: The Model may not be a parameter of any @ExceptionHandler method.
     Instead, setup a model inside the method using a ModelAndView as shown by handleError() above.
-*/
-
-/* todo: ControllerExceptionHandler
-
-    By default, Spring Security has an ExceptionTranslationFilter defined which handles exceptions of
-    type AuthenticationException and AccessDeniedException.
-    The latter is done through a property called accessDeniedHandler, which uses the AccessDeniedHandlerImpl class.
 */
 
 @ControllerAdvice
