@@ -27,6 +27,7 @@ import java.sql.SQLException;
 public class ControllerExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(ControllerExceptionHandler.class);
     public static final String DEFAULT_ERROR_VIEW = "error";
+    public static final String ACCESS_DENIED_PAGE = "/403?url=";
 
 
     @ExceptionHandler(HttpMessageNotReadableException.class) // json parsing
