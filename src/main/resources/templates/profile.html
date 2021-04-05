@@ -12,12 +12,13 @@
 <section id="content">
     <form   class="form-signup"
             enctype="multipart/form-data"
+            th:object="${profile}"
             method="POST">
 
         <!--  Image  -->
         <div>
             <label for="image">Select profile image (Optional):</label>
-            <input type="file" id="image" name="image" th:text="*{profile.imageUrl}" accept="image/*" disabled>
+            <input type="file" id="image" name="image" th:text="*{imageUrl}" accept="image/*" disabled>
             <!--            <small th:if="${#fields.hasErrors('image')}" th:errors="*{image}" class="invalid-feedback"></small>-->
         </div>
         <!-- EO: Image -->

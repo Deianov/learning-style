@@ -34,15 +34,17 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 // allow access to cards and quiz by id
                 .antMatchers(HttpMethod.GET,"/cards/{id:\\d+}", "/quiz/{id:\\d+}").permitAll()
                 // allow access to index, user login and registration to anyone
-                .antMatchers("/", "/cards", "/quiz", "/games", "/error", "/users/login", "/users/register").permitAll()
+                .antMatchers("/", "/cards", "/quiz", "/error", "/users/login", "/users/register").permitAll()
                 // allow GET requests to api and swagger
                 .antMatchers(HttpMethod.GET,"/api", "/v2/api-docs").permitAll()
 //                .antMatchers(HttpMethod.POST, "/api/**/certification").hasAnyAuthority()
 //                .antMatchers(HttpMethod.GET,"/api/**").permitAll()
-                // protect all other pages
             .and()
                 .authorizeRequests()
+                .antMatchers("/home", "/logout").authenticated()
                 .antMatchers("/users/profile").hasRole("USER")
+                .antMatchers("/games").hasRole("ADMIN")
+                // protect all other pages
                 .antMatchers("/**").authenticated()
 //            .and()
 //                .exceptionHandling()

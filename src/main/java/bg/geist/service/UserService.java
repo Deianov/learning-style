@@ -7,6 +7,7 @@ public interface UserService {
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
 
+    SimpleProfileView currentProfile();
     SimpleProfileView profile(String username);
     void register(UserRegistrationModel model, boolean login);
 }

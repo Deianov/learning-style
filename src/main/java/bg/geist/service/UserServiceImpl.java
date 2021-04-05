@@ -64,6 +64,12 @@ public class UserServiceImpl implements UserService {
         return new SimpleProfileView(username, userEntity.getFullName(), imageUrl);
     }
 
+
+    @Override
+    public SimpleProfileView currentProfile() {
+        return profile(SecurityContextHolder.getContext().getAuthentication().getName());
+    }
+
     @Override
     public void register(UserRegistrationModel model, boolean login) {
 
