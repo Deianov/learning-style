@@ -1,13 +1,14 @@
-package bg.geist.domain.model.view;
+package bg.geist.domain.model.service;
 
-public class SimpleProfileView {
+
+public class UserProfileModel {
     private Long id;
     private String username;
+    private String email;
     private String fullname;
+    private String password;
     private String imageUrl;
 
-
-    public SimpleProfileView() {};
 
     public Long getId() {
         return id;
@@ -25,12 +26,28 @@ public class SimpleProfileView {
         this.username = username;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public String getFullname() {
         return fullname;
     }
 
     public void setFullname(String fullname) {
         this.fullname = fullname;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getImageUrl() {

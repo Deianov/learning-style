@@ -35,7 +35,7 @@ server:
 
 logging:
   level:
-    org.springframework.security: OFF
+    org.springframework.security: DEBUG
     org.hibernate.SQL: OFF
     org.hibernate.type.descriptor.sql.BasicBinder: OFF
 

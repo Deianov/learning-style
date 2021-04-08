@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="layouts/layout-server :: layout(~{::title}, ~{::#header}, ~{::#content}, ~{::#links})">
+
+<title>Admin</title>
+<header id="header">
+    <h2>Administration panel</h2>
+    <hr>
+</header>
+
+<section id="content" sec:authorize="hasRole('ROLE_ADMIN')">
+    <div>
+        <div class="card"><a th:href="@{/admin/users}">Users</a></div>
+    </div>
+</section>
+
+<th:block id="links">
+    <!-- javascript, css source files -->
+    <link rel="stylesheet" href="/css/external/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+    <link rel="stylesheet" href="/css/styles/server.css" type="text/css">
+</th:block>
+
+</html>

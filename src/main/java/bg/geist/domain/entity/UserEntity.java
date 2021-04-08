@@ -1,5 +1,7 @@
 package bg.geist.domain.entity;
 
+import bg.geist.domain.entity.enums.UserRole;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -8,19 +10,19 @@ import java.util.Collection;
 @Table(name = "users")
 public class UserEntity extends BaseEntity{
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true, updatable = false)
     private String username;
 
     @Column(nullable = false)
     private String password;
 
     @Column(nullable = false)
-    private String fullName;
+    private String fullname;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     private UserProfile profile;
 
 
@@ -28,10 +30,10 @@ public class UserEntity extends BaseEntity{
     private Collection<UserRoleEntity> roles = new ArrayList<>();
 
     public UserEntity() { }
-    public UserEntity(String username, String password, String fullName, String email) {
+    public UserEntity(String username, String password, String fullname, String email) {
         this.username = username;
         this.password = password;
-        this.fullName = fullName;
+        this.fullname = fullname;
         this.email = email;
     }
 
@@ -51,12 +53,12 @@ public class UserEntity extends BaseEntity{
         this.password = password;
     }
 
-    public String getFullName() {
-        return fullName;
+    public String getFullname() {
+        return fullname;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public void setFullname(String fullname) {
+        this.fullname = fullname;
     }
 
     public String getEmail() {
@@ -86,5 +88,17 @@ public class UserEntity extends BaseEntity{
     public UserEntity addRole(UserRoleEntity roleEntity) {
         this.roles.add(roleEntity);
         return this;
+    }
+
+    public boolean hasRole(UserRole role) {
+        if (role == null) {
+            return false;
+        }
+        for (UserRoleEntity roleEntity : roles) {
+            if (roleEntity.getRole() == role) {
+                return true;
+            }
+        }
+        return false;
     }
 }

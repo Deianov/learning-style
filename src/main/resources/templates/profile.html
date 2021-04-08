@@ -12,18 +12,100 @@
 <section id="content">
     <form   class="form-signup"
             enctype="multipart/form-data"
-            th:object="${profile}"
+            th:action="@{/users/profiles/{id}(id=${profile.id})}"
+            th:object="${profileBindingModel}"
             method="POST">
-
+        <!-- Username -->
+        <div>
+            <label for="username" class="sr-only">Username</label>
+            <input id="username"
+                   th:field="*{username}"
+                   th:errorclass="is-invalid"
+                   type="text"
+                   class="form-control"
+                   placeholder="Username"
+                   name="username"
+                   required=""
+                   disabled>
+            <small th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="invalid-feedback"></small>
+        </div>
+        <!-- EO: Username -->
+        <!-- Full name -->
+        <div>
+            <label for="fullname" class="sr-only">Full Name</label>
+            <input id="fullname"
+                   th:value="*{fullname}"
+                   th:errorclass="is-invalid"
+                   type="text"
+                   class="form-control"
+                   placeholder="Full Name"
+                   name="fullname"
+                   required="">
+            <small th:if="${#fields.hasErrors('fullname')}" th:errors="*{fullname}" class="invalid-feedback"></small>
+        </div>
+        <!-- EO: Full -->
+        <!-- Email -->
+        <div>
+            <label for="email" class="sr-only">Email</label>
+            <input id="email"
+                   th:value="*{email}"
+                   th:errorclass="is-invalid"
+                   type="email"
+                   class="form-control"
+                   placeholder="Email"
+                   name="email"
+                   required=""
+                   disabled>
+            <small th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="invalid-feedback"></small>
+        </div>
+        <!-- EO: Email -->
+        <!-- Old Password -->
+        <div>
+            <label for="oldPassword" class="sr-only">Old Password</label>
+            <input id="oldPassword"
+                   th:errorclass="is-invalid"
+                   type="password"
+                   class="form-control"
+                   placeholder="Old Password"
+                   name="oldPassword">
+            <small th:if="${#fields.hasErrors('oldPassword')}" th:errors="*{oldPassword}" class="invalid-feedback"></small>
+        </div>
+        <!-- EO: Old Password -->
+        <!-- Password -->
+        <div>
+            <label for="password" class="sr-only">Password</label>
+            <input id="password"
+                   th:errorclass="is-invalid"
+                   type="password"
+                   class="form-control"
+                   placeholder="New Password"
+                   name="password">
+            <small th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="invalid-feedback"></small>
+        </div>
+        <!-- EO: Password -->
+        <!-- Password confirm -->
+        <div>
+            <label for="confirmPassword" class="sr-only">Confirm Password</label>
+            <input id="confirmPassword"
+                   th:errorclass="is-invalid"
+                   type="password"
+                   class="form-control"
+                   placeholder="Confirm New Password"
+                   name="confirmPassword">
+            <small th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="invalid-feedback"></small>
+        </div>
+        <!-- EO: Password confirm -->
         <!--  Image  -->
         <div>
             <label for="image">Select profile image (Optional):</label>
-            <input type="file" id="image" name="image" th:text="*{imageUrl}" accept="image/*" disabled>
-            <!--            <small th:if="${#fields.hasErrors('image')}" th:errors="*{image}" class="invalid-feedback"></small>-->
+            <input type="file" id="image" name="image" th:field="*{image}" accept="image/*">
+            <i id="imageUrl" th:text="*{imageUrl}">imageUrl</i>
+            <small th:if="${#fields.hasErrors('image')}" th:errors="*{image}" class="invalid-feedback"></small>
         </div>
-        <!-- EO: Image -->
-
-<!--        <button class="btn btn-lg btn-primary btn-block" type="submit">Register</button>-->
+        <!--  EO: Image -->
+        <div class="form-group">
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Save profile</button>
+        </div>
     </form>
 </section>
 

@@ -1,6 +1,5 @@
 package bg.geist.init;
 
-import bg.geist.constant.ConstantsInit;
 import bg.geist.domain.entity.*;
 import bg.geist.domain.entity.enums.*;
 import bg.geist.init.adapter.ArrayToMatrixAdapter;
@@ -15,7 +14,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -34,7 +33,7 @@ public class SeedDb {
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     private final UserProfileRepository userProfileRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final BCryptPasswordEncoder passwordEncoder;
     private final QuizRepository quizRepository;
     private final QuestionRepository questionRepository;
     private final AnswersCollectionRepository answersCollectionRepository;
@@ -46,7 +45,7 @@ public class SeedDb {
     private final DictionaryRepository dictionaryRepository;
 
 
-    public SeedDb(@Value("classpath:myapp.json") Resource jsonFile, ObjectMapper objectMapper, UserRepository userRepository, UserRoleRepository userRoleRepository, UserProfileRepository userProfileRepository, PasswordEncoder passwordEncoder, QuizRepository quizRepository, QuestionRepository questionRepository, AnswersCollectionRepository answersCollectionRepository, AnswerRepository answerRepository, CategoryRepository categoryRepository, CardsRepository cardsRepository, OptionsRepository optionsRepository, DictionaryCollectionRepository dictionaryCollectionRepository, DictionaryRepository dictionaryRepository) {
+    public SeedDb(@Value("classpath:myapp.json") Resource jsonFile, ObjectMapper objectMapper, UserRepository userRepository, UserRoleRepository userRoleRepository, UserProfileRepository userProfileRepository, BCryptPasswordEncoder passwordEncoder, QuizRepository quizRepository, QuestionRepository questionRepository, AnswersCollectionRepository answersCollectionRepository, AnswerRepository answerRepository, CategoryRepository categoryRepository, CardsRepository cardsRepository, OptionsRepository optionsRepository, DictionaryCollectionRepository dictionaryCollectionRepository, DictionaryRepository dictionaryRepository) {
         this.jsonFile = jsonFile;
         this.objectMapper = objectMapper;
         this.userRepository = userRepository;
@@ -77,6 +76,8 @@ public class SeedDb {
         userRoleRepository.saveAll(List.of(adminRole, userRole));
 
         UserEntity admin = new UserEntity(ADMIN_NAME, passwordEncoder.encode(ADMIN_PASSWORD), ADMIN_FULLNAME, ADMIN_EMAIL);
+        UserProfile adminProfile = userProfileRepository.save(new UserProfile(null));
+        admin.setProfile(adminProfile);
         admin.setRoles(List.of(adminRole, userRole));
 
         UserEntity user = new UserEntity(USER_NAME, passwordEncoder.encode(USER_PASSWORD), USER_FULLNAME, USER_EMAIL);

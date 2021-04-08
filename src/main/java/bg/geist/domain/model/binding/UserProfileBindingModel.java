@@ -4,8 +4,8 @@ import bg.geist.constant.Constants;
 import bg.geist.domain.model.validators.FieldMatch;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 
@@ -14,26 +14,19 @@ import javax.validation.constraints.Size;
         second = "confirmPassword",
         message = "{password.match}"
 )
-public class UserRegistrationBindingModel {
-    @NotEmpty
-    @Size(min = Constants.USERNAME_MIN_LENGTH, message = "{username.length.min}")
+public class UserProfileBindingModel {
     private String username;
-
-    @NotEmpty
-    @Email(message = "{email.invalid}")
     private String email;
 
     @NotEmpty
     @Size(min = Constants.FULLNAME_MIN_LENGTH, message = "{fullname.length.min}")
     private String fullname;
+    private String oldPassword;
 
-    @NotEmpty
-    @Size(min = Constants.PASSWORD_MIN_LENGTH, max = Constants.PASSWORD_MIN_LENGTH, message = "{password.length}")
+    @Pattern(regexp = Constants.NEW_PASSWORDS_REGEX, message = Constants.PASSWORDS_LENGTH_MESSAGE)
     private String password;
-
-    @NotEmpty
     private String confirmPassword;
-
+    private String imageUrl;
     private MultipartFile image;
 
 
@@ -65,6 +58,14 @@ public class UserRegistrationBindingModel {
         return password;
     }
 
+    public String getOldPassword() {
+        return oldPassword;
+    }
+
+    public void setOldPassword(String oldPassword) {
+        this.oldPassword = oldPassword;
+    }
+
     public void setPassword(String password) {
         this.password = password;
     }
@@ -75,6 +76,14 @@ public class UserRegistrationBindingModel {
 
     public void setConfirmPassword(String confirmPassword) {
         this.confirmPassword = confirmPassword;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public MultipartFile getImage() {

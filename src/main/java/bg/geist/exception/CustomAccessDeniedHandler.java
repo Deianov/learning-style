@@ -16,7 +16,7 @@ import java.io.IOException;
 
 @Component
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
-    public static final Logger logger = LoggerFactory.getLogger(CustomAccessDeniedHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(CustomAccessDeniedHandler.class);
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
