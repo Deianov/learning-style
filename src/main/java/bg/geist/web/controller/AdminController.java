@@ -21,10 +21,10 @@ import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Collectors;
-
+/* final class or methods don#t work with aop */
 @Controller
 @RequestMapping("/admin")
-public final class AdminController {
+public class AdminController {
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
     private static final String PAGE_HOME = "admin/admin-panel";
     private static final String PAGE_USERS = "admin/admin-users";
@@ -40,7 +40,7 @@ public final class AdminController {
     }
 
     @ModelAttribute(Constants.PROFILE_KEY)
-    public final SimpleProfileView profile() {
+    public SimpleProfileView profile() {
         return userService.currentProfile();
     }
 
@@ -48,7 +48,7 @@ public final class AdminController {
     public final String home(){ return PAGE_HOME; }
 
     @GetMapping("/users")
-    public final ModelAndView users(){
+    public ModelAndView users(){
         Collection<UserAdministrationView> users =
                 userRepository.findAll()
                         .stream().map(user -> new UserAdministrationView(
@@ -70,7 +70,7 @@ public final class AdminController {
     }
 
     @RequestMapping(path = "/users/role-add", method = {RequestMethod.PATCH, RequestMethod.POST})
-    public final String roleAdd(@NotNull @Valid final UserRoleBindingModel bindingModel,
+    public String roleAdd(@NotNull @Valid final UserRoleBindingModel bindingModel,
                                 final Errors errors) {
         if (errors.hasErrors()) {
             throw new BadCredentialsException(Constants.USER_BAD_CREDENTIALS);
@@ -80,7 +80,7 @@ public final class AdminController {
     }
 
     @RequestMapping(path = "/users/role-remove", method = {RequestMethod.DELETE, RequestMethod.POST})
-    public final String roleRemove(@NotNull @Valid final UserRoleBindingModel bindingModel,
+    public String roleRemove(@NotNull @Valid final UserRoleBindingModel bindingModel,
                                    final Errors errors) {
         if (errors.hasErrors()) {
             throw new BadCredentialsException(Constants.USER_BAD_CREDENTIALS);

@@ -27,6 +27,10 @@ spring:
       max-file-size: 1MB
       max-request-size: 1MB
       enabled: true
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
 
 server:
   error:
