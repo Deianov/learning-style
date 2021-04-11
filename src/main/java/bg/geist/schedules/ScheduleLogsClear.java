@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @EnableAsync
 public class ScheduleLogsClear {
     // second, minute, hour, day of month, month, day(s) of week
-    private static final String cronExpression = "0 0 24 * * FRI";
+    private static final String cronExpression = "0 0 23 * * FRI";
     private static final String timeZone = "UTC";
 
     private final LogService logService;
@@ -22,8 +22,8 @@ public class ScheduleLogsClear {
     }
 
     @Async
-//    @Scheduled(cron = cronExpression, zone = timeZone)
-    @Scheduled(fixedDelay = 1000 * 15) // 15 sec.
+    @Scheduled(cron = cronExpression, zone = timeZone)
+//    @Scheduled(fixedDelay = 1000 * 15) // 15 sec.
     protected void clearLogs(){
         logService.clearBySchedule();
     }

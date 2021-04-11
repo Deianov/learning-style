@@ -12,7 +12,7 @@ import java.io.IOException;
 @Component
 public class Init implements CommandLineRunner {
     private final static boolean DO_EXPORT_TO_JSON = false;
-    private final static boolean DO_INIT = true;
+    private final static boolean DO_INIT = false;
 
     private final SeedDb seedDb;
     private final MarshalDb marshalDb;
