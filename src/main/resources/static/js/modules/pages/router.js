@@ -11,7 +11,7 @@ import topics from "../components/topics.js";
     navigate(index) -> routes[index]
 */
 const routes = [
-    { path:"/", name:"home", title: "Learning Geist", subject: "Home"},
+    { path:"/", name:"home", title: "Learning-Style", subject: "Home"},
     { path:"/cards", name:"cards", title: "Cards", subject: "Cards" },
     { path:"/quiz", name:"quiz", title: "Quiz", subject: "Quiz" },
     { path:"/games", name:"games", title: "Games", subject: "Games" },

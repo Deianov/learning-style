@@ -4,7 +4,7 @@ const path = "./json";
 const contentType = ".json"
 const isStatic = false;
 const files = {};
-const version = "01.04.2021";
+const version = "06.10.2021";
 
 // development state
 document.getElementsByClassName("version")[0].textContent = `state: development, JS.version: ${version} (${isStatic ? "static":"api"})`;

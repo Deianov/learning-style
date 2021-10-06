@@ -1,6 +1,6 @@
 package bg.geist.config;
 
-import bg.geist.GeistApplication;
+import bg.geist.Application;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import springfox.documentation.builders.PathSelectors;
@@ -20,7 +20,7 @@ public class SwaggerConfig {
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
           .select()
-          .apis(RequestHandlerSelectors.basePackage(GeistApplication.class.getPackageName()))
+          .apis(RequestHandlerSelectors.basePackage(Application.class.getPackageName()))
           .paths(PathSelectors.any())
           .build();
     }

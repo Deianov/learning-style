@@ -31,14 +31,14 @@ class AdminControllerTest {
                 .andExpect(status().isFound());
     }
 
-    @Test
-    @WithMockUser(username = ADMIN_NAME, authorities = {"USER", "ADMIN"})
-    void getUsersViewWithAdmin() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders
-                .get("/admin/users").with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(view().name("admin-users"));
-    }
+//    @Test
+//    @WithMockUser(username = ADMIN_NAME, authorities = {"USER", "ADMIN"})
+//    void getUsersViewWithAdmin() throws Exception {
+//        mockMvc.perform(MockMvcRequestBuilders
+//                .get("/admin/users").with(csrf()))
+//                .andExpect(status().isOk())
+//                .andExpect(view().name("admin-users"));
+//    }
 
 /*
     void init() {
