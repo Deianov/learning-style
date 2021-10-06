@@ -50,4 +50,4 @@ cloudinary:
   url: ${CLOUDINARY_URL}
 
 myapp:
-  version: 21.03.2021
+  version: 06.10.2021

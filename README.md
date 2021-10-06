@@ -1,2 +1,2 @@
-# learninggeist
-Learning Geist project
+# learning-style
+Learning-style project
