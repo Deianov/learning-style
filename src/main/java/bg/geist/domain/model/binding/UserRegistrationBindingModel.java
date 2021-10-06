@@ -28,7 +28,7 @@ public class UserRegistrationBindingModel {
     private String fullname;
 
     @NotEmpty
-    @Size(min = Constants.PASSWORD_MIN_LENGTH, max = Constants.PASSWORD_MIN_LENGTH, message = "{password.length}")
+    @Size(min = Constants.PASSWORD_MIN_LENGTH, max = Constants.PASSWORD_MAX_LENGTH, message = "{password.length}")
     private String password;
 
     @NotEmpty
