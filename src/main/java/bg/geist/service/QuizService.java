@@ -3,8 +3,8 @@ package bg.geist.service;
 
 import bg.geist.domain.model.service.ExerciseModel;
 import bg.geist.web.api.exercise.ExerciseIndexModel;
-import bg.geist.web.api.quiz.models.QuizCertificationRequestModel;
-import bg.geist.web.api.quiz.models.QuizCertificationResponseModel;
+import bg.geist.web.api.quizzes.models.QuizCertificationRequestModel;
+import bg.geist.web.api.quizzes.models.QuizCertificationResponseModel;
 
 import java.util.Collection;
 

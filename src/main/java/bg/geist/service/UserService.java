@@ -1,5 +1,7 @@
 package bg.geist.service;
 
+import bg.geist.domain.entity.UserEntity;
+import bg.geist.domain.model.service.UserAdministrationModel;
 import bg.geist.domain.model.service.UserProfileModel;
 import bg.geist.domain.model.service.UserRegistrationModel;
 import bg.geist.domain.model.view.SimpleProfileView;
@@ -17,7 +19,9 @@ public interface UserService {
     void roleRemove(Long userId, String role);
 
     UserProfileModel profile(Long id);
+    UserAdministrationModel userAdministrationModel(final UserEntity userEntity);
     SimpleProfileView currentProfile();
+
 
     void register(UserRegistrationModel model, boolean login);
     void updateProfile(UserProfileModel model);

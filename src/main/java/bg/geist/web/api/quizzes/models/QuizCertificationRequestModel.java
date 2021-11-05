@@ -1,4 +1,4 @@
-package bg.geist.web.api.quiz.models;
+package bg.geist.web.api.quizzes.models;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;

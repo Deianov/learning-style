@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class ExerciseController {
     // single page redirects (by page/router.js)
     private static final String PAGE_CARDS = "cards";
-    private static final String PAGE_QUIZZES = "quiz";
-    private static final String PAGE_GAMES = "games";
+    private static final String PAGE_QUIZZES = "quizzes";
+    private static final String PAGE_MAPS = "maps";
     private static final String REDIRECT_PAGE = "redirect:/?page=%s";
     private static final String REDIRECT_ID = "redirect:/?page=%s&id=%d";
 
@@ -31,7 +31,7 @@ public class ExerciseController {
     }
 
 
-    @GetMapping("/quiz")
+    @GetMapping("/quizzes")
     public String quiz(@RequestParam(required = false) Long id) {
         if(id != null) {
             return String.format(REDIRECT_ID, PAGE_QUIZZES, id);
@@ -39,17 +39,23 @@ public class ExerciseController {
         return String.format(REDIRECT_PAGE, PAGE_QUIZZES);
     }
 
-    @GetMapping("/quiz/{id}")
+    @GetMapping("/quizzes/{id}")
     public String quizId(@NotNull @PathVariable Long id) {
         return String.format(REDIRECT_ID, PAGE_QUIZZES, id);
     }
 
 
-    @GetMapping("/games")
-    public String games(@RequestParam(required = false) Long id) {
+    @GetMapping("/maps")
+    public String maps(@RequestParam(required = false) Long id) {
         if(id != null) {
-            return String.format(REDIRECT_ID, PAGE_GAMES, id);
+            return String.format(REDIRECT_ID, PAGE_MAPS, id);
         }
-        return String.format(REDIRECT_PAGE, PAGE_GAMES);
+        return String.format(REDIRECT_PAGE, PAGE_MAPS);
+    }
+
+
+    @GetMapping("/maps/{id}")
+    public String mapsId(@NotNull @PathVariable Long id) {
+        return String.format(REDIRECT_ID, PAGE_MAPS, id);
     }
 }

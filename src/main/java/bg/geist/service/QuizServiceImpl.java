@@ -13,8 +13,8 @@ import bg.geist.exception.ObjectNotFoundException;
 import bg.geist.repository.CategoryRepository;
 import bg.geist.repository.QuizRepository;
 import bg.geist.web.api.exercise.ExerciseIndexModel;
-import bg.geist.web.api.quiz.models.QuizCertificationRequestModel;
-import bg.geist.web.api.quiz.models.QuizCertificationResponseModel;
+import bg.geist.web.api.quizzes.models.QuizCertificationRequestModel;
+import bg.geist.web.api.quizzes.models.QuizCertificationResponseModel;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.springframework.stereotype.Service;
@@ -59,7 +59,7 @@ public class QuizServiceImpl implements QuizService {
     @Override
     public Collection<ExerciseIndexModel> getIndex() {
         Collection<ExerciseIndexModel> result = new ArrayList<>();
-        for (Category category : categoryRepository.findAllByParentId(QUIZ_BASE_CATEGORY_ID)) {
+        for (Category category : categoryRepository.findAllByParentId(CATEGORY_ID_QUIZZES)) {
             ExerciseIndexModel exerciseCategory = new ExerciseIndexModel(category.getName());
             repository.findAllByCategoryId(category.getId())
                     .forEach(quiz -> exerciseCategory.addLink(quiz.getId(), quiz.getName()));
@@ -90,7 +90,7 @@ public class QuizServiceImpl implements QuizService {
     public Object getResponseModel(Long id) {
         Quiz quiz = getBy(id);
         if (quiz.getCertification() == Certification.NONE &&
-                QUIZ_CERTIFICATION == Certification.NONE &&
+                QUIZZES_CERTIFICATION == Certification.NONE &&
                 QUIZ_RESPONSE_MODEL == ModelType.MODEL) {
             return map(quiz, QuizModel.class);
         } else {
@@ -110,7 +110,7 @@ public class QuizServiceImpl implements QuizService {
         Options options = quiz.getOptions();
         if (options != null) {
             HashMap<String, Integer> opts = options.toMap();
-            opts.putIfAbsent(QUIZ_CERTIFICATION_KEY, quiz.getCertification().ordinal());
+            opts.putIfAbsent(QUIZZES_CERTIFICATION_KEY, quiz.getCertification().ordinal());
             quizModel.setOptions(opts);
         }
         categoryRepository.findById(quiz.getCategoryId())

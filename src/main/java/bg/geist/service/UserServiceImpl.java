@@ -5,9 +5,11 @@ import bg.geist.domain.entity.UserEntity;
 import bg.geist.domain.entity.UserProfile;
 import bg.geist.domain.entity.UserRoleEntity;
 import bg.geist.domain.entity.enums.UserRole;
+import bg.geist.domain.model.service.UserAdministrationModel;
 import bg.geist.domain.model.service.UserProfileModel;
 import bg.geist.domain.model.service.UserRegistrationModel;
 import bg.geist.domain.model.view.SimpleProfileView;
+import bg.geist.domain.model.view.UserAdministrationView;
 import bg.geist.exception.FieldAlreadyExistsException;
 import bg.geist.exception.FieldName;
 import bg.geist.repository.UserProfileRepository;
@@ -25,6 +27,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -69,6 +72,19 @@ public class UserServiceImpl implements UserService {
         return map(getByProfile(id));
     }
 
+    @Override
+    public UserAdministrationModel userAdministrationModel(final UserEntity userEntity) {
+        return new UserAdministrationModel(
+                userEntity.getId(),
+                userEntity.getUsername(),
+                userEntity.getPassword(),
+                userEntity.getEmail(),
+                userEntity.getFullname(),
+                userEntity.getProfile().getImageUrl(),
+                userEntity.getProfile().getId(),
+                userEntity.getRoles().stream().map(r -> r.getRole().toString()).collect(Collectors.toList()),
+                userEntity.hasRole(UserRole.ADMIN));
+    }
 
     @Override
     public void register(final UserRegistrationModel model, boolean login) {

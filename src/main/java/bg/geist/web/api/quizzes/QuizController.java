@@ -1,9 +1,9 @@
-package bg.geist.web.api.quiz;
+package bg.geist.web.api.quizzes;
 
 import bg.geist.service.QuizService;
 import bg.geist.web.api.exercise.ExerciseIndexModel;
-import bg.geist.web.api.quiz.models.QuizCertificationRequestModel;
-import bg.geist.web.api.quiz.models.QuizCertificationResponseModel;
+import bg.geist.web.api.quizzes.models.QuizCertificationRequestModel;
+import bg.geist.web.api.quizzes.models.QuizCertificationResponseModel;
 import com.sun.istack.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +17,7 @@ import java.util.Collection;
 
 
 @RestController
-@RequestMapping(path="/api/quiz", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path="/api/quizzes", produces = MediaType.APPLICATION_JSON_VALUE)
 public class QuizController {
     private static final Logger logger = LoggerFactory.getLogger(QuizController.class);
     private static final String CERTIFICATED_QUIZ = "Quiz was certificated, id:{}";

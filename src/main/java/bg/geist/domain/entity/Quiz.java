@@ -16,10 +16,10 @@ public class Quiz extends Exercise{
 
 
     public Quiz() {
-        super(ExerciseType.QUIZ);
+        super(ExerciseType.QUIZZES);
     }
     public Quiz(String name, String description, int value) {
-        super(ExerciseType.QUIZ, name, description, value);
+        super(ExerciseType.QUIZZES, name, description, value);
     }
 
     public Collection<Question> getQuestions() {

@@ -34,7 +34,7 @@ public class CardsServiceImpl implements CardsService {
     public Collection<ExerciseIndexModel> getIndex() {
         Collection<ExerciseIndexModel> result = new ArrayList<>();
         Collection<Category> categories = categoryRepository.
-                findAllByParentId(Constants.CARDS_BASE_CATEGORY_ID);
+                findAllByParentId(Constants.CATEGORY_ID_CARDS);
 
         for (Category category : categories) {
             ExerciseIndexModel exerciseCategory = new ExerciseIndexModel(category.getName());

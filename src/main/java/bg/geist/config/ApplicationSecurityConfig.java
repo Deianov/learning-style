@@ -35,9 +35,9 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 // allow access to static resources to anyone // .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                 .antMatchers("/assets/**", "/css/**", "/js/**").permitAll()
                 // allow access to cards and quiz by id
-                .antMatchers(HttpMethod.GET,"/cards/{id:\\d+}", "/quiz/{id:\\d+}").permitAll()
+                .antMatchers(HttpMethod.GET,"/cards/{id:\\d+}", "/quizzes/{id:\\d+}", "/maps/{id:\\d+}").permitAll()
                 // allow access to index, user login and registration to anyone
-                .antMatchers("/", "/cards", "/quiz", "/error", "/users/login", "/users/register").permitAll()
+                .antMatchers("/", "/cards", "/quizzes", "/maps", "/error", "/users/login", "/users/register").permitAll()
                 // allow GET requests to api and swagger
                 .antMatchers(HttpMethod.GET,"/api", "/v2/api-docs").permitAll()
 //                .antMatchers(HttpMethod.POST, "/api/**/certification").authenticated()
@@ -46,7 +46,7 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/home", "/logout").authenticated()
                 .antMatchers("/users/profiles/{id}").access("@guard.isAuthorized(authentication,#id)")
-                .antMatchers("/games", "/admin", "/admin/**").hasRole("ADMIN")
+                .antMatchers("/admin", "/admin/**").hasRole("ADMIN")
                 // protect all other pages
                 .antMatchers("/**").authenticated()
             .and()
