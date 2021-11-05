@@ -1,0 +1,10 @@
+{
+  "name": "learning-style",
+  "description": "https://learning-style.com/",
+  "authors": "Deianov",
+  "version": "1.0.0",
+  "main": "",
+  "dependencies": {
+    "tailwindcss": "2.2.17"
+  }
+}

@@ -11,7 +11,7 @@ import java.io.IOException;
 
 @Component
 public class Init implements CommandLineRunner {
-    private final static boolean DO_EXPORT_TO_JSON = false;
+    private final static boolean DO_EXPORT_TO_JSON = true;
     private final static boolean DO_INIT = false;
 
     private final SeedDb seedDb;
@@ -19,6 +19,7 @@ public class Init implements CommandLineRunner {
     private final CategoryRepository categoryRepository;
     private final String version;
     private final Resource ymlFile;
+
 
     public Init(SeedDb seedDb, MarshalDb marshalDb, CategoryRepository categoryRepository,
                 @Value("${myapp.version}") String version,
@@ -41,13 +42,17 @@ public class Init implements CommandLineRunner {
             seedDb.seedCategories();
             seedDb.seedCards();
             seedDb.seedAnswersCollectionTemplates();
-            seedDb.seedQuiz();
+            seedDb.seedQuizzes();
+            seedDb.seedMaps();
         }
 
         if (DO_EXPORT_TO_JSON) {
-            marshalDb.createDirectories();
+            marshalDb.prepareDirectories();
+            marshalDb.marshalUsers();
+            marshalDb.marshalCategories();
             marshalDb.marshalCards();
             marshalDb.marshalQuizzes();
+            marshalDb.marshalMaps();
         }
     }
 

@@ -22,14 +22,14 @@
             <li><a class="logo" href="./"><span>Learning</span>-<span>Style</span></a></li>
             <li><a value="1" href="javascript:void(0)">Cards</a></li>
             <li><a value="2" href="javascript:void(0)">Quiz</a></li>
-            <li><a value="3" href="javascript:void(0)">Games</a></li>
+            <li><a value="3" href="javascript:void(0)">Maps</a></li>
         </ul>
         <ul th:if="${#httpServletRequest.requestURI != '/home'}">
             <li><a class="logo" th:href="@{/}"><span>Learning</span>-<span>Style</span></a></li>
             <!--     todo: work  ???    -->
             <li><a th:href="@{/?page=cards}">Cards</a></li>
             <li><a th:href="@{/?page=quiz}">Quiz</a></li>
-            <li><a th:href="@{/games}">Games</a></li>
+            <li><a th:href="@{/maps}">Maps</a></li>
         </ul>
         <ul sec:authorize="isAuthenticated()">
             <li>

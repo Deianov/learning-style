@@ -1,8 +1,8 @@
 import {SimpleCounter} from "../utils/counter.js";
 import dom from "../utils/dom.js";
-import messages from "./page/messages.js";
-import Component from "./component.js";
-import constants from "../services/constants.js";
+import messages from "./messages.js";
+import {Component} from "./components.js";
+import props from "../props.js";
 
 // objects
 const successCounter = new SimpleCounter(1);
@@ -78,7 +78,7 @@ class UserInput extends Component {
     repeatWord() {
         this.clear();
         this.repeat = true;
-        this.show.messages.error.render("", constants[constants.lang].input.again);
+        this.show.messages.error.render("", props.msg.input.again);
     }
     showExamples() {
         if (this.success && !this.examples && Array.isArray(this.words.slice(-1)[0])) {

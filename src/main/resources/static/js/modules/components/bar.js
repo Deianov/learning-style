@@ -1,5 +1,5 @@
 import dom from "../utils/dom.js";
-import Component from "./component.js";
+import {Component} from "./components.js";
 
 
 // constants
@@ -19,7 +19,7 @@ function init() {
     elements.tabs = document.getElementById("tabs");
 }
 
-class ControlBar extends Component {
+class Bar extends Component {
     constructor(parent) {
         super(parent, null, tagName, className)
         this.local;
@@ -130,4 +130,4 @@ function renderDom(parent) {
     </div>`;
 }
 
-export default ControlBar;
+export default Bar;

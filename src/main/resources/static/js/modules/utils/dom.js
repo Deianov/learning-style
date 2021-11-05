@@ -52,7 +52,7 @@ function update(id, callback, arg) {
 /**
  * @param {string | HTMLElement} value id | element
  */
-function getLazy(value) {
+function get(value) {
     return (typeof value === "string") ? document.getElementById(value) : value
 }
 
@@ -74,4 +74,4 @@ function setOptions (e, options) {
     }
 }
 
-export default {element, text, node, removeAll, remove, getLazy};
+export default {element, text, node, removeAll, remove, get};

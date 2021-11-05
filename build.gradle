@@ -38,5 +38,104 @@ dependencies {
 }
 
 test {
-	useJUnitPlatform()
+//	useJUnitPlatform()
+}
+
+// custom tasks ...................................................................
+
+tasks.register('customClean') {
+	doFirst {
+		println "clean: build, tomcat/webapps/root"
+
+		def dirClient ="${buildDir}/client"
+		file ( dirClient ).list().each{
+			f -> delete "${dirClient}/${f}"
+		}
+
+//		def dirTomcat ="c://dev/tomcat/webapps/root"
+//		file ( dirTomcat ).list().each{
+//			f -> delete "${dirTomcat}/${f}"
+//		}
+	}
+}
+
+static def getDate() {
+	return new Date().format('dd.MM.yyyy')
+}
+
+// 01. Run Git Bash or Terminal in build.gradle directory
+// 02. _$ gradle client
+
+tasks.register("client") {
+
+	// Groovy variables by using the 'def' keyword
+	def dirClient = layout.buildDirectory.dir("client")
+	def dirTomcat = "c://dev/tomcat/webapps/root"
+	def currentDate = getDate()
+
+	doFirst {
+		println "create static client..."
+
+		copy {
+			println "copy json"
+			from "src/main/resources/json/output"
+			into "$buildDir/client/json"
+			include('**/*.json')
+		}
+		copy {
+			println "copy tailwindcss"
+			from "src/main/resources/static/css/external/tailwind.min.form.css"
+			into "$buildDir/client/node_modules/tailwindcss/dist"
+		}
+		copy {
+			println "copy static"
+			from "src/main/resources/static"
+			exclude ('**/temp', '**/tmp', '**/external', '**/props.js', '**/favicon.ico') // '**/main.js', '**/style.css',
+			println "copy package.json"
+			from layout.projectDirectory.file("package.json")
+			println "copy robots.txt"
+			from layout.projectDirectory.file("robots.txt")
+			into dirClient
+		}
+		copy {
+			println "copy html and ico"
+			from layout.projectDirectory.file("src/main/resources/templates/index.html")
+			from layout.projectDirectory.file("src/main/resources/templates/static/login.html")
+			filter { String line ->
+				line.replaceAll('/users/login', "/login.html")
+			}
+			filter { String line ->
+				line.contains('favicon.ico') ? "<link rel=\"icon\" href=\"favicon.ico?v=${currentDate}\">" : line
+			}
+			filter { String line ->
+				line.contains('/css/style.css') ? "<link rel=\"stylesheet\" href=\"/css/style.css?v=${currentDate}\" type=\"text/css\">" : line
+			}
+			from layout.projectDirectory.file("src/main/resources/static/assets/images/favicon.ico")
+			into dirClient
+		}
+		copy {
+			println "copy props.js"
+			from layout.projectDirectory.file("src/main/resources/static/js/modules/props.js")
+			into "$buildDir/client/js/modules"
+			filter { String line ->
+				line.startsWith('app.version = ') ? "app.version = \"${currentDate}\";" : line
+			}
+			filter { String line ->
+				line.startsWith('app.isStatic = ') ? 'app.isStatic = true;' : line
+			}
+		}
+	}
+	doLast {
+		project.sync {
+			println "sync to tomcat/webapps/root"
+			from dirClient
+			into dirTomcat
+		}
+	}
+}
+
+// tasks configuration
+client {
+	dependsOn('customClean')
+	shouldRunAfter('customClean')
 }

@@ -1,0 +1,56 @@
+{
+    "subject": "index",
+    "date": "02.03.2021",
+    "expire": 1000,
+    "lang": "en",
+    "cards": {
+        "index": [
+            {
+                "category": "German",
+                "links": [
+                    {"id":1, "text":"Die 200 wichtigsten deutschen Adjektive"}, 
+                    {"id":2, "text":"34 special characters"}, 
+                    {"id":3, "text":"Diana's top 200"}
+                ]
+            },
+            {
+                "category": "Custom",
+                "api":"user/",
+                "links": [
+                    {"id":4, "text":"test"}, 
+                    {"id":555, "text":"error"}
+                ]
+            }
+        ]
+    },
+    "quizzes": {
+        "index": [
+            {
+                "category": "JavaScript Advanced",
+                "links": [
+                    {"id":1, "text":"Syntax, Functions and Statements"}, 
+                    {"id":2, "text":"Arrays and Matrices"},
+                    {"id":3, "text":"Objects and Composition"},
+                    {"id":4, "text":"DOM Introduction"},
+                    {"id":5, "text":"DOM Manipulation and Events"},
+                    {"id":6, "text":"Advanced Functions"},
+                    {"id":7, "text":"Unit Testing and Error Handling"},
+                    {"id":8, "text":"Classes and Attributes"}
+                ]
+            },
+            {
+                "category": "Vue",
+                "links": [
+                    {"id":9, "text":"Vue Quiz"}
+                ]
+            },
+            {
+                "category": "GIS",
+                "links": [
+                    {"id":10, "text":"ESRI ArcGIS, part.1"},
+                    {"id":11, "text":"ESRI ArcGIS, part.2"}
+                ]
+            }
+        ]
+    }
+}

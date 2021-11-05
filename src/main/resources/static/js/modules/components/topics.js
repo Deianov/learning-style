@@ -1,6 +1,5 @@
-import data from "../data/data.js";
 import dom from "../utils/dom.js";
-import constants from "../services/constants.js";
+import {props, data} from "../factory.js";
 
 
 class Topics {
@@ -10,8 +9,11 @@ class Topics {
     async render(page = "cards") {
 
         this.element.innerHTML = "";
+        const path = page;
+        const query = props.app.isStatic ? "" : `?lang=${props.app.lang}`;
+
         try {
-            const index = await data.getJson(`${page}?lang=${constants.lang}`, true, false);
+            const index = await data.getJson(`${path}${query}`, true, false);
 
             for (const topic of index) {
                 renderTopic(this.element, topic)
@@ -33,4 +35,4 @@ function renderLink(parent, value, text) {
     dom.text("a", dom.element("li", parent), text, {"href":"#", value})
 }
 
-export default new Topics();
+export default Topics;

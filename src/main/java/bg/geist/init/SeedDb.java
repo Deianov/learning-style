@@ -1,10 +1,13 @@
 package bg.geist.init;
 
 import bg.geist.domain.entity.*;
+import bg.geist.domain.entity.Dictionary;
+import bg.geist.domain.entity.Map;
 import bg.geist.domain.entity.enums.*;
 import bg.geist.init.adapter.ArrayToMatrixAdapter;
 import bg.geist.init.dto.*;
 import bg.geist.repository.*;
+import bg.geist.util.FilesUtil;
 import bg.geist.util.Flags;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,14 +20,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static bg.geist.constant.Constants.*;
-import static bg.geist.constant.ConstantsInit.*;
+import static bg.geist.constant.Constants.INIT.*;
+import static bg.geist.constant.Constants.PRJ.*;
 
 @Component
 public class SeedDb {
@@ -43,9 +46,10 @@ public class SeedDb {
     private final OptionsRepository optionsRepository;
     private final DictionaryCollectionRepository dictionaryCollectionRepository;
     private final DictionaryRepository dictionaryRepository;
+    private final MapRepository mapRepository;
 
 
-    public SeedDb(@Value("classpath:myapp.json") Resource jsonFile, ObjectMapper objectMapper, UserRepository userRepository, UserRoleRepository userRoleRepository, UserProfileRepository userProfileRepository, BCryptPasswordEncoder passwordEncoder, QuizRepository quizRepository, QuestionRepository questionRepository, AnswersCollectionRepository answersCollectionRepository, AnswerRepository answerRepository, CategoryRepository categoryRepository, CardsRepository cardsRepository, OptionsRepository optionsRepository, DictionaryCollectionRepository dictionaryCollectionRepository, DictionaryRepository dictionaryRepository) {
+    public SeedDb(@Value("classpath:myapp.json") Resource jsonFile, ObjectMapper objectMapper, UserRepository userRepository, UserRoleRepository userRoleRepository, UserProfileRepository userProfileRepository, BCryptPasswordEncoder passwordEncoder, QuizRepository quizRepository, QuestionRepository questionRepository, AnswersCollectionRepository answersCollectionRepository, AnswerRepository answerRepository, CategoryRepository categoryRepository, CardsRepository cardsRepository, OptionsRepository optionsRepository, DictionaryCollectionRepository dictionaryCollectionRepository, DictionaryRepository dictionaryRepository, MapRepository mapRepository) {
         this.jsonFile = jsonFile;
         this.objectMapper = objectMapper;
         this.userRepository = userRepository;
@@ -61,6 +65,7 @@ public class SeedDb {
         this.optionsRepository = optionsRepository;
         this.dictionaryCollectionRepository = dictionaryCollectionRepository;
         this.dictionaryRepository = dictionaryRepository;
+        this.mapRepository = mapRepository;
     }
 
     public void showVersion() throws IOException {
@@ -96,26 +101,35 @@ public class SeedDb {
     public void seedCategories() {
         // parent
         categoryRepository.save(new Category("Cards"));
-        categoryRepository.save(new Category("Quiz"));
-        for (int i = 0; i < 3; i++) { categoryRepository.save(new Category("-")); }
+        categoryRepository.save(new Category("Quizzes"));
+        categoryRepository.save(new Category("Maps"));
+        for (int i = 0; i < 2; i++) { categoryRepository.save(new Category("-")); }
         // cards
-        categoryRepository.save(new Category("German", CARDS_BASE_CATEGORY_ID, 1));
-        categoryRepository.save(new Category("Custom", CARDS_BASE_CATEGORY_ID, 2));
+        categoryRepository.save(new Category("German", CATEGORY_ID_CARDS, 1));
+        categoryRepository.save(new Category("Custom", CATEGORY_ID_CARDS, 2));
         // quizzes
-        categoryRepository.save(new Category("JavaScript Advanced", QUIZ_BASE_CATEGORY_ID, 1));
-        categoryRepository.save(new Category("Vue", QUIZ_BASE_CATEGORY_ID, 2));
-        categoryRepository.save(new Category("GIS", QUIZ_BASE_CATEGORY_ID, 3));
+        categoryRepository.save(new Category("JavaScript Advanced", CATEGORY_ID_QUIZZES, 1));
+        categoryRepository.save(new Category("Vue", CATEGORY_ID_QUIZZES, 2));
+        categoryRepository.save(new Category("GIS", CATEGORY_ID_QUIZZES, 3));
+        // maps
+        categoryRepository.save(new Category("Germany", CATEGORY_ID_MAPS, 1));
     }
 
     public void seedCards() throws IOException {
-        for (String fileName: new String[]{"1", "2", "3", "test"}) {
+        String[] files = Arrays.stream(FilesUtil.listFiles(RESOURCES_PATH_INPUT + "\\" + DIRECTORY_NAME_CARDS))
+                .filter(File::isFile)
+                .map(File::getName)
+                .toArray(String[]::new);
 
-            Resource resource = new ClassPathResource(String.format("json/cards/%s.json", fileName));
+        for (String fileName: files) {
+
+            // ClassPathResource example
+            Resource resource = new ClassPathResource(String.format("json/input/cards/%s", fileName));
             JsonNode jsonNode = objectMapper.readTree(resource.getFile());
             CardsDto cardsDto = objectMapper.readValue(jsonNode.traverse(), CardsDto.class);
 
             String[][] data;
-            if(fileName.equals("3")) {
+            if(fileName.equals("3.json")) {
                 String[] arr = objectMapper.treeToValue(jsonNode.get("dictionaries"), String[].class);
                 data = ArrayToMatrixAdapter.toMatrix(arr, 2);
             } else {
@@ -123,19 +137,19 @@ public class SeedDb {
             }
 
             switch (fileName) {
-                case "1":   // Die 200 wichtigsten deutschen Adjektive
+                case "1.json":   // Die 200 wichtigsten deutschen Adjektive
                     seedCard(cardsDto, data, 1,
                             Lang.DE, Lang.DE, TextType.ADJECTIVE, TextRole.OPPOSITE, TextRole.TRANSLATION);
                     break;
-                case "2":   // 34 special characters
+                case "2.json":   // 34 special characters
                     seedCard(cardsDto, data, 2,
                             Lang.EN, Lang.DE, TextType.NOUN, TextRole.TRANSLATION, TextRole.CODE);
                     break;
-                case "3":   // Diana's top 200
+                case "3.json":   // Diana's top 200
                     seedCard(cardsDto, data, 3,
                             Lang.BG, Lang.DE, TextType.SENTENCE, TextRole.TRANSLATION, null);
                     break;
-                case "test": // Test
+                case "test.json": // Test
                     seedCard(cardsDto, data, 1,
                             Lang.EN, Lang.DE, TextType.NOUN, TextRole.TRANSLATION, TextRole.CODE);
             }
@@ -191,13 +205,14 @@ public class SeedDb {
         answerRepository.save(new Answer("False",2, answersCollectionBoolean));
     }
 
-    public void seedQuiz() throws IOException {
+    public void seedQuizzes() throws IOException, NullPointerException {
         int quizValue = 0;
         String lastCategoryName = "";
+        int filesCount = FilesUtil.listFiles(RESOURCES_PATH_INPUT + "\\" + DIRECTORY_NAME_QUIZZES).length;
 
-        for (int i = 1; i < 12; i++) {
+        for (int i = 1; i <= filesCount; i++) {
             // unmarshal from json
-            Resource resource = new ClassPathResource(String.format("json/quiz/%s.json", i));
+            Resource resource = new ClassPathResource(String.format("json/input/quizzes/%s.json", i));
             QuizDto quizDto = objectMapper.readValue(resource.getFile(), QuizDto.class);
 
             // category
@@ -218,11 +233,11 @@ public class SeedDb {
             quiz.setCreatedBy(ADMIN_NAME);
 
             // certification (Certification.NONE, ON_SERVER; ON_SERVER_STRICT)
-            if (quizDto.options != null && quizDto.options.containsKey(QUIZ_CERTIFICATION_KEY)) {
-                quiz.setCertification(Certification.byOrdinal(quizDto.options.get(QUIZ_CERTIFICATION_KEY)));
-                quizDto.options.remove(QUIZ_CERTIFICATION_KEY);
+            if (quizDto.options != null && quizDto.options.containsKey(QUIZZES_CERTIFICATION_KEY)) {
+                quiz.setCertification(Certification.byOrdinal(quizDto.options.get(QUIZZES_CERTIFICATION_KEY)));
+                quizDto.options.remove(QUIZZES_CERTIFICATION_KEY);
             } else {
-                quiz.setCertification(QUIZ_CERTIFICATION);
+                quiz.setCertification(QUIZZES_CERTIFICATION);
             }
 
             // options
@@ -274,5 +289,19 @@ public class SeedDb {
                 answerRepository.save(new Answer(answers[i], Flags.toBits(i), answersCollection));
             }
         }
+    }
+
+    public void seedMaps () {
+        long categoryId = categoryRepository.findByName("Germany").getId();
+
+        Map map = new Map();
+        map.setName("Die deutschen Bundesländer");
+        map.setAuthor("mediaevent.de");
+        map.setAuthorUrl("https://www.mediaevent.de");
+        map.setSource("tutorial");
+        map.setSourceUrl("https://www.mediaevent.de/tutorial/svg.html");
+        map.setCategoryId(categoryId);
+        map.setCreatedBy(ADMIN_NAME);
+        mapRepository.save(map);
     }
 }

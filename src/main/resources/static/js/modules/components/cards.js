@@ -1,6 +1,6 @@
 import dom from '../utils/dom.js';
 import {maskText} from '../utils/string-util.js';
-import Component from "./component.js";
+import {Component} from "./components.js";
 
 // constants
 const maskCharacter = '_';

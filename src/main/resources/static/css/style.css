@@ -209,7 +209,7 @@ aside ul li {
     color: inherit;
 }
 
-.navbar a{
+.navbar a, i{
     padding: 15px 20px;
 }
 
