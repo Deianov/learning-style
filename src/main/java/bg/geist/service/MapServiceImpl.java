@@ -3,6 +3,7 @@ package bg.geist.service;
 import bg.geist.constant.Constants;
 import bg.geist.domain.entity.Category;
 import bg.geist.domain.entity.Map;
+import bg.geist.domain.entity.Options;
 import bg.geist.domain.model.service.MapModel;
 import bg.geist.exception.EntityName;
 import bg.geist.exception.ObjectNotFoundException;
@@ -58,6 +59,10 @@ public class MapServiceImpl implements MapService {
         MapModel mapModel = mapper.map(map, MapModel.class);
         categoryRepository.findById(map.getCategoryId())
                 .ifPresent(category -> mapModel.setCategory(category.getName()));
+        Options options = map.getOptions();
+        if (options != null) {
+            mapModel.setOptions(options.toMap());
+        }
         return mapModel;
     }
 }

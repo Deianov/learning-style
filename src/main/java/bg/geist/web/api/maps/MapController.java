@@ -1,15 +1,13 @@
 package bg.geist.web.api.maps;
 
+import bg.geist.domain.model.service.MapModel;
 import bg.geist.service.MapService;
 import bg.geist.web.api.exercise.ExerciseIndexModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
 
@@ -32,5 +30,11 @@ public class MapController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(index, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public MapModel getModel(@PathVariable Long id) {
+        return service.getById(id);
     }
 }

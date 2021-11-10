@@ -31,10 +31,10 @@ class Page {
         this.elements.aside.style.display = "";
         this.elements.article.style.display = "";
     }
-    blank(subject, category, source) {
+    blank(subject, category, obj) {
         this.reset();
         this.renderBreadcrumb(category);
-        renderSubject(this.elements.header, subject || router.route.subject, source)
+        renderSubject(this.elements.header, subject || router.route.subject, obj)
     }
     async component(name) {
         return await factory.getInstance(name)
@@ -62,25 +62,49 @@ class Page {
     }
 }
 
-function renderSubject(parent, subject, source) {
+/**
+ * @param {element} parent
+ * @param {string} subject  - name
+ * @param {object} obj      - {source, sourceUrl, author, authorUrl}
+ */
+function renderSubject(parent, subject, obj) {
     let div = document.getElementsByClassName(classNameSubject)[0];
     div = div || dom.element("div", parent, classNameSubject);
     div.innerHTML = "";
     dom.text("h3", div, subject)
-    if (source) {
-        let small;
-        if (source["source"] || source["author"]) {
-            small = dom.element("small", div);
-        }
-        if (source["source"]) {
-            dom.node("source: ", small)
-            dom.text("a", small, source.source, formatLink(source.sourceUrl))
-        }
-        if (source["author"]) {
-            dom.node((source["source"] ? ", author: " : "author: "), small)
-            dom.text("a", small, source.author, formatLink(source.authorUrl))
+
+    const data = [];
+    if (obj) {
+        // split to array
+        const arr = Object.values(obj);
+        const tmp = arr.map(value => value ? value.split(";") : []);
+        const sum = tmp.map(value => value.length).reduce((a, b) => a + b, 0);
+
+        /* separate multiple authors */
+        if (sum >= 8) {
+            for (let i = 0; i < sum / 4; i++) {
+                data.push([tmp[0][i], tmp[1][i], tmp[2][i], tmp[3][i]])
+            }
+        /* single author */
+        } else {
+            data.push(arr)
         }
     }
+
+    for (let i = 0; i < data.length; i++) {
+        const [source, sourceUrl, author, authorUrl] = data[i];
+
+        const small = dom.element("small", div);
+        if (source) {
+            dom.node( (i > 0 ? "; " : "") + "source: ", small)
+            dom.text("a", small, source, formatLink(sourceUrl))
+        }
+        if (author) {
+            dom.node(source ? ", author: " : "author: ", small)
+            dom.text("a", small, author, formatLink(authorUrl))
+        }
+    }
+
     dom.element("hr", div)
 }
 

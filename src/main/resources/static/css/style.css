@@ -653,6 +653,40 @@ small.text-message {
     width: 2.25em;
     height: 2.25em;
 }
+/* ------------------------------------------------------------------------ */
+/* Maps */
+/* ------------------------------------------------------------------------ */
+
+.map path {
+    fill: hsl(220,50%,80%); stroke-width: 1px; transition: all 0.6s
+}
+
+.map path:hover {
+    fill: hsl(220,50%,60%);
+}
+
+.map .active {
+    fill: hsl(220,50%,60%);
+}
+
+.maps > div {
+    display: flex;
+    flex-basis: 50%;
+}
+
+.maps > div:first-child svg{
+    height: auto;
+    width: 100%;
+}
+
+.maps > div:last-child svg{
+    height: 60px;
+    width: auto;
+}
+
+.maps h3, small {
+    padding: 10px 0 10px 0;
+}
 
 /* ------------------------------------------------------------------------ */
 /* temp */

@@ -292,16 +292,22 @@ public class SeedDb {
     }
 
     public void seedMaps () {
-        long categoryId = categoryRepository.findByName("Germany").getId();
 
+        Options options = new Options();
+        options.add("lands", 0);
+        options.add("maps-de.js", 1);
+        options.add("maps-de-full.js", 2);
+
+        long categoryId = categoryRepository.findByName("Germany").getId();
         Map map = new Map();
         map.setName("Die deutschen Bundesländer");
-        map.setAuthor("mediaevent.de");
-        map.setAuthorUrl("https://www.mediaevent.de");
-        map.setSource("tutorial");
-        map.setSourceUrl("https://www.mediaevent.de/tutorial/svg.html");
+        map.setSource("tutorial;Land (Deutschland)");
+        map.setSourceUrl("https://www.mediaevent.de/tutorial/svg.html;https://de.wikipedia.org/wiki/Land_(Deutschland)");
+        map.setAuthor("mediaevent.de;wikipedia.org");
+        map.setAuthorUrl("https://www.mediaevent.de;https://de.wikipedia.org");
         map.setCategoryId(categoryId);
         map.setCreatedBy(ADMIN_NAME);
+        map.setOptions(optionsRepository.save(options));
         mapRepository.save(map);
     }
 }

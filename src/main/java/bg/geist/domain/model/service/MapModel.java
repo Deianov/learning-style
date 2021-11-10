@@ -87,7 +87,7 @@ public class MapModel implements ExerciseModel{
 
     @Override
     public void setOptions(HashMap<String, Integer> options) {
-
+        this.options = options;
     }
 
     @Override
