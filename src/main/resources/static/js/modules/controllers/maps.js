@@ -19,7 +19,6 @@ class Maps {
         // dynamic import - map
         imp = await import(MAPS_PATH + encodeURIComponent(file1));  // "../components/maps/maps-de.js"
         const res1 = imp.default;
-        const map1 = res1[name];
 
         await map.render(res1[name]);
         map.renderInfo(res1.meta);
