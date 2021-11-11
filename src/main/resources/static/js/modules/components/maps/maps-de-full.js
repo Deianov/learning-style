@@ -46,6 +46,5 @@ GERMANY_FULL.lands.meta = [
     {"id": 15, "coat_of_arms": imgs[15], "state": "Sachsen-Anhalt", "ISO3166_2": "ST", "capital": "Magdeburg", "most_populated": "Halle (Saale)", "area": 20.454, "population": 2208},
     {"id": 16, "coat_of_arms": imgs[16], "state": "Thüringen", "ISO3166_2": "TH", "capital": "Erfurt", "most_populated": "", "area": 16.202, "population": 2143}
 ];
-GERMANY_FULL.source = `source: <a href="https://de.wikipedia.org/wiki/Land_(Deutschland)" target="_blank">Land (Deutschland)</a>, author: <a href="https://de.wikipedia.org" target="_blank">wikipedia.org</a>`;
 
 export default GERMANY_FULL

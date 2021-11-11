@@ -63,7 +63,7 @@ class Page {
 }
 
 /**
- * @param {element} parent
+ * @param {HTMLElement} parent
  * @param {string} subject  - name
  * @param {object} obj      - {source, sourceUrl, author, authorUrl}
  */

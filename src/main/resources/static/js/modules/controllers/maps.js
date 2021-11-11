@@ -1,8 +1,7 @@
 import dom from "../utils/dom.js";
-// import {GERMANY} from "../components/maps/maps-de.js";
 
 // constants
-const MAPS_PATH = "../components/maps/";
+const PATH = "../components/maps/";
 
 class Maps {
     constructor(parent) {
@@ -17,14 +16,14 @@ class Maps {
         const map = new Map(this.parent);
 
         // dynamic import - map
-        imp = await import(MAPS_PATH + encodeURIComponent(file1));  // "../components/maps/maps-de.js"
+        imp = await import(PATH + encodeURIComponent(file1));  // "../components/maps/maps-de.js"
         const res1 = imp.default;
 
         await map.render(res1[name]);
         map.renderInfo(res1.meta);
 
         // dynamic import - full data
-        imp = await import(MAPS_PATH + encodeURIComponent(file2)); // "../components/maps/maps-de-full.js"
+        imp = await import(PATH + encodeURIComponent(file2)); // "../components/maps/maps-de-full.js"
         const res2 = imp.default;
         map.meta = res2[name].meta;
     }
