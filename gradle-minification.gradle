@@ -1,0 +1,26 @@
+/*
+    https://github.com/gradle-webtools/gradle-minify-plugin
+    https://plugins.gradle.org/plugin/org.gradlewebtools.minify
+
+    buildscript {
+        repositories {
+            maven {
+                url "https://plugins.gradle.org/m2/"
+            }
+        }
+        dependencies {
+            classpath "org.gradle-webtools.minify:gradle-minify-plugin:1.3.0"
+        }
+    }
+
+    plugins {
+        id "org.gradlewebtools.minify" version "1.3.0"
+    }
+
+    task CssMinify(type: org.gradlewebtools.minify.CssMinifyTask) { //this: CssMinifyTask
+        srcDir = project.file("src/main/resources/static/css/dev")
+        dstDir = project.file("build/min/css")
+    }
+*/
+
+apply plugin: "org.gradlewebtools.minify"

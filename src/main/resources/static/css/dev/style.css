@@ -1,27 +1,3 @@
-
-@import "styles/generic-normalize.css";
-@import "styles/responsive.css";
-@import "styles/quiz.css";
-@import "styles/development.css";
-
-@font-face {
-    font-family: 'Roboto';
-    font-style: normal;
-    font-weight: 400;
-    src: local('Roboto'),
-         url('../assets/fonts/roboto-v20-latin-regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-         url('../assets/fonts/roboto-v20-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
-}
-
-@font-face {
-    font-family: 'Roboto';
-    font-style: normal;
-    font-weight: 900;
-    src: local('Roboto-Bold'),
-         url('../assets/fonts/roboto-v20-latin-900.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
-         url('../assets/fonts/roboto-v20-latin-900.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
-}
-
 :root {
     --color-white:white;
     --color-black:black;
@@ -52,7 +28,7 @@
     --color-success:#c1ffde; /* #c1ffde #dbfff8 */
     --color-danger:#ffcede;
     --color-error:#e00;
- 
+
     /* Constants */
     --radius: 5px;
     --space: 20px;

@@ -1,8 +1,15 @@
+buildscript {
+	dependencies {
+		classpath "org.gradle-webtools.minify:gradle-minify-plugin:${minifyPluginVersion}"
+	}
+}
+
 plugins {
 	id 'org.springframework.boot' version '2.4.3'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
 	id 'war'
+	id "org.gradlewebtools.minify" version "${minifyPluginVersion}"
 }
 
 group = 'bg'
@@ -13,6 +20,8 @@ sourceCompatibility = '15'
 repositories {
 	mavenCentral()
 }
+
+
 
 dependencies {
 //	implementation 'com.google.code.gson:gson:2.8.6' -> Jackson
@@ -47,14 +56,13 @@ tasks.register('customClean') {
 	doFirst {
 		println "clean: build, tomcat/webapps/root"
 
-		def dirClient ="${buildDir}/client"
-		file ( dirClient ).list().each{
-			f -> delete "${dirClient}/${f}"
+		file ( "$buildDir" ).list().each{
+			f -> delete "$buildDir/${f}"
 		}
 
-//		def dirTomcat ="c://dev/tomcat/webapps/root"
-//		file ( dirTomcat ).list().each{
-//			f -> delete "${dirTomcat}/${f}"
+//		def dirMin ="${buildDir}/min"
+//		file ( dirMin ).list().each{
+//			f -> delete "${dirMin}/${f}"
 //		}
 	}
 }
@@ -70,6 +78,7 @@ tasks.register("client") {
 
 	// Groovy variables by using the 'def' keyword
 	def dirClient = layout.buildDirectory.dir("client")
+	def dirMin = layout.buildDirectory.dir("min")
 	def dirTomcat = "c://dev/tomcat/webapps/root"
 	def currentDate = getDate()
 
@@ -90,7 +99,7 @@ tasks.register("client") {
 		copy {
 			println "copy static"
 			from "src/main/resources/static"
-			exclude ('**/temp', '**/tmp', '**/external', '**/props.js', '**/favicon.ico') // '**/main.js', '**/style.css',
+			exclude ('**/temp', '**/tmp', '**/_tmp', '**/css', '**/external', '**/props.js', '**/favicon.ico') // '**/main.js'
 			println "copy package.json"
 			from layout.projectDirectory.file("package.json")
 			println "copy robots.txt"
@@ -108,10 +117,17 @@ tasks.register("client") {
 				line.contains('favicon.ico') ? "<link rel=\"icon\" href=\"favicon.ico?v=${currentDate}\">" : line
 			}
 			filter { String line ->
-				line.contains('/css/style.css') ? "<link rel=\"stylesheet\" href=\"/css/style.css?v=${currentDate}\" type=\"text/css\">" : line
+				line.contains('/main.css') ? "<link rel=\"stylesheet\" href=\"/css/style.css?v=${currentDate}\" type=\"text/css\">" : line
 			}
+			filteringCharset = 'UTF-8'
 			from layout.projectDirectory.file("src/main/resources/static/assets/images/favicon.ico")
 			into dirClient
+		}
+		copy {
+			println "copy style.css"
+			from "$buildDir/concat/css/style.min.css"
+			into "$buildDir/client/css"
+			rename("style.min.css", "style.css")
 		}
 		copy {
 			println "copy props.js"
@@ -123,6 +139,7 @@ tasks.register("client") {
 			filter { String line ->
 				line.startsWith('app.isStatic = ') ? 'app.isStatic = true;' : line
 			}
+			filteringCharset = 'UTF-8'
 		}
 	}
 	doLast {
@@ -134,8 +151,38 @@ tasks.register("client") {
 	}
 }
 
+task CssMinify(type: org.gradlewebtools.minify.CssMinifyTask) { //this: CssMinifyTask
+	srcDir = project.file("$buildDir/concat/css")
+	dstDir = project.file("$buildDir/concat/css")
+}
+
+/*
+task JsMinify(type: org.gradlewebtools.minify.JsMinifyTask) { //this: JsMinifyTask
+	srcDir = project.file("src/main/resources/static/js")
+	dstDir = project.file("build/min/js")
+}
+*/
+
+apply from: 'gradle-concat.gradle'
+
 // tasks configuration
 client {
+	dependsOn('concatCSS')
 	dependsOn('customClean')
-	shouldRunAfter('customClean')
+	dependsOn("CssMinify")
+
+	concatCSS.shouldRunAfter('customClean')
+	CssMinify.shouldRunAfter('concatCSS')
+	shouldRunAfter('CssMinify')
+
+//	dependsOn("JsMinify")
 }
+
+//client {
+//
+//	dependsOn('customClean')
+//	shouldRunAfter('customClean')
+//	dependsOn("CssMinify")
+////	dependsOn("JsMinify")
+//
+//}
