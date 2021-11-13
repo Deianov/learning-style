@@ -50,20 +50,22 @@ test {
 //	useJUnitPlatform()
 }
 
-// custom tasks ...................................................................
+/**
+ * 	Custom tasks ...................................................................
+ *
+ * 	Create static JS client and sync it to tomcat:
+ * 	...
+ * 		01. Run Git Bash or Terminal in build.gradle directory
+ * 		02. _$ gradle client
+ *
+ **/
 
 tasks.register('customClean') {
 	doFirst {
-		println "clean: build, tomcat/webapps/root"
-
-		file ( "$buildDir" ).list().each{
+		println "clean: build directory"
+		file("$buildDir").list().each {
 			f -> delete "$buildDir/${f}"
 		}
-
-//		def dirMin ="${buildDir}/min"
-//		file ( dirMin ).list().each{
-//			f -> delete "${dirMin}/${f}"
-//		}
 	}
 }
 
@@ -74,16 +76,16 @@ static def getDate() {
 // 01. Run Git Bash or Terminal in build.gradle directory
 // 02. _$ gradle client
 
-tasks.register("client") {
+tasks.register('client') {
 
 	// Groovy variables by using the 'def' keyword
-	def dirClient = layout.buildDirectory.dir("client")
-	def dirMin = layout.buildDirectory.dir("min")
+	def dirClient = layout.buildDirectory.dir('client')
+	def dirMin = layout.buildDirectory.dir('min')
 	def dirTomcat = "c://dev/tomcat/webapps/root"
 	def currentDate = getDate()
 
 	doFirst {
-		println "create static client..."
+		println "Create static JS client..."
 
 		copy {
 			println "copy json"
@@ -151,38 +153,25 @@ tasks.register("client") {
 	}
 }
 
-task CssMinify(type: org.gradlewebtools.minify.CssMinifyTask) { //this: CssMinifyTask
+apply from: 'gradle-concat.gradle'
+
+
+task CssMinify(type: org.gradlewebtools.minify.CssMinifyTask) {
 	srcDir = project.file("$buildDir/concat/css")
 	dstDir = project.file("$buildDir/concat/css")
 }
 
-/*
-task JsMinify(type: org.gradlewebtools.minify.JsMinifyTask) { //this: JsMinifyTask
-	srcDir = project.file("src/main/resources/static/js")
-	dstDir = project.file("build/min/js")
+task JsMinify(type: org.gradlewebtools.minify.JsMinifyTask) {
+	srcDir = project.file("$buildDir/concat/js")
+	dstDir = project.file("$buildDir/concat/js")
 }
-*/
 
-apply from: 'gradle-concat.gradle'
-
-// tasks configuration
 client {
-	dependsOn('concatCSS')
 	dependsOn('customClean')
-	dependsOn("CssMinify")
+	dependsOn('concatCSS')
+	dependsOn('concatJS')
 
 	concatCSS.shouldRunAfter('customClean')
-	CssMinify.shouldRunAfter('concatCSS')
-	shouldRunAfter('CssMinify')
-
-//	dependsOn("JsMinify")
+	concatJS.shouldRunAfter('concatCSS')
+	shouldRunAfter('concatJS')
 }
-
-//client {
-//
-//	dependsOn('customClean')
-//	shouldRunAfter('customClean')
-//	dependsOn("CssMinify")
-////	dependsOn("JsMinify")
-//
-//}

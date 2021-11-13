@@ -1,63 +1,100 @@
-class ConcatFiles extends DefaultTask {
-    @InputFiles
-    FileCollection files
-    @OutputFile
-    File target
-    @TaskAction
-    void concat() {
-        target.withWriter { writer ->
-            files.each { file ->
-                file.withReader { reader ->
-                    writer << reader << '\n'
-                }
-            }
-        }
-    }
-}
-
-class ConcatWithFilter extends DefaultTask {
-    @InputFiles
-    FileCollection files
-    @OutputFile
-    File target
-    @TaskAction
-    void concat() {
-        target.withPrintWriter { writer ->
-            files.each { file ->
-                file.eachLine { line ->
-                    if (!line.startsWith('@import')) {
-                        writer.println(line)
+/*  example: concat class
+    class ConcatFiles extends DefaultTask {
+        @InputFiles
+        FileCollection files
+        @OutputFile
+        File target
+        @TaskAction
+        void concat() {
+            target.withWriter { writer ->
+                files.each { file ->
+                    file.withReader { reader ->
+                        writer << reader << '\n'
                     }
                 }
             }
         }
     }
+    task concat(type: ConcatFiles) {
+        files = files(project.file("..."), project.file("..."))
+        target = file("...")
+    }
+*/
+
+class ConcatTask extends DefaultTask {
+    @InputFiles
+    FileCollection files
+    @OutputFile
+    File target
+    @TaskAction
+    void concat() {
+        int count =  FilesUtil.concat(files, target, ["@import","import", "export"])
+        println("ConcatTask: ${count} files to ${target.toString()}.")
+    }
 }
 
-//    task concat(type: SourceTask) {
-//        source 'src/main/resources/static/css/dev'
-//        include '**/*.css'
-//        outputs.file new File(buildDir, "min/css/all.css")
-//
-//        doLast {
-//            ant.concat(destfile: outputs.files.singleFile) {
-//                source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-//            }
-//        }
-//    }
+class FilesUtil {
 
-def cssDir = project.file("src/main/resources/static/css/dev")
-def outDir = project.file("$buildDir/concat")
+    static File create(File file) {
+        file.getParentFile().mkdirs()
+        if (!file.exists()) {
+            file.createNewFile()
+        }
+        return file
+    }
+
+    static boolean isValid(String line, ArrayList<String> filters) {
+        def result = true;
+        filters.each { str ->
+            if (line.startsWith(str)) {
+                result = false
+            }
+        }
+        return result
+    }
+
+    static int concat(FileCollection files, File target, ArrayList<String> filters) {
+        int i = 0;
+        target.withWriter { writer ->   // withPrintWriter
+            files.each { file ->
+                file.eachLine { line ->
+                    if (FilesUtil.isValid(line, filters)) {
+                        writer.println(line)
+                    }
+                }
+                i++
+            }
+        }
+        return i
+    }
+}
+
+def DIR_CSS = project.file("src/main/resources/static/css/dev")
+def DIR_JS = project.file("src/main/resources/static/js/modules")
+def DIR_OUT = project.file("$buildDir/concat")
 
 
-task concatCSS(type: ConcatWithFilter) {
+task concatCSS(type: ConcatTask) {
     files = files(
-            project.file("$cssDir/main.css"),
-            project.file("$cssDir/generic-normalize.css"),
-            project.file("$cssDir/style.css"),
-            project.file("$cssDir/responsive.css"),
-            project.file("$cssDir/quiz.css"),
-            project.file("$cssDir/development.css")
+            project.file("$DIR_CSS/main.css"),
+            project.file("$DIR_CSS/generic-normalize.css"),
+            project.file("$DIR_CSS/style.css"),
+            project.file("$DIR_CSS/responsive.css"),
+            project.file("$DIR_CSS/quiz.css"),
+            project.file("$DIR_CSS/development.css")
     )
-    target = file("$outDir/css/style.css")
+    target = project.file("$DIR_OUT/css/style.css")
+    finalizedBy('CssMinify')
+}
+
+task concatJS(type: ConcatTask) {
+    files = files(
+            project.file("$DIR_JS/utils/dom.js"),
+            project.file("$DIR_JS/utils/counter.js"),
+            project.file("$DIR_JS/utils/flags.js"),
+            project.file("$DIR_JS/utils/string-util.js")
+//            project.file("$DIR_JS/component/bar.js"),
+    )
+    target = project.file("$DIR_OUT/js/modules.js")
+    finalizedBy('JsMinify')
 }
