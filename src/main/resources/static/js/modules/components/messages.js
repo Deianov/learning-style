@@ -9,34 +9,28 @@ import dom from "../utils/dom.js";
     <small class="msg-item">This is an error.</small>
 </div>
 */
-
-const messages = [];
-const status = {
-    info:"info",
-    error:"error",
-    success:"success"
-};
-const size = {
-    normal:20
-};
-const classNameParent = "text-message";
-const classNameParentSubjects = "subject-text";
-const classNameChild = "msg-item";
-const path = "./assets/images";
-const options = {
+const MSG = {}
+MSG.status = { info: "info", error: "error", success: "success" }
+MSG.size = { normal: 20 }
+MSG.parent = { className: "text-message" }
+MSG.subject = { className: "subject-text" }
+MSG.child = { className: "msg-item" }
+MSG.svg = { path: "./assets/images" }
+MSG.options = {
     info: {
-        "subject":"Info: ",
-        "img":{"class":classNameChild, src:`${path}/info.svg`, "alt":status.info, "width":size.normal, "height":size.normal}
+        subject: "Info: ",
+        img : { class: MSG.child.className, src:`${ MSG.svg.path }/info.svg`, alt: MSG.status.info, width: MSG.size.normal, height: MSG.size.normal}
     },
     error: {
-        "subject":"Error: ",
-        "img":{"class":classNameChild,src:`${path}/error.svg`, "alt":status.error, "width":size.normal, "height":size.normal}
+        subject: "Error: ",
+        img: { class: MSG.child.className, src:`${ MSG.svg.path }/error.svg`, alt: MSG.status.error, width: MSG.size.normal, height: MSG.size.normal}
     },
     success: {
-        "subject":"Success: ",
-        "img":{"class":classNameChild,src:`${path}/check-in-circle.svg.svg`, "alt":status.success, "width":size.normal, "height":size.normal}
+        subject: "Success: ",
+        img: { class: MSG.child.className, src:`${ MSG.svg.path }/check-in-circle.svg.svg`, alt: MSG.status.success, width: MSG.size.normal, height: MSG.size.normal}
     }
-};
+}
+
 class CustomMessage {
     /**
      * @param {HTMLElement} parent 
@@ -49,9 +43,7 @@ class CustomMessage {
         this.status = status;
         this.callback = callback;
         this.defaultArgs = args;
-        this.element;
-        this.siblings;
-        messages.push(this)
+        CustomMessage.store.push(this)
         // console.log(JSON.stringify(messages));
     }
     get text() {
@@ -87,25 +79,26 @@ class CustomMessage {
         }
     }
 }
+CustomMessage.store = []
 
 function clear() {
-    messages.forEach(e => e.remove())
+    CustomMessage.store.forEach(e => e.remove())
 }
-function remove() {
-    clear();
-    messages.fill();
-    messages.length = 0
+function removeMessages() {
+    clear()
+    CustomMessage.store.fill()
+    CustomMessage.store.length = 0
 }
 
 // renders
 function createRender(parent, status, render, args) {
-    return new CustomMessage(parent, status, render, args);
+    return new CustomMessage(parent, status, render, args)
 }
 
 function createRenders(parent, render) {
-    const info = new CustomMessage(parent, status.info, render);
-    const error = new CustomMessage(parent, status.error, render);
-    const success = new CustomMessage(parent, status.success, render);
+    const info = new CustomMessage(parent, MSG.status.info, render)
+    const error = new CustomMessage(parent, MSG.status.error, render)
+    const success = new CustomMessage(parent, MSG.status.success, render)
     return {
         info,
         error,
@@ -115,16 +108,16 @@ function createRenders(parent, render) {
 
 function textMessageWithSymbol (parent, status, args) {
     const [subject, text] = args || [];
-    const div = dom.element("div", parent, classNameParent);
-    const img = dom.element("img", div, options[status].img);
-    const small = dom.element("small", div, classNameChild);
-    dom.text("strong", small, subject ? subject : subject === "" ? "" : options[status].subject);
-    dom.text("small", div, text ? text : "" , classNameChild);
+    const div = dom.element("div", parent, MSG.parent.className)
+    const img = dom.element("img", div, MSG.options[status].img)
+    const small = dom.element("small", div, MSG.child.className)
+    dom.text("strong", small, subject ? subject : subject === "" ? "" : MSG.options[status].subject)
+    dom.text("small", div, text ? text : "" , MSG.child.className)
     return div
 }
 function textMessageWithSubject (parent, dataObject) {
     const {subject, data} = dataObject || {};
-    const div = dom.element("div", parent, classNameParentSubjects);
+    const div = dom.element("div", parent, MSG.subject.className)
     dom.node(subject, dom.element("p", div))
     const ul = dom.element("ul", div)
     for (const line of data) {
@@ -149,4 +142,5 @@ const create = {
     render = messages.create.customRender(parent, "info", messages.renders.textMessageWithSymbol)
 */
 
-export default {remove, clear, create, renders};
+const messages = {removeMessages, clear, create, renders};
+export default messages;

@@ -4,7 +4,7 @@
  <--[waitingNumbers]<-- (--> skip)
  <--[waitingCounts ]<-- (--> skip)
  */
-class Counter {
+class ScopeCounter {
     constructor(minValue = 0, maxValue = false, isRandom = false) {
         this.min = minValue;
         this.max = maxValue;
@@ -124,5 +124,5 @@ class SimpleCounter {
     }
 }
 
-export {SimpleCounter};
-export default Counter;
+export {SimpleCounter}
+export default ScopeCounter;

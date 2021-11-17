@@ -1,7 +1,6 @@
-import router from "../routes/router.js";
+import {router} from "../factory.js";
 
-
-class Menu  {
+class Menu {
     constructor(element) {
         this.element = element;
         this.element.addEventListener("click", this);
@@ -35,9 +34,4 @@ class Menu  {
     }
 }
 
-const top = new Menu(document.getElementsByClassName("navbar")[0]);
-const navigation = {
-    top
-}
-
-export default navigation;
+export {Menu};

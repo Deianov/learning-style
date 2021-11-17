@@ -12,6 +12,7 @@ if (location.protocol !== "https:"){
 
 class Router {
     constructor() {
+        Router.instance = this;
         this._lastIndex = -1;
         this._index = 0;
         this.routes = routes;
@@ -47,9 +48,9 @@ class Router {
         if (this.index !== this._lastIndex) {
             window.history.pushState({}, null, path); // const url = window.location.origin + path;
         }
-        await updateRoute(this.index, reload)
+        await this.update(this.index, reload)
     }
-    get urlSearchParams() {
+    urlSearchParams() {
         const params = new URLSearchParams(window.location.search);
         if (params.has("page")) {
             const page = params.get("page");
@@ -66,17 +67,26 @@ class Router {
         }
         return null;
     }
-    getBreadcrumb() {
-        if (this._index === 0) {
+    // -> callbacks
+    async update(routerIndex, reload) {
+        Router.instance.index = routerIndex || window.location.pathname;
+
+        // todo: update current page
+        if (!reload && Router.instance._index === Router.instance._lastIndex) {
             return
         }
-        const result = [];
-        result.push({"href":"./", "textContent":routes[0].subject})
-        result.push({"key":this.index, "textContent":this.subject})
-        return result
+        if (typeof Router.instance.route.init === "function") {
+            Router.instance.route.init()
+        }
+        if (typeof Router.instance.route.render === "function") {
+            await Router.instance.route.render()
+        }
+        Router.instance._lastIndex = Router.instance._index;
     }
-    get callbacks() {
-        return callbacks
+    async navigateEvent (e) {
+        if (e.target && e.target.hasAttribute("key")) {
+            await Router.instance.navigate(parseInt(e.target.getAttribute("key")), null, null, true);
+        }
     }
 }
 
@@ -91,48 +101,16 @@ function getRouteIndex(value) {
     if (typeof value === "string") {
         if (isNaN(value)) {
             const str = value.trim().toLowerCase();
-            return routes.findIndex(r => r.path === ((str.startsWith("/") ? "" : "/") + str));
+            const index = routes.findIndex(r => r.path === ((str.startsWith("/") ? "" : "/") + str));
+            return Router.isValid(index) ? index : 0;
         }
         return (value ^ 0) // parseInt
     }
     return 0
 }
 
-async function updateRoute(routerIndex, reload) {
-    router.index  = routerIndex || window.location.pathname;
-    const index = router.index;
-    const route = router.route;
-
-    // todo: update current page
-    if (!reload && router.index === router._lastIndex) {
-        return
-    }
-
-    if (typeof route.init === "function") {
-        route.init()
-    }
-
-    if (typeof route.render === "function") {
-        await route.render()
-    }
-
-    router._lastIndex = index;
-}
-
-
-const callbacks = {
-    navigateEvent
-}
-
 // events
-async function navigateEvent (e) {
-    if (e.target && e.target.hasAttribute("key")) {
-      await router.navigate(parseInt(e.target.getAttribute("key")), null, null, true);
-    }
-}
-
 // navigating between two history entries
-window.onpopstate = () => setTimeout(updateRoute, 0);
+window.onpopstate = () => setTimeout(Router.instance.update, 0);
 
-const router = new Router();
-export default router
+export {Router}

@@ -1,12 +1,10 @@
-import props from "./props.js";
+import CS from "./constants.js";
 
-const path = props.server.json;
-const contentType = ".json"
 /** todo: change inmemory with LocalStorage */
 const files = {};
 
 // development state
-document.getElementsByClassName("version")[0].textContent = `state: ${props.app.state}, version: ${props.app.version} (${props.app.isStatic ? "static":"api"})`;
+document.getElementsByClassName("version")[0].textContent = `state: ${CS.app.state}, version: ${CS.app.version} (${CS.app.isStatic ? "static":"api"})`;
 
 class LocalRepository {
     existsByName(name) {
@@ -30,7 +28,7 @@ class Repository {
 
     // switch between static/api version
     async getByName(name) {
-        const fun = props.app.isStatic ? this.fetchStatic : this.fetchApi;
+        const fun = CS.app.isStatic ? this.fetchStatic : this.fetchApi;
         return await fun(name)
     }
     // static
@@ -45,12 +43,12 @@ class Repository {
     }
     static requestString(value) {
         // replace(/\\/g, '/')
-        return path + (value.startsWith("/") ? "" : "/") + value + contentType
+        return CS.server.json + (value.startsWith("/") ? "" : "/") + value + ".json"
     }
 }
 
 
-class Service {
+class Data {
     /**
      * @param {string} name Relative resource path. ("fileName" || path/filename)
      * @param {boolean} cashable
@@ -171,7 +169,7 @@ function arrayToMatrix(arr, cols) {
 
 
 function requestString(path) {
-    return props.server.api + (path.startsWith("/") ? "" : "/") + path
+    return CS.server.api + (path.startsWith("/") ? "" : "/") + path
 }
 
 async function sendRequest(path, method, body) {
@@ -205,7 +203,7 @@ async function postData(path, data) {
         credentials: "include", // include, *same-origin, omit
         headers: {
             "Content-Type": "application/json",
-            "Accept-Language": props.app.lang
+            "Accept-Language": CS.app.lang
             // 'Content-Type': 'application/x-www-form-urlencoded',
         },
         redirect: "follow", // manual, *follow, error
@@ -228,5 +226,4 @@ async function postData(path, data) {
 
 const localRepository = new LocalRepository();
 const repository = new Repository();
-const service = new Service();
-export default service;
+export {Data};

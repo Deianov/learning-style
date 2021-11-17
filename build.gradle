@@ -1,3 +1,5 @@
+import java.nio.charset.Charset
+
 buildscript {
 	dependencies {
 		classpath "org.gradle-webtools.minify:gradle-minify-plugin:${minifyPluginVersion}"
@@ -88,28 +90,31 @@ tasks.register('client') {
 		println "Create static JS client..."
 
 		copy {
-			println "copy json"
+			println "copy: json files"
 			from "src/main/resources/json/output"
 			into "$buildDir/client/json"
 			include('**/*.json')
 		}
 		copy {
-			println "copy tailwindcss"
+			println "copy: tailwindcss"
 			from "src/main/resources/static/css/external/tailwind.min.form.css"
 			into "$buildDir/client/node_modules/tailwindcss/dist"
 		}
 		copy {
-			println "copy static"
+			println "copy: static"
+			println "copy: assets"
 			from "src/main/resources/static"
-			exclude ('**/temp', '**/tmp', '**/_tmp', '**/css', '**/external', '**/props.js', '**/favicon.ico') // '**/main.js'
-			println "copy package.json"
+			exclude ('**/js', '**/css') // '**/temp', '**/tmp', '**/_tmp'
+			println "copy: package.json"
 			from layout.projectDirectory.file("package.json")
-			println "copy robots.txt"
+			println "copy: robots.txt"
 			from layout.projectDirectory.file("robots.txt")
+			println "copy: favicon.ico"
+			from layout.projectDirectory.file("src/main/resources/static/assets/images/favicon.ico")
 			into dirClient
 		}
 		copy {
-			println "copy html and ico"
+			println "copy: html"
 			from layout.projectDirectory.file("src/main/resources/templates/index.html")
 			from layout.projectDirectory.file("src/main/resources/templates/static/login.html")
 			filter { String line ->
@@ -122,26 +127,26 @@ tasks.register('client') {
 				line.contains('/main.css') ? "<link rel=\"stylesheet\" href=\"/css/style.css?v=${currentDate}\" type=\"text/css\">" : line
 			}
 			filteringCharset = 'UTF-8'
-			from layout.projectDirectory.file("src/main/resources/static/assets/images/favicon.ico")
 			into dirClient
 		}
 		copy {
-			println "copy style.css"
-			from "$buildDir/concat/css/style.min.css"
+			println "copy: style.css"
+			from "$buildDir/min/css/style.min.css"
 			into "$buildDir/client/css"
 			rename("style.min.css", "style.css")
 		}
 		copy {
-			println "copy props.js"
-			from layout.projectDirectory.file("src/main/resources/static/js/modules/props.js")
-			into "$buildDir/client/js/modules"
+			println "copy: main.js"
+			from layout.projectDirectory.file("src/main/resources/static/js/main.js")
+			into "$buildDir/client/js"
 			filter { String line ->
-				line.startsWith('app.version = ') ? "app.version = \"${currentDate}\";" : line
+				line.replaceAll("./modules/factory.js", "./modules/modules.js")
 			}
-			filter { String line ->
-				line.startsWith('app.isStatic = ') ? 'app.isStatic = true;' : line
-			}
-			filteringCharset = 'UTF-8'
+		}
+		copy {
+			println "copy: maps"
+			from "src/main/resources/static/js/modules/components/maps"
+			into "$buildDir/client/js/modules/components/maps"
 		}
 	}
 	doLast {
@@ -153,17 +158,18 @@ tasks.register('client') {
 	}
 }
 
-apply from: 'gradle-concat.gradle'
+apply from: 'build-concat.gradle'
 
 
 task CssMinify(type: org.gradlewebtools.minify.CssMinifyTask) {
 	srcDir = project.file("$buildDir/concat/css")
-	dstDir = project.file("$buildDir/concat/css")
+	dstDir = project.file("$buildDir/min/css")
 }
 
 task JsMinify(type: org.gradlewebtools.minify.JsMinifyTask) {
 	srcDir = project.file("$buildDir/concat/js")
-	dstDir = project.file("$buildDir/concat/js")
+	dstDir = project.file("$buildDir/min/js")
+	finalizedBy('finalMerge')
 }
 
 client {

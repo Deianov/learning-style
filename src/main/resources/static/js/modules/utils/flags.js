@@ -103,5 +103,4 @@ class ArrayOfFlags {
     }
 }
 
-export {ArrayOfFlags}
-export default Flags
+export {Flags, ArrayOfFlags}

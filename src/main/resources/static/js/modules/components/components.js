@@ -1,22 +1,17 @@
+import factory from "../factory_loader.js";
 import dom from "../utils/dom.js";
 
 
 class MyEvent {
     constructor() {
-        this.eventType;
-        this.eventCallback;
         this.eventChildIndex = -1;
-        this.eventWaiting;
     }
-    get eventElement() {
-        return this._eventElement
+    setEventElement(e) {
+        this.eventElement = e ? (this.eventChildIndex === -1) ? e : e.children[this.eventChildIndex] : undefined
     }
-    set eventElement(e) {
-        this._eventElement = e ? (this.eventChildIndex === -1) ? e : e.children[this.eventChildIndex] : undefined
-    }
-    setEvent(element, type, callback, index) {
+    setEvent(e, type, callback, index) {
         this.eventChildIndex = (typeof index === "number") ? index : -1;
-        this.eventElement = element;
+        this.setEventElement(e);
         this.eventType = type;
         this.eventCallback = callback;
         this.eventWaiting = true
@@ -34,9 +29,9 @@ class MyEvent {
         this.eventElement = undefined
         this.eventWaiting = true
     }
-    updateEvent(element) {
+    updateEvent(e) {
         if (this.eventWaiting && this.eventCallback) {
-            this.eventElement = element;
+            this.setEventElement(e);
             if (this.eventElement) {
                 this.eventElement.addEventListener(this.eventType, this.eventCallback)
                 this.eventWaiting = undefined;
@@ -65,55 +60,45 @@ class Component extends MyEvent {
     get parent() {
         return this._parent
     }
-    set parent(e) {
-        this._parent = e
-    }
     get wrapper() {
-        this._wrapper = this.parent.getElementsByClassName(this.classNameWrapper)[0];
+        this._wrapper = this._parent.getElementsByClassName(this.classNameWrapper)[0];
         return this._wrapper
     }
-    set wrapper(e) {
-        this._wrapper = e
-    }
     get element() {
-        this._element = this.parent.getElementsByClassName(this.className)[0];
+        this._element = this._parent.getElementsByClassName(this.className)[0];
         return this._element
     }
-    set element(e) {
-        this._element = e
-    }
-    get creatableWrapper() {
+    /**
+     * re-create wrapper if not exists.
+     */
+    updateWrapper() {
         if (!this.classNameWrapper) {
             return
         }
         this._wrapper = this.wrapper || dom.element("div", this._parent, this.classNameWrapper);
-        return this._wrapper
     }
     /**
-     * re-create wrapper and/or element if not exists.
+     * re-create element and/or wrapper if not exists.
      * update event
      */
-    get creatableElement() {
+    updateElement() {
         this._element = this.element;
-        this._wrapper = this.creatableWrapper
+        this.updateWrapper()
         if (!this._element) {
             this._element = dom.element(this.tagName, (this._wrapper || this._parent), this.className);
             super.eventWaiting = true;
         }
         this._element = this._element || dom.element(this.tagName, (this._wrapper || this._parent), this.className);
-        return this._element
     }
     reset() {
-        dom.removeAll(this._element);
-        this._element = this.creatableElement;
+        this.updateElement();
+        this._element.innerHTML = "";
         this._element.classList.toggle(this.className, true);
         this.updateEvent(this._element);
         // this.visible(true)
     }
     remove() {
-        if (this._element || this._wrapper) {
-            dom.remove(this._wrapper || this.element);
-        }
+        dom.remove(this._wrapper || this._element); // this.element ?
         this.resetEvent();
         this._element = undefined;
         this._wrapper = undefined;
@@ -145,16 +130,9 @@ class Component extends MyEvent {
         <li><a href="#">German</a></li>
     </ul>
 */
-
-
-const breadcrumb = {
-    "className":"breadcrumb",
-    "tagName":"ul"
-}
-
 class Breadcrumb extends Component {
-    constructor(parent) {
-        super(parent, null, breadcrumb.tagName, breadcrumb.className)
+    constructor(parent = "header") {
+        super(parent, null, Breadcrumb.PROPS.tagName, Breadcrumb.PROPS.className)
     }
     render(obj) {
         super.reset();
@@ -174,6 +152,11 @@ class Breadcrumb extends Component {
         }
     }
 }
+Breadcrumb.PROPS = {
+    className: "breadcrumb",
+    tagName: "ul"
+}
+factory.addClass(Breadcrumb)
 
 
 /**
@@ -189,11 +172,9 @@ class Breadcrumb extends Component {
         </svg>
     </button>
 */
-
 class GoTop {
     constructor() {
-        this.view;
-        this.disabled;
+        GoTop.instance = this;
     }
     render() {
         // todo: render
@@ -220,7 +201,7 @@ function scrollTop() {
     document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
 }
 function scrollEvent() {
-    goTop.visible(document.body.scrollTop > 20 || document.documentElement.scrollTop > 20)
+    GoTop.instance.visible(document.body.scrollTop > 20 || document.documentElement.scrollTop > 20)
 }
 
 
@@ -239,17 +220,9 @@ function scrollEvent() {
         ...
     </div>
 */
-
-const tags = {
-    "className":"tags",
-    "tagName":"div",
-    "classNameItem":"tag",
-    "classNameHeader":"heading"
-}
-
 class Tags extends Component {
-    constructor(parent) {
-        super(parent, null, tags.tagName, tags.className)
+    constructor(parent = "bottom") {
+        super(parent, null, Tags.PROPS.tagName, Tags.PROPS.className)
     }
     /**
      * {"text":"Topics", "tags":[
@@ -262,13 +235,18 @@ class Tags extends Component {
      */
     render(obj) {
         super.reset();
-
-        dom.text("span", this.element, obj.text, tags.classNameHeader);
+        dom.text("span", this.element, obj.text, Tags.PROPS.header.className);
         for (const tag of obj.tags) {
-            dom.element("a", dom.element("div", this.element, tags.classNameItem), tag)
+            dom.element("a", dom.element("div", this.element, Tags.PROPS.item.className), tag)
         }
     }
 }
+Tags.PROPS = {
+    className: "tags",
+    tagName: "div",
+    item: {className: "tag"},
+    header: {className: "heading"}
+}
+factory.addClass(Tags)
 
-const goTop = new GoTop().render();
-export {Component, Breadcrumb, goTop, Tags};
+export {Component, Breadcrumb, GoTop, Tags};

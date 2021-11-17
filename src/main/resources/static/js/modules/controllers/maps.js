@@ -1,13 +1,15 @@
+import factory from "../factory_loader.js";
 import dom from "../utils/dom.js";
 
-// constants
-const PATH = "../components/maps/";
+
+const MAPS = {
+    path: "../components/maps/"
+}
 
 class Maps {
-    constructor(parent) {
+    constructor(parent = "content") {
         this.parent = dom.get(parent)
     }
-
     async render(jsonFile) {
         const maps = Object.entries(jsonFile.options).sort(((a, b) => a[1] - b[1])).map(v => v[0]);
         const [name, file1, file2] = maps;
@@ -16,14 +18,14 @@ class Maps {
         const map = new Map(this.parent);
 
         // dynamic import - map
-        imp = await import(PATH + encodeURIComponent(file1));  // "../components/maps/maps-de.js"
+        imp = await import(MAPS.path + encodeURIComponent(file1));  // "../components/maps/maps-de.js"
         const res1 = imp.default;
 
         await map.render(res1[name]);
         map.renderInfo(res1.meta);
 
         // dynamic import - full data
-        imp = await import(PATH + encodeURIComponent(file2)); // "../components/maps/maps-de-full.js"
+        imp = await import(MAPS.path + encodeURIComponent(file2)); // "../components/maps/maps-de-full.js"
         const res2 = imp.default;
         map.meta = res2[name].meta;
     }
@@ -35,6 +37,8 @@ class Maps {
         this.parent.innerHTML = "";
     }
 }
+factory.addClass(Maps)
+
 
 class Map {
     constructor(parent) {
@@ -91,7 +95,7 @@ class Map {
 }
 
 function numberWithCommas(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return x >= 1000 ? x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "0," + x;
 }
 
 export default Maps;

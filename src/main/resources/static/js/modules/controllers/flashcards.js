@@ -1,30 +1,33 @@
-import Counter from "../utils/counter.js";
-import {page, exercise} from "../factory.js";
+import factory from "../factory_loader.js";
+import ScopeCounter from "../utils/counters.js";
+import {page} from "../factory.js";
 
 
 // constants
-const turnsWaitingToRepeat = 5;
-
-// objects
-/**
- * @param {number} min Inclusive (default: 0)
- * @param {number} max Exclusive (optional)
- * @param {boolean} random (shuffle)
- */
-let counter;
+const FLASHCARDS = {};
+FLASHCARDS.turnsWaitingToRepeat = 5;
 
 
 class Flashcards {
+    constructor() {
+        Flashcards.instance = this;
+    }
 
-    async render(localData) {
-        this.jsonFile = localData;
-        counter = new Counter(0, false, false);
+    async render(jsonFile) {
+        this.jsonFile = jsonFile;
 
-        this.bar = await page.component("bar");
-        this.list = await page.component("list");
-        this.cards = await page.component("cards");
-        this.input = await page.component("input");
-        this.tags = await page.component("tags");
+        /**
+         * @param {number} min Inclusive (default: 0)
+         * @param {number} max Exclusive (optional)
+         * @param {boolean} random (shuffle)
+         */
+        this.counter = new ScopeCounter(0, false, false);
+
+        this.bar = await factory.getInstance("Bar");
+        this.list = await factory.getInstance("List");
+        this.cards = await factory.getInstance("Cards");
+        this.input = await factory.getInstance("UserInput");
+        this.tags = await factory.getInstance("Tags");
 
         this.bar.render(this.jsonFile);
         this.list.render(this.jsonFile);
@@ -39,18 +42,18 @@ class Flashcards {
         )
     }
     start() {
-        counter.reset(this.jsonFile.save.rows);
+        this.counter.reset(this.jsonFile.save.rows);
         this.bar.start();
         this.list.remove();
         this.cards.render(this.jsonFile);
 
-        this.input.render(this.jsonFile, counter);
+        this.input.render(this.jsonFile, this.counter);
         this.next();
         page.play(true)
     }
     stop() {
         if (!page.active) {return}
-        counter.reset(0);
+        this.counter.reset(0);
         this.bar.stop();
         this.cards.remove();
         this.input.remove();
@@ -61,26 +64,25 @@ class Flashcards {
         let row = false;
 
         // finish
-        if (!counter.hasNext() && (step === 1 || step === 2)) {
+        if (!this.counter.hasNext() && (step === 1 || step === 2)) {
             this.stop();
-            console.log("finish");
             return
         }
 
         // next
         if (step === 1) {
-            row = counter.next
+            row = this.counter.next
         // skip and next            
         } else if (step === 2) {
-            if (this.input.repeat) {counter.skipLastWaiting()}
+            if (this.input.repeat) {this.counter.skipLastWaiting()}
             this.input.clear();
-            row = counter.next
+            row = this.counter.next
         // previous           
         } else if (step === -1) {
-            row = counter.previous
+            row = this.counter.previous
         // repeat current
         } else if (step === 0) {
-            row = counter.repeatLast(turnsWaitingToRepeat)
+            row = this.counter.repeatLast(FLASHCARDS.turnsWaitingToRepeat)
         }
 
         // console.debug(JSON.stringify(counter));
@@ -95,7 +97,7 @@ class Flashcards {
         } 
         else {
             this.cards.setStatus("error", false);
-            this.input.show.stats.done = counter.hasPrevious();
+            this.input.show.stats.done = this.counter.hasPrevious();
             this.cards.populate(row);
             this.input.nextWord();
             this.bar.row = row + 1
@@ -111,15 +113,15 @@ class Flashcards {
         this.playWord(-1)
     }
     toggleShuffle() {
-        counter.random = !counter.random;
-        this.bar.shuffle(counter.random);
-        counter.reset();
+        this.counter.random = !this.counter.random;
+        this.bar.shuffle(this.counter.random);
+        this.counter.reset();
         this.input.reset();
         this.next()
     }
     onTextareaChange() {
-        exercise.current.input.readInput();
-        if (exercise.current.input.done) {exercise.current.playWord(exercise.current.input.success ? 1 : 0)}
+        Flashcards.instance.input.readInput();
+        if (Flashcards.instance.input.done) {Flashcards.instance.playWord(Flashcards.instance.input.success ? 1 : 0)}
     }
     resume() {
         if (page.active) {
@@ -127,5 +129,6 @@ class Flashcards {
         }
     }
 }
+factory.addClass(Flashcards)
 
-export default Flashcards;
+export {Flashcards}

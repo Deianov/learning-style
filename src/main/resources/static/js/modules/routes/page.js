@@ -1,10 +1,12 @@
 import dom from "../utils/dom.js";
-import {factory, router, breadcrumb} from "../factory.js";
+import {router, breadcrumb} from "../factory.js";
 
 
 // constants
-const classNameSubject = "subject";
-function getElements() {
+const PAGE = {};
+PAGE.subject = {};
+PAGE.subject.className = "subject";
+PAGE.getElements = function () {
     return {
         "aside": document.getElementsByTagName("aside")[0],
         "article": document.getElementsByTagName("article")[0],
@@ -13,15 +15,17 @@ function getElements() {
         "content": document.getElementById("content"),
         "messages": document.getElementById("messages"),
         "bottom": document.getElementById("bottom"),
-        "subject": () => document.getElementsByClassName(classNameSubject)[0]
+        "subject": () => document.getElementsByClassName(PAGE.subject.className)[0],
+        "cdate": document.getElementById("cdate")
     }
 }
 
+
 class Page {
     constructor() {
-        this.elements = getElements();
+        this.elements = PAGE.getElements();
         this.active = undefined;
-        this.router = router;
+        this.elements.cdate.textContent = `${new Date().getFullYear()}`;
     }
     reset() {
         this.elements.control.innerHTML = "";
@@ -35,9 +39,6 @@ class Page {
         this.reset();
         this.renderBreadcrumb(category);
         renderSubject(this.elements.header, subject || router.route.subject, obj)
-    }
-    async component(name) {
-        return await factory.getInstance(name)
     }
     async renderContent(callback, args) {
         await callback(this.elements.content, args)
@@ -68,8 +69,8 @@ class Page {
  * @param {object} obj      - {source, sourceUrl, author, authorUrl}
  */
 function renderSubject(parent, subject, obj) {
-    let div = document.getElementsByClassName(classNameSubject)[0];
-    div = div || dom.element("div", parent, classNameSubject);
+    let div = document.getElementsByClassName(PAGE.subject.className)[0];
+    div = div || dom.element("div", parent, PAGE.subject.className);
     div.innerHTML = "";
     dom.text("h3", div, subject)
 
@@ -117,4 +118,4 @@ function formatLink(url) {
     return options
 }
 
-export default Page;
+export {Page};

@@ -1,66 +1,51 @@
-import {SimpleCounter} from "../utils/counter.js";
+import factory from "../factory_loader.js";
 import dom from "../utils/dom.js";
-import messages from "./messages.js";
+import CS from "../constants.js";
 import {Component} from "./components.js";
-import props from "../props.js";
+import SimpleCounter from "../utils/counters.js";
+import messages from "./messages.js";
 
-// objects
-const successCounter = new SimpleCounter(1);
-const errorsCounter = new SimpleCounter(1);
 
-// constants
-const classNameWrapper = "input";
-const className = "form";
-const classNameStats = "stats right";
-const classNameCounts = "counts left";
-const tagName = "form";
-
-// options
-const options = {
+const INPUT = {};
+INPUT.classNameWrapper = "input";
+INPUT.className = "form";
+INPUT.tagName = "form";
+INPUT.options = {
     bar: {
-        stats: {"class":classNameStats},
+        stats: {class: "stats right"},
         award: {src:"./assets/images/award.svg", alt:"award", width:"18", height:"18"},
-        counts: {"class":classNameCounts}
+        counts: {class: "counts left"}
     },
-    form: {className},
+    form: {className: INPUT.className},
     textarea: {placeholder:"Write something..", autocapitalize:"none", autocomplete:"off"}
 }
-
-// elements
-const elements = {
+INPUT.elements = {
     "bar": "",
     "form": "",
     "textarea": "",
     "default": "",
     "messages":""
 }
-const renders = {};
+INPUT.renders = {};
 
 
 class UserInput extends Component {
-    constructor(parent) {
-        super(parent, classNameWrapper, tagName, className)
-        this.local;
+    constructor(parent = "content") {
+        super(parent, INPUT.classNameWrapper, INPUT.tagName, INPUT.className)
         this.focus = false;
-        this.show;
-        this.examples;
-
-        this.input;
-        this.inputElement;
         this.done = false;
         this.error = false;
         this.success = false;
         this.repeat = false;
-
-        this.words;
-        this.word;
+        this.successCounter = new SimpleCounter(1);
+        this.errorsCounter = new SimpleCounter(1);
     }
-    render(localData) {
-        this.local = localData;
+    render(jsonFile) {
+        this.local = jsonFile;
         super.reset();
         renderInput(this.wrapper);
-        this.inputElement = elements.default;
-        this.show = new UserInformation(elements, renders);
+        this.inputElement = INPUT.elements.default;
+        this.show = new UserInformation(INPUT.elements, INPUT.renders);
         this.reset();
         super.updateEvent(this.element)
     }
@@ -78,21 +63,21 @@ class UserInput extends Component {
     repeatWord() {
         this.clear();
         this.repeat = true;
-        this.show.messages.error.render("", props.msg.input.again);
+        this.show.messages.error.render("", CS.msg.input.again);
     }
     showExamples() {
         if (this.success && !this.examples && Array.isArray(this.words.slice(-1)[0])) {
             this.examples = this.words.slice(-1)[0];
-            renders.custom.examples.render();
+            INPUT.renders.custom.examples.render();
             this.examples.forEach(ex => {
-                renders.custom.examples.addSiblingByCallback(messages.renders.textMessageWithSubject, ex)
+                INPUT.renders.custom.examples.addSiblingByCallback(messages.renders.textMessageWithSubject, ex)
             });
         }
     }
     reset() {
         this.clear();
-        successCounter.reset();
-        errorsCounter.reset();
+        this.successCounter.reset();
+        this.errorsCounter.reset();
         this.show.stats.success = 0;
         this.show.stats.error = 0;
         this.show.stats.rows = this.local.save.rows;
@@ -120,7 +105,7 @@ class UserInput extends Component {
     }
     isDone() {
         const lastChar = this.input.slice(-1);
-        const flag = lastChar == "\n" || lastChar == "\r";
+        const flag = lastChar === "\n" || lastChar === "\r";    // todo: == ?
         this.done = flag;
         if (flag) {
             this.inputElement.value = "";
@@ -128,9 +113,9 @@ class UserInput extends Component {
         }
         if (flag && !this.repeat) {
             if (this.success) {
-                this.show.stats.success = successCounter.next;
+                this.show.stats.success = this.successCounter.next;
             } else {
-                this.show.stats.error = errorsCounter.next;
+                this.show.stats.error = this.errorsCounter.next;
             }
         }
         if (flag && !this.success) {
@@ -195,15 +180,16 @@ class UserInput extends Component {
     //     this.element.addEventListener("input", callback);
     // }
     remove() {
-        messages.remove();
+        messages.removeMessages();
         super.remove()
     }
     // erase() {
     //     this.visible(false)
     //     dom.removeAll(this.parent);
-    //     messages.remove();
+    //     messages.removeMessages();
     // }
 }
+factory.addClass(UserInput)
 
 class UserInformation {
     constructor(elementsObject, renders) {
@@ -286,12 +272,12 @@ class UserInformation {
 
 function createStatsBar(parent) {
     const div = dom.element("div", parent);
-    const parentStats = dom.element("div", div, options.bar.stats);
+    const parentStats = dom.element("div", div, INPUT.options.bar.stats);
     dom.element("small", parentStats);
     dom.element("small", parentStats);
-    dom.element("img", parentStats, options.bar.award);
+    dom.element("img", parentStats, INPUT.options.bar.award);
 
-    const parentCounts = dom.element("div", div, options.bar.counts);
+    const parentCounts = dom.element("div", div, INPUT.options.bar.counts);
     dom.element("small", parentCounts);
     dom.text("span", parentCounts, "|");
     dom.element("small", parentCounts);
@@ -299,22 +285,22 @@ function createStatsBar(parent) {
 }
 
 function renderInput (wrapper) {
-    messages.remove();
+    messages.removeMessages();
     dom.removeAll(wrapper);
-    elements.bar = createStatsBar(wrapper);
-    elements.form = dom.element("form", wrapper, options.form);
-    elements.textarea = dom.element("textarea", elements.form, options.textarea);
-    elements.default = elements.textarea;
-    elements.stats = {
-        "success": elements.bar.children[0].children[1],
-        "error": elements.bar.children[0].children[0],
-        "done": elements.bar.children[1].children[0],
-        "rows": elements.bar.children[1].children[2]
+    INPUT.elements.bar = createStatsBar(wrapper);
+    INPUT.elements.form = dom.element("form", wrapper, INPUT.options.form);
+    INPUT.elements.textarea = dom.element("textarea", INPUT.elements.form, INPUT.options.textarea);
+    INPUT.elements.default = INPUT.elements.textarea;
+    INPUT.elements.stats = {
+        "success": INPUT.elements.bar.children[0].children[1],
+        "error": INPUT.elements.bar.children[0].children[0],
+        "done": INPUT.elements.bar.children[1].children[0],
+        "rows": INPUT.elements.bar.children[1].children[2]
     };
-    elements.messages = document.getElementById("messages");
-    renders.messages = messages.create.renders(elements.form, messages.renders.textMessageWithSymbol);
-    renders.custom = {};
-    renders.custom.examples = messages.create.customRender(elements.messages, "info", messages.renders.textMessageWithSymbol, "")
+    INPUT.elements.messages = document.getElementById("messages");
+    INPUT.renders.messages = messages.create.renders(INPUT.elements.form, messages.renders.textMessageWithSymbol);
+    INPUT.renders.custom = {};
+    INPUT.renders.custom.examples = messages.create.customRender(INPUT.elements.messages, "info", messages.renders.textMessageWithSymbol, "")
 }
 
-export default UserInput;
+export {UserInput} ;

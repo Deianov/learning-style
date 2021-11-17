@@ -1,23 +1,25 @@
-import dom from '../utils/dom.js';
-import {maskText} from '../utils/string-util.js';
+import factory from "../factory_loader.js";
+import dom from "../utils/dom.js";
 import {Component} from "./components.js";
+import strings from '../utils/strings.js';
+
 
 // constants
-const maskCharacter = '_';
-const className = "cards";
-const tagName = "div"
+const CARDS = {};
+CARDS.maskCharacter = '_';
+CARDS.className = "cards";
+CARDS.tagName = "div";
+
+
 
 class Cards extends Component {
-    constructor(parent) {
-        super(parent, null, tagName, className)
-        this.local;
+    constructor(parent = "content") {
+        super(parent, null, CARDS.tagName, CARDS.className)
         this.cards = [];
-        this.words;
         this.active = -1;
-        this.status;
     }
-    render(localData) {
-        this.local = localData;
+    render(jsonFile) {
+        this.local = jsonFile;
         this.reset();
 
         for (let tab = 0; tab < this.local.save.tabs.length; tab++) {
@@ -70,7 +72,7 @@ class Cards extends Component {
             if (isActiveTab || this.status === "error") {
                 this.setContent(i, this.words[i])
             } else {
-                this.setContent(i, maskText(this.words[i], maskCharacter))
+                this.setContent(i, strings.mask(this.words[i], CARDS.maskCharacter))
             }
         } else {
             this.visibleContent(i, isActiveTab)
@@ -98,5 +100,6 @@ class Cards extends Component {
         this.status = null;
     }
 }
+factory.addClass(Cards)
 
 export default Cards;

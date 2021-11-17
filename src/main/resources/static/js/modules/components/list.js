@@ -1,19 +1,19 @@
+import factory from "../factory_loader.js";
 import dom from "../utils/dom.js";
 import {Component} from "./components.js";
 
 
-const list = {
-    "className": "lists",
-    "tagName": "table"
+const LIST = {
+    className: "lists",
+    tagName: "table"
 }
 
 class List extends Component {
-    constructor(parent) {
-        super(parent, null, list.tagName, list.className)
-        this.local;
+    constructor(parent = "content") {
+        super(parent, null, LIST.tagName, LIST.className)
     }
-    render(localData) {
-        this.local = localData;
+    render(jsonFile) {
+        this.local = jsonFile;
         super.reset();
         populateTable(this.element, this.local.data, this.local.save.tabs.length)
     }
@@ -36,6 +36,7 @@ class List extends Component {
         return Number.isInteger(row) && row > -1 && row < this.local.data.length
     }
 }
+factory.addClass(List)
 
 function populateTable(parent, data, cols) {
     let tr;

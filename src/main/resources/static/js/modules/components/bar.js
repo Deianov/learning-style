@@ -1,59 +1,56 @@
+import factory from "../factory_loader.js";
 import dom from "../utils/dom.js";
 import {Component} from "./components.js";
 
 
 // constants
-const className = "bar";
-const tagName = "div"
-
-// elements
-const elements = {};
-
-function init() {
-    elements.start = document.getElementById("start");
-    elements.onPlay = {};
-    elements.onPlay.back = document.getElementById("back");
-    elements.onPlay.row = document.getElementById("row");
-    elements.onPlay.forward = document.getElementById("forward");
-    elements.onPlay.shuffle = document.getElementById("shuffle");
-    elements.tabs = document.getElementById("tabs");
+const BAR = {}
+BAR.className = "bar";
+BAR.tagName = "div";
+BAR.elements = {};
+BAR.initElements = () => {
+    BAR.elements.start = document.getElementById("start");
+    BAR.elements.onPlay = {};
+    BAR.elements.onPlay.back = document.getElementById("back");
+    BAR.elements.onPlay.row = document.getElementById("row");
+    BAR.elements.onPlay.forward = document.getElementById("forward");
+    BAR.elements.onPlay.shuffle = document.getElementById("shuffle");
+    BAR.elements.tabs = document.getElementById("tabs");
 }
 
 class Bar extends Component {
-    constructor(parent) {
-        super(parent, null, tagName, className)
-        this.local;
-        this.activeTabs;
+    constructor(parent = "control") {
+        super(parent, null, BAR.tagName, BAR.className)
         this.tabs = [];
     }
-    render(localData) {
+    render(jsonFile) {
         super.reset();
         renderDom(this._element);
-        init();
+        BAR.initElements();
 
-        this.local = localData;
+        this.local = jsonFile;
         this.tabs.length = 0;
         // reference to localData
         this.activeTabs = this.local.save.tabs;
         this.onPlay(false);
-        elements.onPlay.row.disabled = true;
+        BAR.elements.onPlay.row.disabled = true;
 
         for (let i = 0; i < this.activeTabs.length; i++) {
-            this.tabs.push(dom.element("button", elements.tabs, {"key":i, "textContent":this.local.json.labels[i]}));
+            this.tabs.push(dom.element("button", BAR.elements.tabs, {"key":i, "textContent":this.local.json.labels[i]}));
             this.setActiveTab(i, true);
         }
     }
     start() {
         this.local.save.status = "start";
-        this.setLabel(elements.start, "Stop");
-        this.setActive(elements.start, true);
+        this.setLabel(BAR.elements.start, "Stop");
+        this.setActive(BAR.elements.start, true);
         this.onPlay(true);
         this.resetTabs(true);
     }
     stop() {
         this.local.save.status = "stop";
-        this.setLabel(elements.start, "Start");
-        this.setActive(elements.start, false);
+        this.setLabel(BAR.elements.start, "Start");
+        this.setActive(BAR.elements.start, false);
         this.onPlay(false);
         this.resetTabs();
     }
@@ -71,16 +68,16 @@ class Bar extends Component {
         this.activeTabs[index] = flag
     }   
     shuffle(flag) {
-        this.setActive(elements.onPlay.shuffle, flag);
+        this.setActive(BAR.elements.onPlay.shuffle, flag);
     }
     onPlay(flag) {
-        Object.values(elements.onPlay).forEach(e => e.style.display = flag ? "" : "none");
+        Object.values(BAR.elements.onPlay).forEach(e => e.style.display = flag ? "" : "none");
     }
     get row() {
-        return elements.onPlay.row.children[0].textContent
+        return BAR.elements.onPlay.row.children[0].textContent
     }
     set row(str) {
-        elements.onPlay.row.children[0].textContent = str || "0"
+        BAR.elements.onPlay.row.children[0].textContent = str || "0"
     }
     setActive(e, flag = true) {
         e.classList.toggle("active", flag)
@@ -95,6 +92,8 @@ class Bar extends Component {
         return parseInt(e.getAttribute("key"))
     }
 }
+factory.addClass(Bar)
+
 
 function renderDom(parent) {
     parent.innerHTML = 

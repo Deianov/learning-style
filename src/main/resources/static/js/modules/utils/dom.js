@@ -36,6 +36,7 @@ function remove(e) {
     }
 }
 
+/*
 function updateText(id, textOrNode) {
     const e = document.getElementById(id);
     e.textContent = ""; // Removes all children
@@ -48,6 +49,7 @@ function update(id, callback, arg) {
         callback(e, arg)
     }
 }
+*/
 
 /**
  * @param {string | HTMLElement} value id | element
@@ -74,4 +76,5 @@ function setOptions (e, options) {
     }
 }
 
-export default {element, text, node, removeAll, remove, get};
+const dom = {element, text, node, removeAll, remove, get};
+export default dom;

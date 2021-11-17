@@ -1,0 +1,231 @@
+class ConcatTask extends DefaultTask {
+    @InputFiles
+    ArrayList<String> filters
+    @InputFiles
+    FileCollection files
+    @OutputFile
+    File target
+    @TaskAction
+    void concat() {
+        int count =  FilesUtil.concat(files, target, filters)
+        println("ConcatTask: ${count} files to ${target.toString()}.")
+    }
+}
+
+class ExtractFromFileTask extends DefaultTask {
+    String start
+    String stop
+    boolean isOuter
+    ArrayList<String> filters
+    @InputFiles
+    File source
+    @OutputFile
+    File target
+    @TaskAction
+    void extract() {
+        int count =  FilesUtil.extract(source, target, start, stop, isOuter, filters)
+        println("ExtractFromFileTask: ${count} lines from ${source.toString()}.")
+    }
+}
+
+class FilesUtil {
+
+    static File create(File file) {
+        file.getParentFile().mkdirs()
+        if (!file.exists()) {
+            file.createNewFile()
+        }
+        return file
+    }
+
+    static boolean isValid(String line, ArrayList<String> filters) {
+        def result = true;
+        filters.each { str ->
+            if (line.startsWith(str)) {
+                result = false
+            }
+        }
+        return result
+    }
+
+    static int concat(FileCollection files, File target, ArrayList<String> filters) {
+        int i = 0;
+        target.withWriter('UTF-8') { writer ->   // withPrintWriter
+            files.each { file ->
+                if (file.isFile()) {
+                    file.eachLine { line ->
+                        if (FilesUtil.isValid(line, filters)) {
+                            writer.println(line)
+                        }
+                    }
+                    i++
+                }
+            }
+        }
+        return i
+    }
+
+    static int extract(File source, File target, String start, String stop, boolean isOuter, ArrayList<String> filters) {
+        int i = 0;
+        boolean isExtract = isOuter;
+        target.withWriter('UTF-8') { writer ->
+            source.eachLine { line ->
+                if (line.startsWith(start)) {
+                    isExtract = !isExtract
+                }
+                if (isExtract && FilesUtil.isValid(line, filters)) {
+                    writer.println(line)
+                    i++
+                }
+                if ((isExtract != isOuter) && line.startsWith(stop)) {
+                    isExtract = !isExtract
+                }
+            }
+        }
+        return i
+    }
+}
+
+def DIR_CSS = project.file("src/main/resources/static/css/dev")
+def DIR_JS = project.file("src/main/resources/static/js/modules")
+
+task concatCSS(type: ConcatTask) {
+    files = files(
+            project.file("$DIR_CSS/main.css"),
+            project.file("$DIR_CSS/generic-normalize.css"),
+            project.file("$DIR_CSS/style.css"),
+            project.file("$DIR_CSS/responsive.css"),
+            project.file("$DIR_CSS/quiz.css"),
+            project.file("$DIR_CSS/development.css")
+    )
+    target = project.file("$buildDir/concat/css/style.css")
+    filters = ["@import"]
+    finalizedBy('CssMinify')
+}
+
+task concatJS(type: DefaultTask) {
+    def currentDate = getDate()
+    doFirst {
+        copy {
+            println "copy: constants.js"
+            from project.file("$DIR_JS/constants.js")
+            filter { String line ->
+                line.startsWith('constants_app.version = ') ? "constants_app.version = \"${currentDate}\";" : line
+            }
+            filter { String line ->
+                line.startsWith('constants_app.isStatic = ') ? 'constants_app.isStatic = true;' : line
+            }
+            filteringCharset = 'UTF-8'
+            println "copy: factory.js"
+            from project.file("$DIR_JS/factory.js")
+            filter { String line ->
+                line.startsWith('    factory.addClass(') ? '' : line
+            }
+            into layout.buildDirectory.dir('concat/tmp')
+        }
+        copy {
+            println "copy: maps.js"
+            from project.file("$DIR_JS/controllers/maps.js")
+            filter { String line ->
+                line.replaceAll('../components/maps/', './components/maps/')
+            }
+            from project.file("$DIR_JS/factory_suffix.js")
+            into layout.buildDirectory.dir('concat/tmp')
+        }
+    }
+    finalizedBy('concatJS_files')
+}
+
+task concatJS_files(type: ConcatTask) {
+    files = files(
+            // prefixes
+            project.file("$buildDir/concat/tmp/constants.js"),
+            // utils
+            project.file("$DIR_JS/utils/dom.js"),
+            project.file("$DIR_JS/utils/counters.js"),
+            project.file("$DIR_JS/utils/flags.js"),
+            project.file("$DIR_JS/utils/strings.js"),
+            // modules
+            project.file("$DIR_JS/data.js"),
+            project.file("$DIR_JS/factory_loader.js"),
+            // routes
+            project.file("$DIR_JS/routes/routes.js"),
+            project.file("$DIR_JS/routes/router.js"),
+            project.file("$DIR_JS/routes/page.js"),
+            // controllers
+            project.file("$DIR_JS/controllers/exercise.js"),
+            project.file("$DIR_JS/controllers/flashcards.js"),
+            project.file("$DIR_JS/controllers/quizzes.js"),
+//            project.file("$DIR_JS/controllers/maps.js")   todo: minify + dynamic import ?
+            // components
+            project.file("$DIR_JS/components/components.js"),
+            project.file("$DIR_JS/components/messages.js"),
+            project.file("$DIR_JS/components/bar.js"),
+            project.file("$DIR_JS/components/cards.js"),
+            project.file("$DIR_JS/components/input.js"),
+            project.file("$DIR_JS/components/list.js"),
+            project.file("$DIR_JS/components/navigation.js"),
+            project.file("$DIR_JS/components/topics.js"),
+            // suffixes
+            project.file("$buildDir/concat/tmp/factory.js")
+    )
+    target = project.file("$buildDir/concat/js/modules.js")
+    filters = ["import", "export"]
+    finalizedBy('JsMinify')
+}
+
+task finalMerge(type: ConcatTask) {
+    files = files(
+//            project.file("$buildDir/concat/js/modules.js"),
+            project.file("$buildDir/min/js/modules.min.js"),
+            project.file("$buildDir/concat/tmp/maps.js"),
+            project.file("$buildDir/concat/tmp/factory_suffix.js")
+    )
+    target = project.file("$buildDir/client/js/modules/modules.js")
+    filters = ["import", "export"]
+    doLast {
+        target.append("const {data, page, topics, breadcrumb, router, navigation} = await factory.init();")
+        target.append("export {router}")
+    }
+}
+
+/**  example: concat class
+ *
+    class ConcatFiles extends DefaultTask {
+        @InputFiles
+        FileCollection files
+        @OutputFile
+        File target
+        @TaskAction
+        void concat() {
+            target.withWriter { writer ->
+                files.each { file ->
+                    file.withReader { reader ->
+                        writer << reader << '\n'
+                    }
+                }
+            }
+        }
+    }
+    task concat(type: ConcatFiles) {
+        files = files(project.file("..."), project.file("..."))
+        target = file("...")
+    }
+
+ **  example: concat all files in directory
+ *
+    task concatJS_Routes(type: ConcatTask) {
+        files = files(project.file("$DIR_JS/routes").listFiles())
+        target = project.file("$buildDir/concat/tmp/routes.js")
+    }
+
+ ** example: extract function from file
+ *
+    task extractGetName(type: ExtractFromFileTask) {
+        source = project.file("$DIR_JS/my.js")
+        target = project.file("$buildDir/getName.js")
+        start = "function getName()"
+        stop = "}"
+        isOuter = false
+    }
+*/

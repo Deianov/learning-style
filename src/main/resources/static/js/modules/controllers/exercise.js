@@ -1,33 +1,41 @@
-import {data, page} from "../factory.js";
+import factory from "../factory_loader.js";
+import {data, page, router} from "../factory.js";
+
 
 // constants
+const EXERCISE = {};
 /**
  * @type {boolean} save resources in memory
  */
-const CASHABLE = true;
-const INDEX_EXERCISE = [
+EXERCISE.cashable = true;
+EXERCISE.indexes = [
     "-",
-    {"name":"flashcards", "adaptable":true},
-    {"name":"quizzes"},
-    {"name":"maps"}
+    {"Class":"Flashcards", "adaptable":true},
+    {"Class":"Quizzes"},
+    {"Class":"Maps"}
 ];
-let currentExercise = undefined;
 
 class Exercise {
+    // static current;
+
+    constructor() {
+        Exercise.instance = this;
+        Exercise.current = undefined;
+    }
 
     async render(fileName) {
         this.reset();
 
         // skip index 0
-        await page.router.navigate(page.router.index || 1);
-        const PROPS = INDEX_EXERCISE[page.router.index];
+        await router.navigate(router.index || 1);
+        const CURRENT = EXERCISE.indexes[router.index];
 
         // get current exercise instance
-        currentExercise = await page.component(PROPS.name);
+        Exercise.current = await factory.getInstance(CURRENT.Class);
 
-        const resource = page.router.route.path + "/" + fileName;
-        const jsonFile = await data.getJson(resource, CASHABLE, PROPS.adaptable);
-        const opt = PROPS.adaptable ? jsonFile["json"] : jsonFile;
+        const resource = router.route.path + "/" + fileName;
+        const jsonFile = await data.getJson(resource, EXERCISE.cashable, CURRENT.adaptable);
+        const opt = CURRENT.adaptable ? jsonFile["json"] : jsonFile;
         const source = {
             "source":opt.source,
             "sourceUrl":opt.sourceUrl,
@@ -40,51 +48,45 @@ class Exercise {
          * source - type/author
          */
         await page.blank(opt.name, opt.category, source);
-        await currentExercise.render(jsonFile)
+        await Exercise.current.render(jsonFile)
     }
     clickButtonStart() {
         if (page.active) {
-            currentExercise.stop()
+            Exercise.current.stop()
         } else {
-            currentExercise.start()
+            Exercise.current.start()
         }
     }
     next(){
-        currentExercise.next()
+        Exercise.current.next()
     }
     skip(){
-        currentExercise.skip()
+        Exercise.current.skip()
     }
     previous(){
-        currentExercise.previous()
+        Exercise.current.previous()
     }
     shuffle() {
-        currentExercise.toggleShuffle()
+        Exercise.current.toggleShuffle()
     }
     reset() {
-        if (currentExercise) {
-            currentExercise.stop();
-            // currentExercise.visible(false);
-            currentExercise = null;
+        if (Exercise.current) {
+            Exercise.current.stop();
+            // Exercise.current.visible(false);
+            Exercise.current = undefined;
         }
     }
-    // todo: not used
-    use(functionName, args) {
-        if (currentExercise) { // && that.current.hasOwnProperty(functionName)
-            currentExercise[functionName](args)
+    // events
+    controlEvent(e) {
+        clickButton(getButtonElement(e.target))
+    }
+    async renderEvent(e) {
+        if (e.target && e.target.tagName === "A") {
+            await Exercise.instance.render(e.target.value)
         }
-    }
-    get current() {
-        return currentExercise
-    }
-    get callbacks() {
-        return callbacks
     }
 }
 
-function controlEvent(e) {
-    clickButton(getButtonElement(e.target))
-}
 
 function getButtonElement(target) {
     if (!target || target.tagName === "DIV") {
@@ -107,31 +109,21 @@ function clickButton(bnt) {
     
     if (id) {
         if (id === "start") {
-            exercise.clickButtonStart()
+            Exercise.instance.clickButtonStart()
         } else if (id === "back") {
-            exercise.previous()
+            Exercise.instance.previous()
         } else if (id === "forward") {
-            exercise.skip()
+            Exercise.instance.skip()
         } else if (id === "shuffle") {
-            exercise.shuffle()
+            Exercise.instance.shuffle()
         }
     } else if (key) {
         const index = parseInt(key);
-        currentExercise.bar.toggle(index);
-        currentExercise.list.update(index);
-        currentExercise.cards.update(index);
+        Exercise.current.bar.toggle(index);
+        Exercise.current.list.update(index);
+        Exercise.current.cards.update(index);
     }
-    currentExercise.resume();
+    Exercise.current.resume();
 }
 
-async function renderExercise (e) {
-    if (e.target && e.target.tagName === "A") {
-       await exercise.render(e.target.value)
-    }
-}
-
-export const exercise = new Exercise();
-export const callbacks = {
-    renderExercise,
-    controlEvent
-}
+export {Exercise};

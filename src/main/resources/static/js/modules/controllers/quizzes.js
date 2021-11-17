@@ -1,25 +1,25 @@
-import dom from "../utils/dom.js";
-import Flags from "../utils/flags.js";
-import {props, data} from "../factory.js";
+import factory from "../factory_loader.js";
+import CS from "../constants.js"
+import dom from "../utils/dom.js"
+import {data} from "../factory.js";
+import {Flags} from "../utils/flags.js";
 
 
-const PROPS = {
+const QUIZZES = {
     "questions": {"className": "questions"},
     "results": {"className": "results"},
     "card": {"className": "card"},
     "validate": {"className": "validate"}
 }
-let that;
 
 class Quizzes {
-    constructor(parent) {
+    constructor(parent = "content") {
         this.parent = dom.get(parent)
         this.active = false;
-        that = this;
+        Quizzes.instance = this;
     }
-    async render(localData) {
-
-        this.jsonFile = localData;
+    async render(jsonFile) {
+        this.jsonFile = jsonFile;
         this.questions = this.jsonFile.questions;
         this.validated = false;
 
@@ -29,19 +29,19 @@ class Quizzes {
 
 
         // top
-        this.resultsElement = Quizzes.renderResults(this.parent, PROPS.results.className, PROPS.card.className);
-        this.resultsElement.firstChild.lastChild.addEventListener("click", function () {that.validate()});
-        this.resultsElement.firstChild.lastChild.textContent = props.msg.bnt.view;
-    
+        this.resultsElement = Quizzes.renderResults(this.parent, QUIZZES.results.className, QUIZZES.card.className);
+        this.resultsElement.firstChild.lastChild.addEventListener("click", function () {Quizzes.instance.validate()});
+        this.resultsElement.firstChild.lastChild.textContent = CS.msg.bnt.view;
+
         // table
-        this.element = dom.element("ol", this.parent, PROPS.questions.className);
+        this.element = dom.element("ol", this.parent, QUIZZES.questions.className);
         for (let i = 0; i < this.questions.length; i++) {
             renderQuestion(this.element, this.questions[i], i)
         }
 
         // bottom
-        this.bnt = dom.text("button", this.parent, props.msg.bnt.validate, PROPS.validate.className);
-        this.bnt.addEventListener("click", function () {that.validate()});   
+        this.bnt = dom.text("button", this.parent, CS.msg.bnt.validate, QUIZZES.validate.className);
+        this.bnt.addEventListener("click", function () {Quizzes.instance.validate()});
     }
     static renderResults(parent, className, classNameCard) {
         const element = dom.element("div", parent, className);
@@ -60,43 +60,44 @@ class Quizzes {
     async validate() {
         // page.goTop();
 
-        if (that.validated) {
-            that.reset();
+        if (Quizzes.instance.validated) {
+            Quizzes.instance.reset();
             return
         }
 
-        that.validated = true;
-        that.bnt.textContent = props.msg.bnt.clear;
-        that.bnt.classList.toggle("clear", true);
+        Quizzes.instance.validated = true;
+        Quizzes.instance.bnt.textContent = CS.msg.bnt.clear;
+        Quizzes.instance.bnt.classList.toggle("clear", true);
 
         /* server validation */
         if (!this.correct) {
             const res = await data.getJsonWithPayload(`/quizzes/${this.jsonFile.id}/certification`, {"answers": getUserAnswers()});
             if (res) {
-                that.correct = res.correct;
+                Quizzes.instance.correct = res.correct;
             }
         }
 
-        if (!that.correct) {
+        if (!Quizzes.instance.correct) {
             throw new Error("Not found correct answers.")
         }
 
-        const results = validateQuestions(that.correct);
+        const results = validateQuestions(Quizzes.instance.correct);
         const all = results.length;
         const correct = results.filter(Boolean).length;
 
         // remove correct
-        const questions = Array.from(document.getElementsByClassName(PROPS.questions.className)[0].children)
+        const questions = Array.from(document.getElementsByClassName(QUIZZES.questions.className)[0].children)
         questions.map((question, index) => {
             if(results[index]) {
                 question.innerHTML = `<li><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" shape-rendering="geometricPrecision"><path d="M20 6L9 17l-5-5"/></svg></li>`;
             }
         })
 
-        document.getElementsByClassName(PROPS.results.className)[0].firstChild.firstChild.textContent = `${correct}/${all}`;
-        document.getElementsByClassName(PROPS.results.className)[0].firstChild.lastChild.textContent = props.msg.bnt.clear;
+        document.getElementsByClassName(QUIZZES.results.className)[0].firstChild.firstChild.textContent = `${correct}/${all}`;
+        document.getElementsByClassName(QUIZZES.results.className)[0].firstChild.lastChild.textContent = CS.msg.bnt.clear;
     }
 }
+factory.addClass(Quizzes)
 
 
 function renderQuestion(parent, obj, questionNumber) {
@@ -115,13 +116,13 @@ function renderLabel(parent, obj, value, questionNumber) {
 }
 
 function validateQuestions(correct) {
-    const parent = document.getElementsByClassName(PROPS.questions.className)[0];
+    const parent = document.getElementsByClassName(QUIZZES.questions.className)[0];
     const questions = Array.from(parent.children)
     let i = 0;
-    return questions.map(question => validate(question, correct[i++]))
+    return questions.map(question => validateQuestion(question, correct[i++]))
 }
 
-function validate(question, correctFlags) {
+function validateQuestion(question, correctFlags) {
     const answers = question.getElementsByTagName("input");
     let hasChecked, hasError, input, isChecked;
 
@@ -147,7 +148,7 @@ function validate(question, correctFlags) {
  * @returns {number[]} Array of flags -> user answers
  */
 function getUserAnswers() {
-    const parent = document.getElementsByClassName(PROPS.questions.className)[0];
+    const parent = document.getElementsByClassName(QUIZZES.questions.className)[0];
     const questions = Array.from(parent.children);
     const userAnswers = Array(questions.length);
     let flags;
@@ -164,4 +165,4 @@ function getUserAnswers() {
     return userAnswers;
 }
 
-export default Quizzes
+export {Quizzes}
