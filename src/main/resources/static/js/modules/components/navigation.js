@@ -25,11 +25,9 @@ class Menu {
         }
     }
     async onclick(e) {
-        if (e && e.tagName === "A") {
+        if (e && e.tagName === "A" && e.hasAttribute("value")) {
             this.click(e)
-            if (e.hasAttribute("value")) {
-               await router.navigate(parseInt(e.getAttribute("value")));
-            }
+            await router.navigate(parseInt(e.getAttribute("value")));
         }
     }
 }
