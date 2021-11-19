@@ -1,5 +1,5 @@
 import factory from "../factory_loader.js";
-import ScopeCounter from "../utils/counters.js";
+import {ScopeCounter} from "../utils/counters.js";
 import {page} from "../factory.js";
 
 

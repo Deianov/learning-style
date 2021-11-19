@@ -124,5 +124,4 @@ class SimpleCounter {
     }
 }
 
-export {SimpleCounter}
-export default ScopeCounter;
+export {SimpleCounter, ScopeCounter}
