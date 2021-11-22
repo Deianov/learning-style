@@ -1,7 +1,7 @@
 import factory from "../factory_loader.js";
 import CS from "../constants.js"
 import dom from "../utils/dom.js"
-import {data} from "../factory.js";
+import {data, notify} from "../factory.js";
 import {Flags} from "../utils/flags.js";
 
 
@@ -27,6 +27,9 @@ class Quizzes {
         this.correct = this.jsonFile.correct;
         // this.correct = this.correct || this.questions.map(q => Flags.toNumber(q.answers.map(a => a.correct)))
 
+        if (!this.correct && CS.app.isStatic) {
+            notify.alert("error", CS.msg.quiz.server)
+        }
 
         // top
         this.resultsElement = Quizzes.renderResults(this.parent, QUIZZES.results.className, QUIZZES.card.className);
@@ -47,7 +50,7 @@ class Quizzes {
         const element = dom.element("div", parent, className);
         const card = dom.element("div", element, classNameCard);
         dom.element("span", card);
-        dom.element("a", card, {"href":"#"});
+        dom.element("a", card, {href: "#"});
         return element
     }
     stop() {
@@ -58,7 +61,6 @@ class Quizzes {
         this.render(this.jsonFile)
     }
     async validate() {
-        // page.goTop();
 
         if (Quizzes.instance.validated) {
             Quizzes.instance.reset();
@@ -78,12 +80,17 @@ class Quizzes {
         }
 
         if (!Quizzes.instance.correct) {
-            throw new Error("Not found correct answers.")
+            notify.alert("error", CS.msg.quiz.corect)
+            return;
         }
 
         const results = validateQuestions(Quizzes.instance.correct);
         const all = results.length;
         const correct = results.filter(Boolean).length;
+
+        if(correct > 0 && (correct / all) > 0.5) {
+            notify.alert("info", `Bravo! ${parseInt(correct / all * 100)}%`)
+        }
 
         // remove correct
         const questions = Array.from(document.getElementsByClassName(QUIZZES.questions.className)[0].children)

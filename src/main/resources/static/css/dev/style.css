@@ -19,15 +19,18 @@
 
     --color-links:#0275d8;
     --color-bg:#f1f1f1; /* #ededed #f1f1f1 #f2f2f2 #fcfcfc #fbfbfb */
-    --color-bg-hover:#ddd;
+    /*--color-bg-hover:#ddd;*/
     --color-hover:#1795ec;
+    --color-active:#4299E1; /* == --color-info */
     --color-border:#ccc;
     --color-submit:#4caf50;
     --color-submit-hover:#45a049;
+    --color-logo:#517cc6;
 
     --color-success:#c1ffde; /* #c1ffde #dbfff8 */
     --color-danger:#ffcede;
     --color-error:#e00;
+    --color-info:#4299E1;
 
     /* Constants */
     --radius: 5px;
@@ -118,7 +121,7 @@ aside a {
 }
 
 aside ul li {
-    padding: 5px; 
+    padding: 5px;
     list-style-position: inside;
     /* text-indent: 0; ??? */
 }
@@ -129,6 +132,15 @@ aside ul li {
 
 .row {
     display: flex;
+}
+
+/*
+flex: auto;
+This is equivalent to flex: 1 1 auto. Beware, this is not the default value.
+It sizes the item based on its width/height properties, but makes it fully flexible so that they absorb any extra space along the main axis.
+ */
+main .row > * {
+    flex: auto;
 }
 
 .column {
@@ -142,6 +154,15 @@ aside ul li {
 
 .right {
     float: right;
+}
+
+/* ------------------------------------------------------------------------ */
+/* button role */
+/* ------------------------------------------------------------------------ */
+
+
+[role="button"], button {
+    cursor: pointer;
 }
 
 /* ------------------------------------------------------------------------ */
@@ -206,14 +227,14 @@ aside ul li {
 
 .navbar .active {
     color: var(--color-black);
-    background-color: var(--color-hover);
+    background-color: var(--color-active);
     text-decoration: underline;
 }
 
 .navbar .logo span {
     font-size: 18px;
     font-weight: bold;
-    color: #517cc6;
+    color: var(--color-logo);
 }
 
 .navbar .logo span + span {
@@ -345,6 +366,7 @@ table th {
     min-height: 50px;
     justify-content: flex-start;
     flex-wrap: wrap;
+    margin-bottom: 5px;
 }
 
 .bar .buttons {
@@ -399,8 +421,8 @@ table th {
 
 #start {
     width: 100px;
-    background-color: var(--color-hover);
     color: var(--color-black);
+    background-color: var(--color-active);
     border-radius: var(--radius);
 }
 
@@ -545,7 +567,7 @@ footer {
 }
 
 /* ------------------------------------------------------------------------ */
-/* status & messages */
+/* status & messages & alerts */
 /* ------------------------------------------------------------------------ */
 
 .error {
@@ -558,7 +580,25 @@ footer {
     background-color: var(--color-success);
 }
 
-.text-message {
+.info {
+    border: 2p solid var(--color-dark);
+    background-color: var(--color-info);
+}
+
+.notify-box {
+    display: flex;
+    flex-direction: column;
+}
+
+.row > .notify-box {
+    flex: 0 1 auto;
+}
+
+/* ------------------------------------------------------------------------ */
+/* notify-box -> msg-box */
+/* ------------------------------------------------------------------------ */
+
+.msg-box {
     display: flex;
     flex-direction: row;
     padding: 6px 0 0 0;
@@ -567,43 +607,84 @@ footer {
     justify-content: flex-start;
 }
 
-.text-message .msg-item {
+.msg-box .msg-item {
     color: inherit;
-}
-
-.text-message img.msg-item {
-    margin-right: 10px;
-}
-
-.text-message small.msg-item {
     padding: 0;
-    margin: 0;
+    margin: 0
 }
 
-small.text-message {
-    margin: 4px 0 0 40px;
-    padding: 0;
+.msg-box svg.msg-item {
+    margin-right: 5px;
 }
 
-.subject-text {
+.msg-box strong {
+    margin-right: 5px;
+}
+
+.msg-title {
     margin: 10px 0 0 0;
     font-size: 90%;
     color: var(--color-dark);
 }
 
-.subject-text p {
+.msg-title p {
     font-size: inherit;
     font-weight: bold;
 }
 
-.subject-text ul {
+.msg-title ul {
     list-style-type: none;
     margin: 0;
     padding: 4px 0 0 var(--space);
 }
 
-.subject-text li{
+.msg-title li{
     font-size: inherit;
+}
+
+/* ------------------------------------------------------------------------ */
+/* notify-box -> alert-box */
+/* ------------------------------------------------------------------------ */
+
+.alert-box {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+    box-sizing: border-box;
+
+    min-height: 100%;
+    min-width: 35vw;
+    /*border: 1px solid transparent;*/
+    border-radius: .25rem;
+
+    padding: 0 .5rem 0 .5rem;
+    margin: 0.1pt 0 0.1pt 0;
+    /*transition: 0 300ms ease-in;*/
+}
+
+.alert-box > * {
+    box-sizing: inherit;
+    margin-right: .5rem;
+    flex-shrink: 0;
+}
+
+.alert-box > span {
+    padding: 0.25rem;
+}
+
+.alert-box .ticker {
+    position: absolute;
+    top: 1pt;
+    right: 1pt;
+}
+
+.alert-box .btn-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 1rem .5rem;
 }
 
 /* ------------------------------------------------------------------------ */
@@ -616,19 +697,22 @@ small.text-message {
     bottom: 20px;
     padding: 10px;
     border-radius: var(--radius);
+    color: var(--color-white);
     background-color: var(--color-gray-dark);
     transition: 0.25s;
 }
 .go-top:hover {
     cursor: pointer;
+    color: var(--color-black);
     background-color: var(--color-hover);
 }
 .go-top svg {
     display: block;
-    color: var(--color-white);
-    width: 2.25em;
-    height: 2.25em;
+    color: inherit;
+    /*width: 2.25em;*/
+    /*height: 2.25em;*/
 }
+
 /* ------------------------------------------------------------------------ */
 /* Maps */
 /* ------------------------------------------------------------------------ */

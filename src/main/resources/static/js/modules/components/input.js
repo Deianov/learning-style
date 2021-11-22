@@ -2,8 +2,8 @@ import factory from "../factory_loader.js";
 import dom from "../utils/dom.js";
 import CS from "../constants.js";
 import {Component} from "./components.js";
-import SimpleCounter from "../utils/counters.js";
-import messages from "./messages.js";
+import {SimpleCounter} from "../utils/counters.js";
+import {notify} from "../factory.js";
 
 
 const INPUT = {};
@@ -24,7 +24,7 @@ INPUT.elements = {
     "form": "",
     "textarea": "",
     "default": "",
-    "messages":""
+    "messages":""   // todo: ???
 }
 INPUT.renders = {};
 
@@ -37,8 +37,8 @@ class UserInput extends Component {
         this.error = false;
         this.success = false;
         this.repeat = false;
-        this.successCounter = new SimpleCounter(1);
-        this.errorsCounter = new SimpleCounter(1);
+        UserInput.successCounter = new SimpleCounter(1);
+        UserInput.errorsCounter = new SimpleCounter(1);
     }
     render(jsonFile) {
         this.local = jsonFile;
@@ -63,21 +63,30 @@ class UserInput extends Component {
     repeatWord() {
         this.clear();
         this.repeat = true;
-        this.show.messages.error.render("", CS.msg.input.again);
+        // this.show.messages.error.render("", CS.msg.input.again); // skip -> title Error:
+
+        notify.msg("error", CS.msg.input.again, {prefix: ""})   // optional edit off default options prefix
+        notify.alert("error", CS.msg.input.again)   // optional edit off default options prefix
     }
     showExamples() {
-        if (this.success && !this.examples && Array.isArray(this.words.slice(-1)[0])) {
-            this.examples = this.words.slice(-1)[0];
-            INPUT.renders.custom.examples.render();
-            this.examples.forEach(ex => {
-                INPUT.renders.custom.examples.addSiblingByCallback(messages.renders.textMessageWithSubject, ex)
-            });
+        if (this.success && !this.examples) {
+            // notify.title({title: "Custom information", data: ["line 1", "line 2", "line 3"]})
+            this.examples = true;
+            notify.with("msg").clear();
+            notify.msg("info", "", {prefix: "Done."})
         }
+        // if (this.success && !this.examples && Array.isArray(this.words.slice(-1)[0])) {
+        //     this.examples = this.words.slice(-1)[0];
+        //     INPUT.renders.custom.examples.render();
+        //     this.examples.forEach(ex => {
+        //         INPUT.renders.custom.examples.addSiblingByCallback(messages.renders.textMessageWithSubject, ex)
+        //     });
+        // }
     }
     reset() {
         this.clear();
-        this.successCounter.reset();
-        this.errorsCounter.reset();
+        UserInput.successCounter.reset();
+        UserInput.errorsCounter.reset();
         this.show.stats.success = 0;
         this.show.stats.error = 0;
         this.show.stats.rows = this.local.save.rows;
@@ -89,7 +98,7 @@ class UserInput extends Component {
         this.repeat = null;
         this.status = null;
         this.examples = null;
-        messages.clear()
+        notify.clear();
     }
     /**
      * @param {string} className. Class name or falsy.
@@ -113,9 +122,9 @@ class UserInput extends Component {
         }
         if (flag && !this.repeat) {
             if (this.success) {
-                this.show.stats.success = this.successCounter.next;
+                this.show.stats.success = UserInput.successCounter.next;
             } else {
-                this.show.stats.error = this.errorsCounter.next;
+                this.show.stats.error = UserInput.errorsCounter.next;
             }
         }
         if (flag && !this.success) {
@@ -176,18 +185,11 @@ class UserInput extends Component {
     contained(str1, str2) {
         return str1 === str2.substr(0, str1.length)
     }
-    // setEvent(callback) {
-    //     this.element.addEventListener("input", callback);
-    // }
     remove() {
-        messages.removeMessages();
+        notify.clear();
         super.remove()
     }
-    // erase() {
-    //     this.visible(false)
-    //     dom.removeAll(this.parent);
-    //     messages.removeMessages();
-    // }
+
 }
 factory.addClass(UserInput)
 
@@ -203,11 +205,11 @@ class UserInformation {
         this.isText = true;
         return this
     }
-    get messages() {
-        this.elements = this.renders["messages"];
-        this.isText = false;
-        return this
-    }
+    // get messages() {
+    //     this.elements = this.renders["messages"];
+    //     this.isText = false;
+    //     return this
+    // }
     getElement(name) {
         const e = this.elements[name];
         return this.isText && e ? e.textContent : e
@@ -285,7 +287,8 @@ function createStatsBar(parent) {
 }
 
 function renderInput (wrapper) {
-    messages.removeMessages();
+    // messages.removeMessages();
+    notify.clear()
     dom.removeAll(wrapper);
     INPUT.elements.bar = createStatsBar(wrapper);
     INPUT.elements.form = dom.element("form", wrapper, INPUT.options.form);
@@ -297,10 +300,10 @@ function renderInput (wrapper) {
         "done": INPUT.elements.bar.children[1].children[0],
         "rows": INPUT.elements.bar.children[1].children[2]
     };
-    INPUT.elements.messages = document.getElementById("messages");
-    INPUT.renders.messages = messages.create.renders(INPUT.elements.form, messages.renders.textMessageWithSymbol);
-    INPUT.renders.custom = {};
-    INPUT.renders.custom.examples = messages.create.customRender(INPUT.elements.messages, "info", messages.renders.textMessageWithSymbol, "")
+    // INPUT.elements.messages = document.getElementById("messages");
+    // INPUT.renders.messages = messages.create.renders(INPUT.elements.form, messages.renders.textMessageWithSymbol);
+    // INPUT.renders.custom = {};
+    // INPUT.renders.custom.examples = messages.create.customRender(INPUT.elements.messages, "info", messages.renders.textMessageWithSymbol, "")
 }
 
 export {UserInput} ;

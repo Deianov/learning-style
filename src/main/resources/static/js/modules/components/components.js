@@ -122,8 +122,7 @@ class Component extends MyEvent {
 
 /**
  *  breadcrumb
- */
-/*
+ *
     <ul class="breadcrumb">
         <li><a href="./">Home</a></li>
         <li><a key="1" href="javascript:void(0)">Cards</a></li>
@@ -132,7 +131,7 @@ class Component extends MyEvent {
 */
 class Breadcrumb extends Component {
     constructor(parent = "header") {
-        super(parent, null, Breadcrumb.PROPS.tagName, Breadcrumb.PROPS.className)
+        super(parent, "row", Breadcrumb.PROPS.tagName, Breadcrumb.PROPS.className)
     }
     render(obj) {
         super.reset();
@@ -175,25 +174,19 @@ factory.addClass(Breadcrumb)
 class GoTop {
     constructor() {
         GoTop.instance = this;
+        this.render();
     }
     render() {
-        // todo: render
-        this.view = document.getElementsByClassName("go-top")[0];
+        this.е = dom.element("button", document.getElementsByTagName("main")[0], "go-top")
+        dom.svgUse(this.е, "#go-top", "", "30", "30", "img");
         this.visible(false);
-        this.addEvent();
-        return this
-    }
-    visible(flag) {
-        if (this.valid) {
-            this.view.style.display = flag ? "" : "none";
-        }
-    }
-    addEvent() {
-        this.view.addEventListener('click', scrollTop)
+        this.е.addEventListener('click', scrollTop)
         window.onscroll = scrollEvent
     }
-    get valid() {
-        return !this.disabled && this.view
+    visible(flag) {
+        if (this.е && !this.disabled) {
+            this.е.style.display = flag ? "" : "none";
+        }
     }
 }
 function scrollTop() {
@@ -224,19 +217,18 @@ class Tags extends Component {
     constructor(parent = "bottom") {
         super(parent, null, Tags.PROPS.tagName, Tags.PROPS.className)
     }
-    /**
-     * {"text":"Topics", "tags":[
-                {"href":"#", "textContent":"German"},
-                {"href":"#", "textContent":"Programing"},
-                {"href":"#", "textContent":"Words"},
-                {"href":"#", "textContent":"Test"}
+    render(obj) {
+        const tmp = {
+            text:"Topics", tags:[
+                {"href":"#", "textContent":"this"},
+                {"href":"#", "textContent":"is"},
+                {"href":"#", "textContent":"under"},
+                {"href":"#", "textContent":"construction"}
             ]
         }
-     */
-    render(obj) {
         super.reset();
-        dom.text("span", this.element, obj.text, Tags.PROPS.header.className);
-        for (const tag of obj.tags) {
+        dom.text("span", this.element, tmp.text, Tags.PROPS.header.className);
+        for (const tag of tmp.tags) {
             dom.element("a", dom.element("div", this.element, Tags.PROPS.item.className), tag)
         }
     }

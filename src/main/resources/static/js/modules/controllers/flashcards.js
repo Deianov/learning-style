@@ -1,6 +1,6 @@
 import factory from "../factory_loader.js";
 import {ScopeCounter} from "../utils/counters.js";
-import {page} from "../factory.js";
+import {page, notify} from "../factory.js";
 
 
 // constants
@@ -32,14 +32,7 @@ class Flashcards {
         this.bar.render(this.jsonFile);
         this.list.render(this.jsonFile);
         this.input.setEvent("input", this.onTextareaChange, 0);
-        this.tags.render(
-            {"text":"Topics", "tags":[
-                {"href":"#", "textContent":"this"},
-                {"href":"#", "textContent":"is"},
-                {"href":"#", "textContent":"under"},
-                {"href":"#", "textContent":"construction"}
-            ]}
-        )
+        this.tags.render()
     }
     start() {
         this.counter.reset(this.jsonFile.save.rows);
@@ -66,6 +59,12 @@ class Flashcards {
         // finish
         if (!this.counter.hasNext() && (step === 1 || step === 2)) {
             this.stop();
+            // todo: something more
+            page.elements.content.style.display="none" ;
+            notify.clear();
+            notify.msg("success", "", {prefix: "Done!"});
+            notify.alert("success", "Well done !!!");
+            notify.alert("info", "Play again ?");
             return
         }
 

@@ -5,6 +5,7 @@ import {Router} from "./routes/router.js";
 import {Topics} from "./components/topics.js";
 import {Breadcrumb, Tags, GoTop} from "./components/components.js";
 import {Menu} from "./components/navigation.js";
+import {Notify} from "./components/notify.js";
 import {Exercise} from "./controllers/exercise.js"
 
 
@@ -15,10 +16,15 @@ factory.init = async () => {
     const router = new Router();
     const page = new Page();
     const topics = new Topics();
+    const notify = new Notify(true);
+    if(!page.elements.control) {
+        notify.alert("error", "This part of the static version is under construction.")
+        return {}
+    }
     const navigation = {
         top: new Menu(document.getElementsByClassName("navbar")[0])
     }
-    new GoTop().render();
+    new GoTop();
     new Exercise();
 
     // todo: if needed getInstance
@@ -43,9 +49,7 @@ factory.init = async () => {
     // events
     page.elements.aside.addEventListener("click", Exercise.instance.renderEvent);
 
-    return {
-        data, page, topics, breadcrumb, router, navigation
-    }
+    return {data, page, topics, breadcrumb, router, navigation, notify}
 }
 
-export const {data, page, topics, breadcrumb, router, navigation} = await factory.init();
+export const {data, page, topics, breadcrumb, router, navigation, notify} = await factory.init();

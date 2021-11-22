@@ -159,7 +159,7 @@ task concatJS_files(type: ConcatTask) {
 //            project.file("$DIR_JS/controllers/maps.js")   todo: minify + dynamic import ?
             // components
             project.file("$DIR_JS/components/components.js"),
-            project.file("$DIR_JS/components/messages.js"),
+            project.file("$DIR_JS/components/notify.js"),
             project.file("$DIR_JS/components/bar.js"),
             project.file("$DIR_JS/components/cards.js"),
             project.file("$DIR_JS/components/input.js"),
@@ -172,6 +172,7 @@ task concatJS_files(type: ConcatTask) {
     target = project.file("$buildDir/concat/js/modules.js")
     filters = ["import", "export"]
     finalizedBy('JsMinify')
+//    finalizedBy('finalMerge')
 }
 
 task finalMerge(type: ConcatTask) {
@@ -184,7 +185,7 @@ task finalMerge(type: ConcatTask) {
     target = project.file("$buildDir/client/js/modules/modules.js")
     filters = ["import", "export"]
     doLast {
-        target.append("const {data, page, topics, breadcrumb, router, navigation} = await factory.init();")
+        target.append("const {data, page, topics, breadcrumb, router, navigation, notify} = await factory.init();")
         target.append("export {router}")
     }
 }

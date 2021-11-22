@@ -1,66 +1,68 @@
 import dom from "../utils/dom.js";
-import {router, breadcrumb} from "../factory.js";
-
-
-// constants
-const PAGE = {};
-PAGE.subject = {};
-PAGE.subject.className = "subject";
-PAGE.getElements = function () {
-    return {
-        "aside": document.getElementsByTagName("aside")[0],
-        "article": document.getElementsByTagName("article")[0],
-        "header": document.getElementById("header"),
-        "control": document.getElementById("control"),
-        "content": document.getElementById("content"),
-        "messages": document.getElementById("messages"),
-        "bottom": document.getElementById("bottom"),
-        "subject": () => document.getElementsByClassName(PAGE.subject.className)[0],
-        "cdate": document.getElementById("cdate")
-    }
-}
+import CS from "../constants.js";
+import {router, breadcrumb, notify} from "../factory.js";
 
 
 class Page {
     constructor() {
-        this.elements = PAGE.getElements();
-        this.active = undefined;
-        this.elements.cdate.textContent = `${new Date().getFullYear()}`;
+        Page.init();
+        this.elements = Page.elements;
     }
-    reset() {
+    static init() {
+        const e = Page.elements;
+        e.pageheader = document.getElementsByTagName(e.pageheader.tagName)[0];
+        e.aside = document.getElementsByTagName(e.aside.tagName)[0];
+        e.article = document.getElementsByTagName(e.article.tagName)[0];
+        e.header = document.getElementById(e.header.id);
+        e.control = document.getElementById(e.control.id);
+        e.content = document.getElementById(e.content.id);
+        e.messages = document.getElementById(e.messages.id);
+        e.bottom = document.getElementById(e.bottom.id);
+        e.cdate = document.getElementById(e.cdate.id);
+        e.cdate.textContent = `${new Date().getFullYear()}`;
+        const row1 = dom.element("div", e.header, "row");
+        const row2 = dom.element("div", e.header, "row");
+        e.breadcrumb = dom.element(e.breadcrumb.tagName, row1, e.breadcrumb.className);
+        e.notify = dom.element("div", row1, e.notify.className);
+        e.subject = dom.element("div", row2, e.subject.className);
+        dom.element("div", row2, CS.dom.notify.className)
+    }
+    static reset() {
+        notify.clear();
         this.elements.control.innerHTML = "";
         this.elements.content.innerHTML = "";
+        this.elements.content.removeAttribute("style");
         this.elements.messages.innerHTML = "";
         this.elements.bottom.innerHTML = "";
-        this.elements.aside.style.display = "";
-        this.elements.article.style.display = "";
+        this.elements.aside.removeAttribute("style");
+        this.elements.article.removeAttribute("style");
+        this.elements.pageheader.removeAttribute("style");
     }
     blank(subject, category, obj) {
-        this.reset();
-        this.renderBreadcrumb(category);
-        renderSubject(this.elements.header, subject || router.route.subject, obj)
+        Page.reset();
+        renderBreadcrumb(category);
+        renderSubject(this.elements.subject, subject || router.route.subject, obj)
+    }
+    play(flag) {
+        this.elements.pageheader.style.display = flag ? "none" : "";
+        this.elements.aside.style.display = flag ? "none" : "";
+        this.active = flag
     }
     async renderContent(callback, args) {
         await callback(this.elements.content, args)
     }
-    renderBreadcrumb(topic) {
-        const links = [];
-        if (router.index > 0) {
-            links.push({"href": "./", "textContent": router.routes[0].subject})
-            links.push({"key": router.index, "textContent": router.route.subject})
-        }
-        breadcrumb.render(links)
-        breadcrumb.addTopic(topic)
+}
+Page.elements = Object.assign({}, CS.dom);
+
+
+function renderBreadcrumb(topic) {
+    const links = [];
+    if (router.index > 0) {
+        links.push({"href": "./", "textContent": router.routes[0].subject})
+        links.push({"key": router.index, "textContent": router.route.subject})
     }
-    renderSubject(text) {
-        const e = this.elements.subject() || renderSubject(this.elements.header, text);
-        e.firstChild.textContent = text
-    }
-    play(flag) {
-        document.getElementsByTagName("header")[0].style.display = flag ? "none" : "";
-        this.elements.aside.style.display = flag ? "none" : "";
-        this.active = flag
-    }
+    breadcrumb.render(links)
+    breadcrumb.addTopic(topic)
 }
 
 /**
@@ -69,12 +71,9 @@ class Page {
  * @param {object} obj      - {source, sourceUrl, author, authorUrl}
  */
 function renderSubject(parent, subject, obj) {
-    let div = document.getElementsByClassName(PAGE.subject.className)[0];
-    div = div || dom.element("div", parent, PAGE.subject.className);
-    div.innerHTML = "";
-    dom.text("h3", div, subject)
-
     const data = [];
+    parent.innerHTML = "";
+    dom.text("h3", parent, subject)
     if (obj) {
         // split to array
         const arr = Object.values(obj);
@@ -95,7 +94,7 @@ function renderSubject(parent, subject, obj) {
     for (let i = 0; i < data.length; i++) {
         const [source, sourceUrl, author, authorUrl] = data[i];
 
-        const small = dom.element("small", div);
+        const small = dom.element("small", parent);
         if (source) {
             dom.node( (i > 0 ? "; " : "") + "source: ", small)
             dom.text("a", small, source, formatLink(sourceUrl))
@@ -106,7 +105,7 @@ function renderSubject(parent, subject, obj) {
         }
     }
 
-    dom.element("hr", div)
+    dom.element("hr", parent)
 }
 
 function formatLink(url) {

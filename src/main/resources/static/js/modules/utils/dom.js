@@ -4,7 +4,7 @@ const dom = {
      * @returns {HTMLElement}
      */
     get(v) {
-        return (typeof v === "string") ? document.getElementById(v) : v
+        return (typeof v === "string") ? document.getElementById(v) : document.body.contains(v) ? v : null;
     },
     /**
      * @param {HTMLElement} e       - element
@@ -16,46 +16,46 @@ const dom = {
             return
         }
         for (const [k, v] of Object.entries(o)) {
-            if (k === "class" || k === "key") {
-                e.setAttribute(k, v);
-            } else {
+            if (k === "textContent" || k === "className" || k === "value") {
                 e[k] = v
+            } else {
+                e.setAttribute(k, v);
             }
         }
     },
     /**
-     * @param {string} n            - name
-     * @param {HTMLElement} p       - parent
-     * @param {string | object} o   - className or object with options (key, value).
-     * @returns {HTMLElement}       - element
+     * @param {string} tag             - nameName
+     * @param {HTMLElement} parent     - parent
+     * @param {string | object} opt    - className or object with options (key, value).
+     * @returns {HTMLElement}          - element
      */
-    element(n, p, o) {
-        const e = document.createElement(n)
-        p.appendChild(e)
-        if (o) {this.setOptions(e, o)}
+    element(tag, parent, opt) {
+        const e = document.createElement(tag)
+        parent.appendChild(e)
+        if (opt) {this.setOptions(e, opt)}
         return e
     },
     /**
-     * @param {string} t            - text
-     * @param {HTMLElement} p       - parent
+     * @param {string} text         - text
+     * @param {HTMLElement} parent  - parent
      * @returns {Text}
      */
-    node(t, p) {
-        const node = document.createTextNode(t)
-        p.appendChild(node)
+    node(text, parent) {
+        const node = document.createTextNode(text)
+        parent.appendChild(node)
         return node
     },
     /**
-     * @param {string} n            - name
-     * @param {HTMLElement} p       - parent
-     * @param {string} t            - text
-     * @param {string | object} o   - className or object with options (key, value).
+     * @param {string} tag          - tag name
+     * @param {HTMLElement} parent  - parent
+     * @param {string} text         - text
+     * @param {string | object} opt - className or object with options (key, value).
      * @returns {HTMLElement}
      */
-    text(n, p, t, o) {
-        const e = this.element(n, p)
-        e.textContent = t;
-        if (o) {this.setOptions(e, o)}
+    text(tag, parent, text, opt) {
+        const e = this.element(tag, parent, 0)
+        e.textContent = text;
+        if (opt) {this.setOptions(e, opt)}
         return e
     },
     /**
@@ -69,6 +69,36 @@ const dom = {
      */
     remove(e) {
         return e ? e.parentNode ? e.parentNode.removeChild(e) : 0 : 0
+    },
+    /** Use svg from template in html
+     *
+     * @param {HTMLElement} parent  - parent
+     * @param {string} href         - id of used svg
+     * @param {string} className
+     * @param {string} w            - width
+     * @param {string} h            - height
+     * @param {string} role         - img, button
+     * @returns {SVGSVGElement}
+     *
+     *  or insert from file with:
+     *  const options = {class: "info, src:"./assets/images/info.svg", alt: "info", width: 20, height: 20}
+     *  dom.element("img", parent, options)
+     *
+     */
+    svgUse(parent, href, className, w, h, role = 'img') {
+        const NS = 'http://www.w3.org/2000/svg';
+        const s = document.createElementNS(NS, 'svg');
+        const u = document.createElementNS(NS, 'use');
+        if(className) {
+            s.setAttributeNS(null, 'class', className);
+        }
+        s.setAttributeNS(null, 'width', w);
+        s.setAttributeNS(null, 'height', h);
+        s.setAttributeNS(null, 'role', role);
+        u.setAttributeNS(null, 'href', href);
+        s.appendChild(u);
+        parent.appendChild(s);
+        return s;
     }
 }
 
