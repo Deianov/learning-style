@@ -30,7 +30,7 @@ class Topics {
         topic.links.forEach(link => this.renderLink(ul, `${api}${link.id}`, link.text))
     }
     renderLink(parent, value, text) {
-        dom.text("a", dom.element("li", parent), text, {"href":"#", value})
+        dom.text("a", dom.element("li", parent), text, {href: "javascript:void(0)", value})
     }
 }
 

@@ -10,9 +10,9 @@ const EXERCISE = {};
 EXERCISE.cashable = true;
 EXERCISE.indexes = [
     "-",
-    {"Class":"Flashcards", "adaptable":true},
-    {"Class":"Quizzes"},
-    {"Class":"Maps"}
+    {"Clazz":"Flashcards", "adaptable":true},
+    {"Clazz":"Quizzes"},
+    {"Clazz":"Maps"}
 ];
 
 class Exercise {
@@ -22,18 +22,18 @@ class Exercise {
         Exercise.instance = this;
         Exercise.current = undefined;
     }
-
     async render(fileName) {
         this.reset();
+        const id = parseInt(fileName);
 
         // skip index 0
-        await router.navigate(router.index || 1);
+        await router.navigate(router.index || 1, id);
         const CURRENT = EXERCISE.indexes[router.index];
 
         // get current exercise instance
-        Exercise.current = await factory.getInstance(CURRENT.Class);
+        Exercise.current = await factory.getInstance(CURRENT.Clazz);
 
-        const resource = router.route.path + "/" + fileName;
+        const resource = router.route.path + "/" + id;
         const jsonFile = await data.getJson(resource, EXERCISE.cashable, CURRENT.adaptable);
         const opt = CURRENT.adaptable ? jsonFile["json"] : jsonFile;
         const source = {
@@ -77,10 +77,10 @@ class Exercise {
         }
     }
     // events
-    controlEvent(e) {
+    static controlEvent(e) {
         clickButton(getButtonElement(e.target))
     }
-    async renderEvent(e) {
+    static async renderEvent(e) {
         if (e.target && e.target.tagName === "A") {
             await Exercise.instance.render(e.target.value)
         }

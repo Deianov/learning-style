@@ -5,16 +5,16 @@ import {page, router, topics, navigation} from "../factory.js";
 
 const routes = [
     { path:"/", name:"home", title: CS.app.title, subject: "Home" , render: home},
-    { path:"/cards", name:"cards", title: "Cards", subject: "Cards", init: () => router._index = 1, render: defaultRender},
-    { path:"/quizzes", name:"quizzes", title: "Quiz", subject: "Quiz", init: () => router._index = 2, render: defaultRender},
-    { path:"/maps", name:"maps", title: "Maps", subject: "Maps", init: () => router._index = 3, render: defaultRender},
+    { path:"/cards", name:"cards", title: "Cards", subject: "Cards", init: () => router.index = 1, render: defaultRender},
+    { path:"/quizzes", name:"quizzes", title: "Quiz", subject: "Quiz", init: () => router.index = 2, render: defaultRender},
+    { path:"/maps", name:"maps", title: "Maps", subject: "Maps", init: () => router.index = 3, render: defaultRender},
     { path:"/login", title: "Login" },
     { path:"/register", title: "Register" }
 ];
 
 async function home() {
-    router._index = 0;
-    document.title = routes[router._index].title;
+    router.index = 0;
+    document.title = routes[router.index].title;
     navigation.top.navigateByIndex(1);
     page.blank();
     await page.renderContent(debugContent)
@@ -22,11 +22,11 @@ async function home() {
 }
 
 async function defaultRender() {
-    document.title = routes[router._index].title;
-    navigation.top.navigateByIndex(router._index);
+    document.title = routes[router.index].title;
+    navigation.top.navigateByIndex(router.index);
     page.blank();
     await page.renderContent(debugContent)
-    await topics.render(routes[router._index].name)
+    await topics.render(routes[router.index].name)
 }
 
 function debugContent(parent) {

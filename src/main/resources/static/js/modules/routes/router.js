@@ -6,111 +6,160 @@ if (location.protocol !== "https:"){
 }
 */
 /**
- *  searchParams    -> /?page={routes.name}&id={exercise.id}
+ *  query           -> /?page={routes.name | routes index}&id={exercise.id}
  *  navigate(index) -> routes[index]
+ *
+ ** constants
+ *
+ *  {string} path   = '/' + name (if name exists)
+ *  {number} index  = valid routes index
+ *  {number} id     = exercise id
+ *
+ *  {string|number|null} page  -> .getIndex -> index
+ *  params          = {page: value, id: number}
+ *
  */
 
 class Router {
     constructor() {
         Router.instance = this;
-        this._lastIndex = -1;
-        this._index = 0;
+        this.index = 0;
         this.routes = routes;
+        this.state = {page: -1};
     }
-    get index() {
-        return this._index
+    setIndex(value) {
+        this.index = Router.getIndex(value);
+        this.route = this.getRoute();
+        // console.debug("setIndex: " + this.index)
     }
-    set index(value) {
-        const newIndex = getRouteIndex(value);
-        this._index = Router.isValid(newIndex) ? newIndex : 0
+    getRoute() {
+        return this.routes[this.index];
     }
-    get route() {
-        return routes[this.index]
+    static isValid(i) {
+        return Number.isInteger(i) && i > -1 && i < routes.length;
     }
-    get title() {
-        return this.route.title
-    }
-    get subject() {
-        return this.route.subject
-    }
-    static isValid(index) {
-        return Number.isInteger(index) && index > -1 && index < routes.length
-    }
-    async navigate(value, params, redirect, reload) {
-        if (redirect) {
-            await this.navigate(redirect.index, redirect.id);
-            return;
-        }
-        this.index = value;
-        const path = this.route.path + (params || "");
+    /**
+     * @param {string|number|null} page     - page index or name || null (from exercise.render -> skip repeat)
+     * @param id            - exercise id
+     * @param {{}} params   - {page, id}
+     * @returns {Promise<void>}
+     */
+    async navigate(page, id, params) {
 
-        // todo: singe page current page state? add current exercise param!
-        if (this.index !== this._lastIndex) {
-            window.history.pushState({}, null, path); // const url = window.location.origin + path;
+        if (params && params.page) {
+            await this.navigate(params.page, params.id, null);
         }
-        await this.update(this.index, reload)
+
+        const index = (page === null) ? this.index : Router.getIndex(page);
+        const isNewPage = index !== this.state.page;
+        const isNewId = id && id !== this.state.id;
+
+        if (isNewPage || isNewId) {
+            this.setIndex(index);
+            this.state = {page: this.index, id};
+            const query = "?page=" + this.index + (id ? "&id=" + id : "");
+            window.history.pushState(Object.assign({}, this.state), this.route.title, query);
+
+            const flag = (isNewPage ? 1 : 0) + (isNewId ? 2 : 0) + (page === null ? 4 : 0);
+            await Router.update(null, this.state, flag)
+        }
     }
+    /** object from params
+     *
+     * @returns {object}  -  {p:1, id:10}
+     */
     urlSearchParams() {
+        // https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
         const params = new URLSearchParams(window.location.search);
+        const res = {};
         if (params.has("page")) {
-            const page = params.get("page");
-            const id = params.get("id");
-            const index = getRouteIndex(page);
-
-            if (page === routes[index].name) {
-                const result = {index}
-                if (id) {
-                    result.id = "?id=" + id;
-                }
-                return result;
+            res.page = params.get("page");
+        }
+        if (params.has("id")) {
+            res.id = params.get("id");
+        }
+        return res;
+    }
+    /**
+     * @param {number|string} value -> index, path or name (path without '/')?
+     * @returns {number} page index
+     */
+    static getIndex(value) {
+        let index = 0;
+        if (typeof value === "number") {
+            index = value;
+        }
+        else if (typeof value === "string") {
+            if (isNaN(value)) {
+                const str = value.trim().toLowerCase();
+                index = routes.findIndex(r => r.path === ((str.startsWith("/") ? "" : "/") + str));
+            } else {
+                index = (value ^ 0) // parseInt
             }
         }
-        return null;
+        return Router.isValid(index) ? index : 0;
     }
     // -> callbacks
-    async update(routerIndex, reload) {
-        Router.instance.index = routerIndex || window.location.pathname;
+    /**
+     * @param event - window.onpopstate
+     * @param state - router new state of
+     * @param flag
+     */
+    static async update(event, state, flag) {
+        // console.log(`update: eventState: ${event ? JSON.stringify(event.state) : null}; w.search: ${window.location.search}; routerState: ${JSON.stringify(Router.instance.state)}`)
 
-        // todo: update current page
-        if (!reload && Router.instance._index === Router.instance._lastIndex) {
-            return
+        let isNewPage = null;
+        let isNewId = null;
+        const router = Router.instance;
+        const _state = router.state;
+
+        if (event) {
+            if (!event.state) {
+                return
+            }
+            const {page, id} = event.state;
+
+            isNewPage = page !== _state.index;
+            isNewId = id !== _state.id
+
+            if (isNewPage) {
+                router.setIndex(page);
+            }
+            // update router state
+            _state.page = page;
+            _state.id = id;
         }
-        if (typeof Router.instance.route.init === "function") {
-            Router.instance.route.init()
+        if (flag) {
+            isNewPage = flag === 1 || flag === 3;
+            isNewId = flag > 1
         }
-        if (typeof Router.instance.route.render === "function") {
-            await Router.instance.route.render()
+        // render page
+        if (isNewPage) {
+            if (typeof router.route.init === "function") {
+                router.route.init()
+            }
+            if (typeof router.route.render === "function") {
+                await router.route.render()
+            }
         }
-        Router.instance._lastIndex = Router.instance._index;
+        // render exercise
+        if (isNewId && _state.id) {
+            await Router.exercise.render(_state.id);
+        }
     }
-    async navigateEvent (e) {
+    static async navigateEvent (e) {
         if (e.target && e.target.hasAttribute("key")) {
-            await Router.instance.navigate(parseInt(e.target.getAttribute("key")), null, null, true);
+            await Router.instance.navigate(parseInt(e.target.getAttribute("key")), null, null);
         }
     }
 }
 
-/**
- * @param {number|string} value -> Page index, name or window.location.pathname ?
- * @returns {number} page index
- */
-function getRouteIndex(value) {
-    if (typeof value === "number") {
-        return value
-    }
-    if (typeof value === "string") {
-        if (isNaN(value)) {
-            const str = value.trim().toLowerCase();
-            const index = routes.findIndex(r => r.path === ((str.startsWith("/") ? "" : "/") + str));
-            return Router.isValid(index) ? index : 0;
-        }
-        return (value ^ 0) // parseInt
-    }
-    return 0
-}
 
 // events
 // navigating between two history entries
-window.onpopstate = () => setTimeout(Router.instance.update, 0);
+// window.onpopstate = () => setTimeout(Router.instance.update, 0);
+window.onpopstate = async function(event) {
+  await Router.update(event)
+}
 
 export {Router}

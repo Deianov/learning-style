@@ -63,7 +63,9 @@ class Data {
             }
         }
         res = await repository.getByName(name);
-
+        if(!res) {
+            return null;
+        }
         if (adaptable) {
             res = this.adapt(res)
         }

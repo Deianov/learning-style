@@ -25,16 +25,16 @@ factory.init = async () => {
         top: new Menu(document.getElementsByClassName("navbar")[0])
     }
     new GoTop();
-    new Exercise();
+    Router.exercise = new Exercise();
 
     // todo: if needed getInstance
     // Object.assign(factory.instances, { data, router, page, topics, navigation, exercise })
 
     // init dynamic imports
     factory.addClass(Breadcrumb)
-    factory.addEvent("Breadcrumb", "click", Router.instance.navigateEvent)
+    factory.addEvent("Breadcrumb", "click", Router.navigateEvent)
     factory.addClass("Bar", undefined, "./components/bar.js")
-    factory.addEvent("Bar", "click", Exercise.instance.controlEvent)
+    factory.addEvent("Bar", "click", Exercise.controlEvent)
     factory.addClass("List", undefined, "./components/list.js")
     factory.addClass("Cards", undefined, "./components/cards.js")
     factory.addClass("UserInput", undefined, "./components/input.js")
@@ -47,7 +47,7 @@ factory.init = async () => {
     const breadcrumb = await factory.getInstance("Breadcrumb");
 
     // events
-    page.elements.aside.addEventListener("click", Exercise.instance.renderEvent);
+    page.elements.aside.addEventListener("click", Exercise.renderEvent);
 
     return {data, page, topics, breadcrumb, router, navigation, notify}
 }
