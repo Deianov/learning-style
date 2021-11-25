@@ -10,11 +10,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class ExerciseController {
     // single page redirects (by page/router.js)
-    private static final String PAGE_CARDS = "cards";
-    private static final String PAGE_QUIZZES = "quizzes";
-    private static final String PAGE_MAPS = "maps";
-    private static final String REDIRECT_PAGE = "redirect:/?page=%s";
-    private static final String REDIRECT_ID = "redirect:/?page=%s&id=%d";
+    private static final String PAGE_CARDS = "1";
+    private static final String PAGE_QUIZZES = "2";
+    private static final String PAGE_MAPS = "3";
+    private static final String REDIRECT_PAGE = "redirect:/home?page=%s";
+    private static final String REDIRECT_ID = "redirect:/home?page=%s&id=%d";
 
 
     @GetMapping("/cards")

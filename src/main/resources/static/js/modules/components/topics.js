@@ -8,6 +8,9 @@ class Topics {
         this.element = document.getElementsByTagName("aside")[0]
     }
     async render(page = "cards") {
+        if (this.lastPage === page) {
+            return
+        }
 
         this.element.innerHTML = "";
         const path = page;
@@ -19,6 +22,8 @@ class Topics {
             for (const topic of index) {
                 this.renderTopic(this.element, topic)
             }
+            this.lastPage = page;
+
         } catch {
             this.element.innerHTML = `<ul><img src="./assets/images/loaders/puff.svg" alt="loader" width="60" height="60"></img></ul>`;
         }

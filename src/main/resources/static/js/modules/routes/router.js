@@ -48,11 +48,12 @@ class Router {
 
         if (params && params.page) {
             await this.navigate(params.page, params.id, null);
+            return;
         }
 
         const index = (page === null) ? this.index : Router.getIndex(page);
         const isNewPage = index !== this.state.page;
-        const isNewId = id && id !== this.state.id;
+        const isNewId = id !== this.state.id;
 
         if (isNewPage || isNewId) {
             this.setIndex(index);
@@ -106,7 +107,7 @@ class Router {
      * @param flag
      */
     static async update(event, state, flag) {
-        // console.log(`update: eventState: ${event ? JSON.stringify(event.state) : null}; w.search: ${window.location.search}; routerState: ${JSON.stringify(Router.instance.state)}`)
+        // console.log(`update: event: ${event}; eventState: ${event ? JSON.stringify(event.state) : null}; w.path: ${window.location.pathname}; w.search: ${window.location.search}; routerState: ${JSON.stringify(Router.instance.state)}`)
 
         let isNewPage = null;
         let isNewId = null;
@@ -133,8 +134,10 @@ class Router {
             isNewPage = flag === 1 || flag === 3;
             isNewId = flag > 1
         }
+        // reset from exercise to exercise home
+        const isBlank = isNewId && !_state.id;
         // render page
-        if (isNewPage) {
+        if (isNewPage || isBlank) {
             if (typeof router.route.init === "function") {
                 router.route.init()
             }
