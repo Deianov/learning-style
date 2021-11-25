@@ -144,6 +144,11 @@ class Router {
             if (typeof router.route.render === "function") {
                 await router.route.render()
             }
+            // clear current exercise link
+            if (isBlank) {
+                Router.exercise.id = null;
+                Router.exercise.focusLink();
+            }
         }
         // render exercise
         if (isNewId && _state.id) {
