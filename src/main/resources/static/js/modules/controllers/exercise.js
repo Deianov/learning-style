@@ -8,6 +8,7 @@ const EXERCISE = {};
  * @type {boolean} save resources in memory
  */
 EXERCISE.cashable = true;
+EXERCISE.classNameFocus = "focus";
 EXERCISE.indexes = [
     "-",
     {"Clazz":"Flashcards", "adaptable":true},
@@ -24,16 +25,16 @@ class Exercise {
     }
     async render(fileName) {
         this.reset();
-        const id = parseInt(fileName);
+        this.id = parseInt(fileName);
 
         // skip index 0
-        await router.navigate(router.index || 1, id);
+        await router.navigate(router.index || 1, this.id);
         const CURRENT = EXERCISE.indexes[router.index];
 
         // get current exercise instance
         Exercise.current = await factory.getInstance(CURRENT.Clazz);
 
-        const resource = router.route.path + "/" + id;
+        const resource = router.route.path + "/" + this.id;
         const jsonFile = await data.getJson(resource, EXERCISE.cashable, CURRENT.adaptable);
         const opt = CURRENT.adaptable ? jsonFile["json"] : jsonFile;
         const source = {
@@ -49,6 +50,7 @@ class Exercise {
          */
         await page.blank(opt.name, opt.category, source);
         await Exercise.current.render(jsonFile)
+        this.focusLink();
     }
     clickButtonStart() {
         if (page.active) {
@@ -75,6 +77,11 @@ class Exercise {
             // Exercise.current.visible(false);
             Exercise.current = undefined;
         }
+    }
+    focusLink() {
+        Array.from(document.querySelectorAll("aside a")).forEach(a => {
+            a.classList.toggle(EXERCISE.classNameFocus, parseInt(a.value) === this.id)
+        })
     }
     // events
     static controlEvent(e) {

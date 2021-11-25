@@ -116,6 +116,11 @@ aside {
     padding-top: var(--space);
 }
 
+aside .focus {
+    /*font-weight: 600;*/
+    text-decoration: underline;
+}
+
 aside a {
     padding: 0 10px;
 }
