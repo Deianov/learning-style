@@ -12,22 +12,6 @@ class ConcatTask extends DefaultTask {
     }
 }
 
-class ExtractFromFileTask extends DefaultTask {
-    String start
-    String stop
-    boolean isOuter
-    ArrayList<String> filters
-    @InputFiles
-    File source
-    @OutputFile
-    File target
-    @TaskAction
-    void extract() {
-        int count =  FilesUtil.extract(source, target, start, stop, isOuter, filters)
-        println("ExtractFromFileTask: ${count} lines from ${source.toString()}.")
-    }
-}
-
 class FilesUtil {
 
     static File create(File file) {
@@ -110,10 +94,10 @@ task concatJS(type: DefaultTask) {
             println "copy: constants.js"
             from project.file("$DIR_JS/constants.js")
             filter { String line ->
-                line.startsWith('constants_app.version = ') ? "constants_app.version = \"${currentDate}\";" : line
+                line.startsWith('version:') ? "version: \"${currentDate}\"," : line
             }
             filter { String line ->
-                line.startsWith('constants_app.isStatic = ') ? 'constants_app.isStatic = true;' : line
+                line.startsWith('isStatic:') ? 'isStatic: true,' : line
             }
             filteringCharset = 'UTF-8'
             println "copy: factory.js"
@@ -228,5 +212,21 @@ task finalMerge(type: ConcatTask) {
         start = "function getName()"
         stop = "}"
         isOuter = false
+    }
+
+    class ExtractFromFileTask extends DefaultTask {
+        String start
+        String stop
+        boolean isOuter
+        ArrayList<String> filters
+        @InputFiles
+        File source
+        @OutputFile
+        File target
+        @TaskAction
+        void extract() {
+            int count =  FilesUtil.extract(source, target, start, stop, isOuter, filters)
+            println("ExtractFromFileTask: ${count} lines from ${source.toString()}.")
+        }
     }
 */

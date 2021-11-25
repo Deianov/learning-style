@@ -1,17 +1,19 @@
-const constants_app = {}
-constants_app.name = "learning-style";
-constants_app.title = "Learning-Style";
-constants_app.isStatic = false;
-constants_app.version = "06.10.2021";
-constants_app.state = "development";
-constants_app.lang = "en";
+const constants_app = {
+name: "learning-style",
+title: "Learning-Style",
+isStatic: false,
+version: "06.10.2021",
+state: "development",
+lang: "en",
+}
 
-const constants_server = {}
-constants_server.local = "http://192.168.0.52:9999";
-constants_server.relative = ".";
-constants_server.url = constants_server.relative;
-constants_server.api = constants_server.url + "/api";
-constants_server.json = constants_server.url + "/json";
+const constants_server = {
+local: "http://192.168.0.52:9999",
+relative: ".",
+url: ".",
+api: "./api",
+json: "./json",
+}
 
 const constants_dom = {
     pageheader: {tagName: "header"},
@@ -25,7 +27,7 @@ const constants_dom = {
     cdate: {id: "cdate"},
     breadcrumb: {className: "breadcrumb", tagName: "ul"},
     subject: {className: "subject"},
-    notify: {className: "notify-box"}
+    notify: {className: "notify-box"},
 }
 
 const ms = {}
