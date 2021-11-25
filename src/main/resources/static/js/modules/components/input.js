@@ -66,7 +66,7 @@ class UserInput extends Component {
         // this.show.messages.error.render("", CS.msg.input.again); // skip -> title Error:
 
         notify.msg("error", CS.msg.input.again, {prefix: ""})   // optional edit off default options prefix
-        notify.alert("error", CS.msg.input.again)   // optional edit off default options prefix
+        // notify.alert("error", CS.msg.input.again)
     }
     showExamples() {
         if (this.success && !this.examples) {
