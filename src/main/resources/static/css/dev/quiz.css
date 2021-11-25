@@ -30,6 +30,15 @@
     margin: 2px;
 }
 
+/*
+input[type="radio"],
+input[type="checkbox"] {
+    width: 1em;
+    height: 1rem;
+    accent-color: gray;
+}
+ */
+
 .answer {
     display: block;
     padding-left: 20px;
@@ -41,7 +50,6 @@
 .answer span {
     padding-left: 6px;
 }
-
 
 .answer:hover {
     background-color: #ddd;
