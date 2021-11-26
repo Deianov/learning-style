@@ -10,7 +10,7 @@ const NOTIFY = {
     prefix: { info: "Info: ", error: "Error: ", success: "Success: " },
     size: { small: 20, normal: 22, large: 24 },
     msg: { className: "msg-box", classNameItem: "msg-item", classNameTitle: "msg-title", capacity: 0, timer: 0},
-    alert: { className: "alert-box", classNameItem: "alert-item", capacity: 2, timer: 10000, close: 1}
+    alert: { className: "alert-box", classNameItem: "alert-item", capacity: 2, timer: 10000, ticker: 1, close: 1}
 }
 const NOTIFY_TEMPLATES = {
     msg: {
@@ -146,7 +146,7 @@ class Msg {
         if (this.options.capacity > 0 && this.storage.length >= this.options.capacity) {
             dom.remove(this.storage.shift())
         }
-        const myOptions =  Object.assign(options || {}, this.options);
+        const myOptions =  Object.assign(Object.assign({}, this.options), options);
         // set ticker
         if (myOptions.timer > 0) {
             this.timeout = myOptions.timer / 1000;
@@ -166,7 +166,9 @@ class Msg {
         if (--this.timeout < 1) {
             this.clear();
         }
-        this.update();
+        if (this.options.ticker) {
+            this.update();
+        }
     }
     update() {
         this.storage.forEach(e => {
