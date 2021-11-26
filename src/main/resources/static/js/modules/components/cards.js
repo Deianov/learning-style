@@ -19,27 +19,27 @@ class Cards extends Component {
         this.active = -1;
     }
     render(jsonFile) {
-        this.local = jsonFile;
+        this.json = jsonFile;
         this.reset();
 
-        for (let tab = 0; tab < this.local.save.tabs.length; tab++) {
+        for (let tab = 0; tab < this.json.state.tabs.length; tab++) {
             this.createCard(this.element)
         }
-        this.setActive(this.local.save.card);
+        this.setActive(this.json.state.card);
     }
     setActive(index) {
         if (this.active > -1) {
             this.cards[this.active].classList.toggle('active', false);
         }
-        this.local.save.card = index;
+        this.json.state.card = index;
         this.active = index;
         this.cards[this.active].classList.toggle('active', true);
     }
     populate(row) {
         if (typeof row === "number") {
-            this.local.save.row = row
+            this.json.state.row = row
         }
-        this.words = this.local.data[this.local.save.row];
+        this.words = this.json.data[this.json.state.row];
         for (let index = 0; index < this.cards.length; index++) {
             this.setContent(index, this.words ? this.words[index] : '')
         }
@@ -66,7 +66,7 @@ class Cards extends Component {
         }
     }
     updateIndex(i) {
-        const isActiveTab = this.local.save.tabs[i];
+        const isActiveTab = this.json.state.tabs[i];
         if (i === this.active) {
             this.visibleContent(i, true)
             if (isActiveTab || this.status === "error") {
@@ -95,7 +95,7 @@ class Cards extends Component {
     reset() {
         super.reset();
         this.cards.length = 0;
-        this.local.save.row = 0;
+        this.json.state.row = 0;
         this.active = -1;
         this.status = null;
     }

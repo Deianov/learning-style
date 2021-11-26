@@ -112,14 +112,14 @@ function dataAdapter(json) {
 
     // append metadata
     result.counts = Array(result.data.length).fill(0);
-    result.save = {
+    result.state = {
         "status":false,
         "rows":result.data.length,
         "row":0,
         "tabs":Array(json.labels.length).fill(true),
         "card":json.options.card,
     }
-    result.save.tabs[result.save.card] = false;
+    result.state.tabs[result.state.card] = false;
     return result
 }
 

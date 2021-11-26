@@ -28,27 +28,27 @@ class Bar extends Component {
         renderDom(this._element);
         BAR.initElements();
 
-        this.local = jsonFile;
+        this.json = jsonFile;
         this.tabs.length = 0;
         // reference to localData
-        this.activeTabs = this.local.save.tabs;
+        this.activeTabs = this.json.state.tabs;
         this.onPlay(false);
         BAR.elements.onPlay.row.disabled = true;
 
         for (let i = 0; i < this.activeTabs.length; i++) {
-            this.tabs.push(dom.element("button", BAR.elements.tabs, {"key":i, "textContent":this.local.json.labels[i]}));
+            this.tabs.push(dom.element("button", BAR.elements.tabs, {"key":i, "textContent":this.json.json.labels[i]}));
             this.setActiveTab(i, true);
         }
     }
     start() {
-        this.local.save.status = "start";
+        this.json.state.status = "start";
         this.setLabel(BAR.elements.start, "Stop");
         this.setActive(BAR.elements.start, true);
         this.onPlay(true);
         this.resetTabs(true);
     }
     stop() {
-        this.local.save.status = "stop";
+        this.json.state.status = "stop";
         this.setLabel(BAR.elements.start, "Start");
         this.setActive(BAR.elements.start, false);
         this.onPlay(false);
@@ -56,7 +56,7 @@ class Bar extends Component {
     }
     resetTabs(onPlay) {
         for (let i = 0; i < this.activeTabs.length; i++) {
-            const isActive = onPlay ? (i !== this.local.save.card) : true;
+            const isActive = onPlay ? (i !== this.json.state.card) : true;
             this.setActiveTab(i, isActive)
         }
     }

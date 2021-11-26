@@ -13,27 +13,27 @@ class List extends Component {
         super(parent, null, LIST.tagName, LIST.className)
     }
     render(jsonFile) {
-        this.local = jsonFile;
         super.reset();
-        populateTable(this.element, this.local.data, this.local.save.tabs.length)
+        this.json = jsonFile;
+        populateTable(this.element, this.json.data, this.json.state.tabs.length)
     }
     visibleContent(col, flag) {
         tableVisibility(this.element, col, flag)
     }
     update(index) {
-        if (!this.element || ! this.local) {
+        if (!this.element || ! this.json) {
             return
         }
         if (typeof index === "number") {
-            this.visibleContent(index, this.local.save.tabs[index])
+            this.visibleContent(index, this.json.state.tabs[index])
         } else {
-            for (let col = 0; col < this.local.save.tabs.length; col++) {
-                this.visibleContent(col, this.local.save.tabs[col])
+            for (let col = 0; col < this.json.state.tabs.length; col++) {
+                this.visibleContent(col, this.json.state.tabs[col])
             }
         }
     }
     isValidRow(row) {
-        return Number.isInteger(row) && row > -1 && row < this.local.data.length
+        return Number.isInteger(row) && row > -1 && row < this.json.data.length
     }
 }
 factory.addClass(List)

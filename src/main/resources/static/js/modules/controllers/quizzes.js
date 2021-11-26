@@ -19,12 +19,12 @@ class Quizzes {
         Quizzes.instance = this;
     }
     async render(jsonFile) {
-        this.jsonFile = jsonFile;
-        this.questions = this.jsonFile.questions;
+        this.json = jsonFile;
+        this.questions = this.json.questions;
         this.validated = false;
 
         // list of correct answers, if not found -> server validation
-        this.correct = this.jsonFile.correct;
+        this.correct = this.json.correct;
         // this.correct = this.correct || this.questions.map(q => Flags.toNumber(q.answers.map(a => a.correct)))
 
         if (!this.correct && CS.app.isStatic) {
@@ -58,7 +58,7 @@ class Quizzes {
     }
     reset() {
         this.parent.innerHTML = "";
-        this.render(this.jsonFile)
+        this.render(this.json)
     }
     async validate() {
 
@@ -73,7 +73,7 @@ class Quizzes {
 
         /* server validation */
         if (!this.correct) {
-            const res = await data.getJsonWithPayload(`/quizzes/${this.jsonFile.id}/certification`, {"answers": getUserAnswers()});
+            const res = await data.getJsonWithPayload(`/quizzes/${this.json.id}/certification`, {"answers": getUserAnswers()});
             if (res) {
                 Quizzes.instance.correct = res.correct;
             }
