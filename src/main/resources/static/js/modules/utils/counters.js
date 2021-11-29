@@ -76,7 +76,7 @@ class ScopeCounter {
         return this.isValid() && this.numbers.length > 0 || this.waitingNumbers.length > 0
     }
     hasPrevious() {
-        return this.stack.length
+        return this.stack.length > 1;
     }
     isValid() {
         return typeof this.max === 'number' && this.min > -1 && this.max > this.min
@@ -111,17 +111,25 @@ class ScopeCounter {
     }
 }
 
-class SimpleCounter {
-    constructor(num) {
-        this.start = num;
-        this.number = num;
-    }
-    get next() {
-        return this.number++
-    }
-    reset() {
-        this.number = this.start;
+function SimpleCounter(start = 0) {
+    const min = start;
+    let n = start;
+    return {
+        value() {
+            return n;
+        },
+        next() {
+            return ++n;
+        },
+        back() {
+            n = n > min ? (n - 1) : min;
+            return n;
+        },
+        reset() {
+            n = min;
+        }
     }
 }
+
 
 export {SimpleCounter, ScopeCounter}

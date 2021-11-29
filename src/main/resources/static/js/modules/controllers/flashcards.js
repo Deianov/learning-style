@@ -76,12 +76,14 @@ class Flashcards {
             row = this.counter.next
         // previous           
         } else if (step === -1) {
-            row = this.counter.previous
+            row = this.counter.previous;
+            this.input.stats.change("success", this.input.successCounter.back())
         // repeat
         } else if (step === 0) {
             row = this.counter.repeatLast(FLASHCARDS.turnsWaitingToRepeat)
         }
 
+        console.log({row})
 
         if (!this.list.isValidRow(row)) {
             console.error("Bad row number!");

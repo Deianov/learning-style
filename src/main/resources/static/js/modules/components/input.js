@@ -11,8 +11,8 @@ import {numbers} from "../utils/numbers.js";
 class UserInput extends Component {
     constructor(parent = CS.dom.content.id) {
         super(parent, undefined, "div", "input")
-        this.successCounter = new SimpleCounter(1);
-        this.errorsCounter = new SimpleCounter(1);
+        this.successCounter = SimpleCounter();
+        this.errorsCounter = SimpleCounter();
         this.stats = new Stats();
         this.input = new TextInput(this)
         this.state = {}
@@ -54,6 +54,7 @@ class UserInput extends Component {
         this.clear();
         this.state.repeat = true; // skip stats
         notify.msg("error", CS.msg.input.again, {prefix: ""})
+        this.input.textarea.placeholder = CS.msg.input.again;
     }
     reset() {
         this.clear();
@@ -70,22 +71,17 @@ class UserInput extends Component {
     }
     update() {
         if (this.state.done) {
-            this.input.clear();
-            this.input.focus();
             this.state.error = !this.state.success
 
-            // stats
-            if (!this.state.repeat) {
-                if (this.state.success) {
-                    this.stats.change("success", this.successCounter.next)
-                } else {
-                    this.stats.change("error", this.errorsCounter.next);
-                }
+            if (this.state.repeat) {
+                return;
             }
 
-            // error
-            if (this.state.error) {
-                this.input.setStatus("error")
+            // stats
+            if (this.state.success) {
+                this.stats.change("success", this.successCounter.next())
+            } else {
+                this.stats.change("error", this.errorsCounter.next());
             }
 
             // examples  todo:
@@ -96,9 +92,11 @@ class UserInput extends Component {
                     notify.title({title: "Examples", data: this.state.examples})
                 }
             }
-        } else {
-            // update current state
+        }
+        // update current state
+        else {
             this.input.setStatus(this.state.success ? "success" : this.state.error ? "error" : "");
+
             if (this.state.success) {
                 notify.clear();
                 notify.msg("info", "", {prefix: "Done.", timer: 2000})
@@ -107,7 +105,7 @@ class UserInput extends Component {
     }
     /**
      * Show/Hide the input
-     * @param {boolean} flag 
+     * @param {boolean} flag
      */
     visible(flag) {
         this.element.style.display = flag ? "" : "none";
@@ -143,11 +141,12 @@ class TextInput {
         }
         // UserInput.read()
         this.controller = controller;
+        this.opt = Object.assign({}, TextInput.default);
     }
-    render(parent, options) {
-        const opt = options || TextInput.default;
-        this.form = dom.element("form", parent, opt.form);
-        this.textarea = dom.element("textarea", this.form, opt.textarea);
+    render(parent, options = {}) {
+        Object.assign(this.opt, options);
+        this.form = dom.element("form", parent, this.opt.form);
+        this.textarea = dom.element("textarea", this.form, this.opt.textarea);
         this.textarea.addEventListener("input", this);
         this.keyboard = new MyKeyboard(this).render(parent, this.textarea, null);
         this.clear();
@@ -172,6 +171,7 @@ class TextInput {
     clear() {
         this.status = "";
         this.textarea.value = "";
+        this.textarea.placeholder = this.opt.textarea.placeholder;
     }
     focus() {
         if (this.keyboard.opt.mode.off) {
@@ -193,13 +193,13 @@ class TextInput {
     }
 }
 
+
 const KEYBOARDS = {
     german: {
         small: ["q", "w", "e", "r", "t", "z", "u", "i", "o", "p", "ü", "ß", "<--", "a", "s", "d", "f", "g", "h", "j", "k", "l", "ö", "ä", "#", "Enter", "_^", "y", "x", "c", "v", "b", "n", "m", ",", ".", "-", "!", "?"],
         big: ["Q", "W", "E", "R", "T", "Z", "U", "I", "O", "P", "Ü", "~", "<--", "A", "S", "D", "F", "G", "H", "J", "K", "L", "Ö", "Ä", "'", "Enter", "_^", "Y", "X", "C", "V", "B", "N", "M", ";", ":", "_", "!", "?"],
     }
 }
-
 
 class MyKeyboard {
     constructor(controller, textarea) {
@@ -323,7 +323,7 @@ class MyKeyboard {
             MyKeyboard.instance.renderKeyboard();
             bnt.textContent = CS.msg.keyboard.static;
         } else if (key === "byString") {
-            MyKeyboard.instance.renderKeys();
+            MyKeyboard.instance.renderKeys(MyKeyboard.instance.controller.text);
             bnt.textContent = CS.msg.keyboard.byString;
         }
     }

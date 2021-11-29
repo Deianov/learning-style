@@ -59,9 +59,9 @@ ms.de = {}
 ms.de.input = {}
 ms.de.bnt = {}
 
-ms.en.input.again = "Write this word again.";
+ms.en.input.again = "Write this again.";
 ms.de.input.again = "Schreiben Sie das Wort noch einmal auf.";
-ms.en.input.placeholder = "Write something..";
+ms.en.input.placeholder = "Write this ..";
 
 ms.en.bnt.validate = "Validate";
 ms.de.bnt.validate = "Bestätigen";
