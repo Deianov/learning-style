@@ -166,7 +166,7 @@ class TextInput {
     setStatus(className) {
         if (this.status !== className) {
             this.status = className || "";
-            this.textarea.className = this.status;
+            this.textarea.className = this.status + (this.keyboard.opt.mode.off ? "" : " active");
         }
     }
     clear() {
@@ -314,6 +314,7 @@ class MyKeyboard {
         mode.off = key === "off";
         mode.static = key === "static";
         mode.byString = key === "byString";
+        MyKeyboard.instance.textarea.classList.toggle("active", !mode.off);
         CS.app.keyboard = mode.off ? 0 : mode.static ? 1 : 2;
         if (key === "off") {
             MyKeyboard.instance.clear();
