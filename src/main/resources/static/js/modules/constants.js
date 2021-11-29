@@ -14,12 +14,16 @@ state: "development",
 lang: "en",
 /** keyboard - 0: default, 1: virtual, 2: virtual (only word keys) */
 keyboard: constants_system.isMobile ? 1 : 0,
+jsessionId: document.cookie,
 }
 
+console.log(constants_app.jsessionId)
+
 // development state
-constants_system.infoString = `state: ${constants_app.state}, version: ${constants_app.version} (${constants_app.isStatic ? "static":"api"}), System: `;
-constants_system.infoString+= `Mobile: ${constants_system.isMobile}`;
-constants_system.infoString+= `, DarkMode: ${constants_system.isDarkMode}`;
+constants_system.infoString = `state: ${constants_app.state}, version: ${constants_app.version} (${constants_app.isStatic ? "static":"api"}), `;
+constants_system.infoString+= (constants_system.isMobile ? "mobile OS: " : "OS: ");
+constants_system.infoString+= navigator.userAgent;
+constants_system.infoString+= (constants_system.isDarkMode ? ", DarkMode" : "");
 document.getElementsByClassName("version")[0].textContent = constants_system.infoString;
 
 
