@@ -3,8 +3,6 @@ import CS from "./constants.js";
 /** todo: change inmemory with LocalStorage */
 const files = {};
 
-// development state
-document.getElementsByClassName("version")[0].textContent = `state: ${CS.app.state}, version: ${CS.app.version} (${CS.app.isStatic ? "static":"api"})`;
 
 class LocalRepository {
     existsByName(name) {
