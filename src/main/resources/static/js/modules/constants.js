@@ -14,10 +14,7 @@ state: "development",
 lang: "en",
 /** keyboard - 0: default, 1: virtual, 2: virtual (only word keys) */
 keyboard: constants_system.isMobile ? 1 : 0,
-jsessionId: document.cookie,
 }
-
-console.log(constants_app.jsessionId)
 
 // development state
 constants_system.infoString = `state: ${constants_app.state}, version: ${constants_app.version} (${constants_app.isStatic ? "static":"api"}), `;
