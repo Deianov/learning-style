@@ -14,8 +14,7 @@ class Flashcards {
     }
 
     async render(jsonFile) {
-        this.jsonFile = jsonFile;
-
+        this.json = jsonFile;
         /**
          * @param {number} min Inclusive (default: 0)
          * @param {number} max Exclusive (optional)
@@ -29,18 +28,17 @@ class Flashcards {
         this.input = await factory.getInstance("UserInput");
         this.tags = await factory.getInstance("Tags");
 
-        this.bar.render(this.jsonFile);
-        this.list.render(this.jsonFile);
-        this.input.setEvent("input", this.onTextareaChange, 0);
+        this.bar.render(this.json);
+        this.list.render(this.json);
+        this.input.controller = Flashcards.onTextareaChange;
         this.tags.render()
     }
     start() {
-        this.counter.reset(this.jsonFile.save.rows);
+        this.counter.reset(this.json.state.rows);
         this.bar.start();
         this.list.remove();
-        this.cards.render(this.jsonFile);
-
-        this.input.render(this.jsonFile, this.counter);
+        this.cards.render(this.json);
+        this.input.render(this.json, null);
         this.next();
         page.play(true)
     }
@@ -50,10 +48,10 @@ class Flashcards {
         this.bar.stop();
         this.cards.remove();
         this.input.remove();
-        this.list.render(this.jsonFile);
+        this.list.render(this.json);
         page.play(false)
     }
-    playWord(step) {
+    play(step) {
         let row = false;
 
         // finish
@@ -71,45 +69,44 @@ class Flashcards {
         // next
         if (step === 1) {
             row = this.counter.next
-        // skip and next            
+        // skip
         } else if (step === 2) {
-            if (this.input.repeat) {this.counter.skipLastWaiting()}
+            if (this.input.state.repeat) {this.counter.skipLastWaiting()}
             this.input.clear();
             row = this.counter.next
         // previous           
         } else if (step === -1) {
             row = this.counter.previous
-        // repeat current
+        // repeat
         } else if (step === 0) {
             row = this.counter.repeatLast(FLASHCARDS.turnsWaitingToRepeat)
         }
 
-        // console.debug(JSON.stringify(counter));
- 
+
         if (!this.list.isValidRow(row)) {
             console.error("Bad row number!");
         }
-        else if (this.input.error) {
+        else if (this.input.state.error) {
             this.cards.setStatus("error", true);
-            this.cards.update(this.jsonFile.save.card);
-            this.input.repeatWord()
-        } 
+            this.cards.update(this.json.state.card);
+            this.input.repeat()
+        }
         else {
             this.cards.setStatus("error", false);
-            this.input.show.stats.done = this.counter.hasPrevious();
+            this.input.stats.change("done", this.counter.hasPrevious())
             this.cards.populate(row);
-            this.input.nextWord();
+            this.input.next();
             this.bar.row = row + 1
         }
     }
     next() {
-        this.playWord(1)
+        this.play(1)
     }
     skip() {
-        this.playWord(2)
+        this.play(2)
     }
     previous() {
-        this.playWord(-1)
+        this.play(-1)
     }
     toggleShuffle() {
         this.counter.random = !this.counter.random;
@@ -118,9 +115,8 @@ class Flashcards {
         this.input.reset();
         this.next()
     }
-    onTextareaChange() {
-        Flashcards.instance.input.readInput();
-        if (Flashcards.instance.input.done) {Flashcards.instance.playWord(Flashcards.instance.input.success ? 1 : 0)}
+    static onTextareaChange(input) {
+        Flashcards.instance.play(input.state.success ? 1 : 0)
     }
     resume() {
         if (page.active) {

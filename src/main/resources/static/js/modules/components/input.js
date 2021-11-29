@@ -4,171 +4,114 @@ import CS from "../constants.js";
 import {Component} from "./components.js";
 import {SimpleCounter} from "../utils/counters.js";
 import {notify} from "../factory.js";
-
-
-const INPUT = {};
-INPUT.classNameWrapper = "input";
-INPUT.className = "form";
-INPUT.tagName = "form";
-INPUT.options = {
-    bar: {
-        stats: {class: "stats right"},
-        award: {src:"./assets/images/award.svg", alt:"award", width:"18", height:"18"},
-        counts: {class: "counts left"}
-    },
-    form: {className: INPUT.className},
-    textarea: {placeholder:"Write something..", autocapitalize:"none", autocomplete:"off"}
-}
-INPUT.elements = {
-    "bar": "",
-    "form": "",
-    "textarea": "",
-    "default": "",
-    "messages":""   // todo: ???
-}
-INPUT.renders = {};
+import {Stats} from "./stats.js";
+import {numbers} from "../utils/numbers.js";
 
 
 class UserInput extends Component {
-    constructor(parent = "content") {
-        super(parent, INPUT.classNameWrapper, INPUT.tagName, INPUT.className)
-        this.focus = false;
-        this.done = false;
-        this.error = false;
-        this.success = false;
-        this.repeat = false;
-        UserInput.successCounter = new SimpleCounter(1);
-        UserInput.errorsCounter = new SimpleCounter(1);
+    constructor(parent = CS.dom.content.id) {
+        super(parent, undefined, "div", "input")
+        this.successCounter = new SimpleCounter(1);
+        this.errorsCounter = new SimpleCounter(1);
+        this.stats = new Stats();
+        this.input = new TextInput(this)
+        this.state = {}
     }
-    render(jsonFile) {
-        this.local = jsonFile;
-        super.reset();
-        renderInput(this.wrapper);
-        this.inputElement = INPUT.elements.default;
-        this.show = new UserInformation(INPUT.elements, INPUT.renders);
-        this.reset();
-        super.updateEvent(this.element)
-    }
-    readInput() {
-        this.input = this.inputElement.value || "";
-        this.validateInput();
-        this.showExamples();
-        return this.input
-    }
-    nextWord() {
-        this.clear();
-        this.words = this.local.data[this.local.save.row];
-        this.word = this.words[this.local.save.card];
-    }
-    repeatWord() {
-        this.clear();
-        this.repeat = true;
-        // this.show.messages.error.render("", CS.msg.input.again); // skip -> title Error:
+    render(jsonFile, controller) {
+        super.reset(); // create this.element
+        this.json = jsonFile;
+        dom.removeAll(this.element);
 
-        notify.msg("error", CS.msg.input.again, {prefix: ""})   // optional edit off default options prefix
-        // notify.alert("error", CS.msg.input.again)
+        this.stats.render(this.element)
+        this.input.render(this.element)
+        this.reset()
+        // Flashcards.onTextareaChange
+        this.controller = controller || this.controller;
     }
-    showExamples() {
-        if (this.success && !this.examples) {
-            // notify.title({title: "Custom information", data: ["line 1", "line 2", "line 3"]})
-            this.examples = true;
-            notify.with("msg").clear();
-            notify.msg("info", "", {prefix: "Done."})
+    read() {
+        this.content = this.input.value
+        this.state.done = this.input.isDone();
+
+        // save previous state
+        if (!this.state.done) {
+            this.state.error = !this.contained(this.content, this.word);
+            this.state.success = this.compare(this.content, this.word);
         }
-        // if (this.success && !this.examples && Array.isArray(this.words.slice(-1)[0])) {
-        //     this.examples = this.words.slice(-1)[0];
-        //     INPUT.renders.custom.examples.render();
-        //     this.examples.forEach(ex => {
-        //         INPUT.renders.custom.examples.addSiblingByCallback(messages.renders.textMessageWithSubject, ex)
-        //     });
-        // }
+
+        this.update();
+        if (this.state.done) { this.controller(this) }
+    }
+    next() {
+        this.clear();
+        this.words = this.json.data[this.json.state.row];
+        this.word = this.words[this.json.state.card];
+        this.input.setAssert(this.word);
+        if (this.input.keyboard) {
+            this.input.keyboard.renderKeys(this.word);
+        }
+    }
+    repeat() {
+        this.clear();
+        this.state.repeat = true; // skip stats
+        notify.msg("error", CS.msg.input.again, {prefix: ""})
     }
     reset() {
         this.clear();
-        UserInput.successCounter.reset();
-        UserInput.errorsCounter.reset();
-        this.show.stats.success = 0;
-        this.show.stats.error = 0;
-        this.show.stats.rows = this.local.save.rows;
-        this.show.stats.done = 0;
+        this.successCounter.reset();
+        this.errorsCounter.reset();
+        this.stats.setStats(0, this.json.state.rows, 0, 0);
     }
     clear() {
-        this.inputElement.value = "";
-        this.done = false;
-        this.repeat = null;
-        this.status = null;
-        this.examples = null;
+        for(const key of Object.keys(this.state)) {
+            this.state[key] = null;
+        }
+        this.input.clear();
         notify.clear();
     }
-    /**
-     * @param {string} className. Class name or falsy.
-     */
-    set status(className) {
-        this.success = (className === "success");
-        this.inputElement.classList.toggle("success", this.success);
-        this.error = (className === "error");
-        this.inputElement.classList.toggle("error", this.error);
-    }
-    get status() {
-        return this.success ? "success" : this.error ? "error" : null
-    }
-    isDone() {
-        const lastChar = this.input.slice(-1);
-        const flag = lastChar === "\n" || lastChar === "\r";    // todo: == ?
-        this.done = flag;
-        if (flag) {
-            this.inputElement.value = "";
-            this.inputElement.focus();   
-        }
-        if (flag && !this.repeat) {
-            if (this.success) {
-                this.show.stats.success = UserInput.successCounter.next;
-            } else {
-                this.show.stats.error = UserInput.errorsCounter.next;
+    update() {
+        if (this.state.done) {
+            this.input.clear();
+            this.input.focus();
+            this.state.error = !this.state.success
+
+            // stats
+            if (!this.state.repeat) {
+                if (this.state.success) {
+                    this.stats.change("success", this.successCounter.next)
+                } else {
+                    this.stats.change("error", this.errorsCounter.next);
+                }
+            }
+
+            // error
+            if (this.state.error) {
+                this.input.setStatus("error")
+            }
+
+            // examples  todo:
+            if (!this.state.examples) {
+                // notify.title({title: "Custom information", data: ["line 1", "line 2", "line 3"]})
+                if (Array.isArray(this.words.slice(-1)[0])) {
+                    this.state.examples = this.words.slice(-1)[0];
+                    notify.title({title: "Examples", data: this.state.examples})
+                }
+            }
+        } else {
+            // update current state
+            this.input.setStatus(this.state.success ? "success" : this.state.error ? "error" : "");
+            if (this.state.success) {
+                notify.clear();
+                notify.msg("info", "", {prefix: "Done.", timer: 2000})
             }
         }
-        if (flag && !this.success) {
-            this.status = "error";
-        }
-        return flag; 
     }
     /**
      * Show/Hide the input
      * @param {boolean} flag 
      */
     visible(flag) {
-        this.parent.style.display = flag ? null : "none";
-        this.focus = flag;
-        if (flag && this.inputElement) {
-            this.inputElement.focus();
-        }
-    }
-    isSuccess() {
-        const res = this.compare(this.input, this.word);
-        if (res) {
-            this.status = "success"
-        } else if (this.success) {
-            this.status = null
-        }
-        return res
-    }
-    isError() {
-        const res = !this.contained(this.input, this.word);
-        if (res) {
-            this.status = "error"
-        } else if (this.error) {
-            this.status = null
-        }
-        return res
-    }
-    validateInput() {
-        return this.isDone() || this.isSuccess() || this.isError()
-    }
-    isValid() {
-        return this.isValidString(this.input) && this.isValidString(this.word)
-    }
-    isValidString(str) {
-        return typeof str === "string" && str.length > 0
+        this.element.style.display = flag ? "" : "none";
+        if (flag) { this.input.focus() }
     }
     /**
      * @param {string} str1  "abc"
@@ -186,124 +129,216 @@ class UserInput extends Component {
         return str1 === str2.substr(0, str1.length)
     }
     remove() {
-        notify.clear();
         super.remove()
     }
-
 }
 factory.addClass(UserInput)
 
-class UserInformation {
-    constructor(elementsObject, renders) {
-        this.obj = elementsObject;
-        this.renders = renders;
-        this.elements;
-        this.isText;
+
+class TextInput {
+    constructor(controller) {
+        TextInput.default = {
+            form: {className: "form", spellcheck: "false", autocapitalize: "none", autocomplete: "off"},
+            textarea: {placeholder: CS.msg.input.placeholder} // disabled: true
+        }
+        // UserInput.read()
+        this.controller = controller;
     }
-    get stats() {
-        this.elements = this.obj["stats"] || {};
-        this.isText = true;
-        return this
+    render(parent, options) {
+        const opt = options || TextInput.default;
+        this.form = dom.element("form", parent, opt.form);
+        this.textarea = dom.element("textarea", this.form, opt.textarea);
+        this.textarea.addEventListener("input", this);
+        this.keyboard = new MyKeyboard(this).render(parent, this.textarea, null);
+        this.clear();
     }
-    // get messages() {
-    //     this.elements = this.renders["messages"];
-    //     this.isText = false;
-    //     return this
-    // }
-    getElement(name) {
-        const e = this.elements[name];
-        return this.isText && e ? e.textContent : e
+    handleEvent(e) {
+        /** read speed optimisation - skip unnecessary calls */
+        if (this.assert()) {
+            return
+        }
+        this.setStatus("")
+        this.controller.read();
     }
-    setElement(name, value) {
-        const e = this.elements[name];
-        if (e && this.isText) {
-            e.textContent = value
+    get value() {
+        return this.textarea.value || "";
+    }
+    setStatus(className) {
+        if (this.status !== className) {
+            this.status = className || "";
+            this.textarea.className = this.status;
         }
     }
-    // todo return {"info":...}
-    get info() {
-        return this.getElement("info")
+    clear() {
+        this.status = "";
+        this.textarea.value = "";
     }
-    set info(text) {
-        this.setElement("info", text)
+    focus() {
+        if (this.keyboard.opt.mode.off) {
+            this.textarea.focus();
+        }
     }
-    get success() {
-        return this.getElement("success")
+    isDone() {
+        return ["\n", "\r"].includes(this.value.slice(-1));
     }
-    set success(text) {
-        this.setElement("success", text)
+    setAssert(text) {
+        this.text = text;
     }
-    get error() {
-        return this.getElement("error")
-    }
-    set error(text) {
-        this.setElement("error", text)
-    }
-    get done() {
-        return this.getElement("done")
-    }
-    set done(text) {
-        this.setElement("done", text)
-    }
-    get rows() {
-        return this.getElement("rows")
-    }
-    set rows(text) {
-        this.setElement("rows", text)
+    assert() {
+        if (this.text) {
+            this.text = this.value.length < this.text.length ? this.text : null;
+            return this.text && !this.status && this.text.startsWith(this.value);
+        }
+        return null;
     }
 }
 
-/*
-<div id="input" class="input">
-<div>
-    <div id="stats" class="right">
-        <small>1</small>
-        <small>2</small>
-        <img src="./assets/img/award.svg" alt="award" width="18" height="18">
-    </div>
-    <div id="counts" class="left">
-        <small>3</small>
-        <span>|</span>
-        <small>4</small>
-    </div>
-</div>
-<form id="form">
-</form>
-</div>
-*/
-
-function createStatsBar(parent) {
-    const div = dom.element("div", parent);
-    const parentStats = dom.element("div", div, INPUT.options.bar.stats);
-    dom.element("small", parentStats);
-    dom.element("small", parentStats);
-    dom.element("img", parentStats, INPUT.options.bar.award);
-
-    const parentCounts = dom.element("div", div, INPUT.options.bar.counts);
-    dom.element("small", parentCounts);
-    dom.text("span", parentCounts, "|");
-    dom.element("small", parentCounts);
-    return div
+const KEYBOARDS = {
+    german: {
+        small: ["q", "w", "e", "r", "t", "z", "u", "i", "o", "p", "ü", "ß", "<--", "a", "s", "d", "f", "g", "h", "j", "k", "l", "ö", "ä", "#", "Enter", "_^", "y", "x", "c", "v", "b", "n", "m", ",", ".", "-", "!", "?"],
+        big: ["Q", "W", "E", "R", "T", "Z", "U", "I", "O", "P", "Ü", "~", "<--", "A", "S", "D", "F", "G", "H", "J", "K", "L", "Ö", "Ä", "'", "Enter", "_^", "Y", "X", "C", "V", "B", "N", "M", ";", ":", "_", "!", "?"],
+    }
 }
 
-function renderInput (wrapper) {
-    // messages.removeMessages();
-    notify.clear()
-    dom.removeAll(wrapper);
-    INPUT.elements.bar = createStatsBar(wrapper);
-    INPUT.elements.form = dom.element("form", wrapper, INPUT.options.form);
-    INPUT.elements.textarea = dom.element("textarea", INPUT.elements.form, INPUT.options.textarea);
-    INPUT.elements.default = INPUT.elements.textarea;
-    INPUT.elements.stats = {
-        "success": INPUT.elements.bar.children[0].children[1],
-        "error": INPUT.elements.bar.children[0].children[0],
-        "done": INPUT.elements.bar.children[1].children[0],
-        "rows": INPUT.elements.bar.children[1].children[2]
-    };
-    // INPUT.elements.messages = document.getElementById("messages");
-    // INPUT.renders.messages = messages.create.renders(INPUT.elements.form, messages.renders.textMessageWithSymbol);
-    // INPUT.renders.custom = {};
-    // INPUT.renders.custom.examples = messages.create.customRender(INPUT.elements.messages, "info", messages.renders.textMessageWithSymbol, "")
+
+class MyKeyboard {
+    constructor(controller, textarea) {
+        MyKeyboard.instance = this;
+        MyKeyboard.default = {
+            keys: KEYBOARDS.german,
+            className: "keyboard",
+            classNameItem: "item",
+            classNameLong: "item-long",
+            classNameOther: "other",
+            buttons: {"Enter": "\n", "<--": "del", "__": " ", "_^": "shift"},
+            mode: {
+                off: CS.app.keyboard === 0,
+                static: CS.app.keyboard === 1,
+                byString: CS.app.keyboard === 2,
+                size: 0, // 11
+            }
+        }
+        // TextInput.handleEvent()
+        this.controller = controller;
+        this.textarea = textarea;
+        this.opt = Object.assign({}, MyKeyboard.default);
+    }
+    render(parent, textarea, options) {
+        Object.assign(this.opt, options);
+
+        this.textarea = textarea || this.textarea;
+        this.modeButton = dom.element("span", parent, {id: "keyboard", role: "button", className: "right"});
+        this.modeButton.addEventListener("click", this.changeMode)
+        this.keyboard = dom.element("div", parent, this.opt.className)
+        this.keyboard.addEventListener("click", this);
+        this.setMode("");
+        return this;
+    }
+    renderKeyboard(isBig) {
+        if (this.opt.mode.off || !this.opt.mode.static) {
+            return;
+        }
+        this.clear();
+
+        let div, c = 0;
+        const keys = isBig ? this.opt.keys.big : this.opt.keys.small;
+        keys.forEach(k => {
+            if (c === 0 || c % 13 === 0) {
+                div = dom.element("div", this.keyboard);
+            }
+            dom.element("button", div, {index: c, textContent: k, value: (k.length === 1 ? k : this.opt.buttons[k]), type: "button", role: "button", className: this.opt.classNameItem})
+            c++;
+        })
+        div = dom.element("div", this.keyboard, this.opt.classNameOther);
+        dom.element("button", div, {textContent: " ", value: " ", type: "button", role: "button", className: this.opt.classNameItem})
+    }
+    renderKeys(str = "") {
+        if (this.opt.mode.off || this.opt.mode.static) {
+            return;
+        }
+        this.clear();
+        const div = dom.element("div", this.keyboard);
+        const chars = this.opt.keys;
+        const len = chars.small.length;
+        const keys = {};
+        for (const letter of str.split("")) {
+            let index = chars.small.indexOf(letter);
+            index = index > -1 ? index : chars.big.indexOf(letter);
+            index = index > -1 ? index : len;
+            keys[letter] = index;
+        }
+
+        // add random buttons if "keyboard size" > keys.length
+        const left = this.opt.mode.size - Object.keys(keys).length;
+        for (let c = 0; c < left;) {
+            const i = numbers.getRandomInt(0, len);
+            const k = chars.small[i];
+            if (!keys[k]) {
+                keys[k] = i;
+                c++;
+            }
+        }
+
+        keys["<--"] = len + 2;
+        keys.Enter = len + 3;
+
+        const sorted = Object.entries(keys).sort((a, b) => a[1] - b[1]).map(v => v[0]);
+        sorted.forEach(k => {
+            dom.element("button", div, {textContent: k, value: (k.length === 1 ? k : this.opt.buttons[k]), type: "button", role: "button", className: this.opt.classNameItem})
+        })
+    }
+    handleEvent(e) {
+        if (e.target.value) {  // e.target.tagName === "BUTTON"
+            const value = e.target.value;
+            if (value.length > 2) {
+                if (value === "del") {
+                    this.textarea.value = this.textarea.value.slice(0, -1);
+                } else {
+                    this.isBig = !this.isBig;
+                    this.renderKeyboard(this.isBig);
+                    return;
+                }
+            } else {
+                this.textarea.value+= value;
+            }
+            this.controller.handleEvent();
+        }
+    }
+    /**
+     * @param {string|null} str - if null, update current;
+     */
+    setMode(str) {
+        const mode = MyKeyboard.instance.opt.mode;
+        const key = str || (mode.static ? "static" : mode.byString ? "byString" : "off");
+        const bnt = MyKeyboard.instance.modeButton;
+        mode.off = key === "off";
+        mode.static = key === "static";
+        mode.byString = key === "byString";
+        CS.app.keyboard = mode.off ? 0 : mode.static ? 1 : 2;
+        if (key === "off") {
+            MyKeyboard.instance.clear();
+            bnt.textContent = CS.msg.keyboard.off;
+        } else if (key === "static") {
+            MyKeyboard.instance.renderKeyboard();
+            bnt.textContent = CS.msg.keyboard.static;
+        } else if (key === "byString") {
+            MyKeyboard.instance.renderKeys();
+            bnt.textContent = CS.msg.keyboard.byString;
+        }
+    }
+    /**
+     * @param {string|null} key  - if not key, change to next
+     */
+    changeMode(key) {
+        const d = MyKeyboard.instance;
+        const m = d.opt.mode;
+        const name = (typeof key === "string") ? key : m.off ? "static" : m.static ? "byString" : "off";
+        d.setMode(name);
+    }
+    clear() {
+        this.keyboard.innerHTML = "";
+    }
 }
 
-export {UserInput} ;
+
+export {UserInput};

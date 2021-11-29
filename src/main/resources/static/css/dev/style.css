@@ -170,6 +170,17 @@ main .row > * {
     cursor: pointer;
 }
 
+/*span[role="button"]{*/
+/*    border-color: rgb(216,216, 216) rgb(209,209,209) rgb(186,186,186);*/
+/*    border-style: solid;*/
+/*    border-width: 1px;*/
+/*    padding: 1px 7px 2px;*/
+/*    */
+/*    border-radius: 5px;*/
+/*    text-decoration: none;*/
+/*}*/
+
+
 /* ------------------------------------------------------------------------ */
 /* navigation bar */
 /* ------------------------------------------------------------------------ */
@@ -453,7 +464,7 @@ table th {
 /* user input stats */
 /* ------------------------------------------------------------------------ */
 
-.input > div > div {
+.input > div:first-child > div {
     padding-bottom: 10px;
 }
 
@@ -500,12 +511,64 @@ textarea {
 
 textarea {
     height: 80px;
+    font-size: 120%;
 }
- 
+
 textarea:active,
 textarea:focus{
     border: 1.6px solid var(--color-dark);
     box-shadow: 0 0 2px var(--color-gray-light);
+}
+/* ------------------------------------------------------------------------ */
+/* virtual keyboard */
+/* ------------------------------------------------------------------------ */
+.keyboard {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+}
+/* keyboard rows*/
+.keyboard div {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+.keyboard .item {
+    flex-grow: 0;
+    box-sizing: border-box;
+    border-radius: var(--radius);
+    font-size: 120%;
+
+    padding: 0.1rem 0.9rem 0.9rem 0.1rem;
+    margin: 3px 3px;
+    min-width: 3rem;
+    min-height: 3rem;
+}
+/* Enter, del */
+.keyboard button[value='\00000a'],
+.keyboard button[value='del']{
+    min-width: 5rem;
+    padding: 0.8rem;
+}
+
+.keyboard button[value='.'],
+.keyboard button[value=','],
+.keyboard button[value='-'],
+.keyboard button[value='!'],
+.keyboard button[value='?'],
+.keyboard button[value='#'],
+.keyboard button[value='shift']{
+    padding: 0.9rem 0.9rem 0.1rem 0.1rem;
+}
+/* space */
+.keyboard .other > button:first-child {
+    margin-left: 1.75rem;
+    min-width: 25.5rem;
+}
+/* second row */
+.keyboard > div:nth-child(2) > button:first-child {
+    margin-left: 1.75rem;
 }
 
 /* ------------------------------------------------------------------------ */

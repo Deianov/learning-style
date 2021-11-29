@@ -11,6 +11,7 @@ class Page {
     static init() {
         const e = Page.elements;
         e.pageheader = document.getElementsByTagName(e.pageheader.tagName)[0];
+        e.menu = document.getElementsByClassName(e.menu.className)[0];
         e.aside = document.getElementsByTagName(e.aside.tagName)[0];
         e.article = document.getElementsByTagName(e.article.tagName)[0];
         e.header = document.getElementById(e.header.id);
@@ -29,14 +30,15 @@ class Page {
     }
     static reset() {
         notify.clear();
+        this.elements.pageheader.removeAttribute("style");
+        this.elements.menu.removeAttribute("style");
+        this.elements.aside.removeAttribute("style");
+        this.elements.article.removeAttribute("style");
         this.elements.control.innerHTML = "";
         this.elements.content.innerHTML = "";
         this.elements.content.removeAttribute("style");
         this.elements.messages.innerHTML = "";
         this.elements.bottom.innerHTML = "";
-        this.elements.aside.removeAttribute("style");
-        this.elements.article.removeAttribute("style");
-        this.elements.pageheader.removeAttribute("style");
     }
     blank(subject, category, obj) {
         Page.reset();
@@ -44,8 +46,14 @@ class Page {
         renderSubject(this.elements.subject, subject || router.route.subject, obj)
     }
     play(flag) {
+        notify.clear();
         this.elements.pageheader.style.display = flag ? "none" : "";
+        this.elements.menu.style.display = flag ? "none" : "";
         this.elements.aside.style.display = flag ? "none" : "";
+
+        if (flag) {
+            this.elements.content.style.display = "";
+        }
         this.active = flag
     }
     async renderContent(callback, args) {

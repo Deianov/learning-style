@@ -128,6 +128,7 @@ task concatJS_files(type: ConcatTask) {
             project.file("$DIR_JS/utils/dom.js"),
             project.file("$DIR_JS/utils/counters.js"),
             project.file("$DIR_JS/utils/flags.js"),
+            project.file("$DIR_JS/utils/numbers.js"),
             project.file("$DIR_JS/utils/strings.js"),
             // modules
             project.file("$DIR_JS/data.js"),
@@ -146,6 +147,7 @@ task concatJS_files(type: ConcatTask) {
             project.file("$DIR_JS/components/notify.js"),
             project.file("$DIR_JS/components/bar.js"),
             project.file("$DIR_JS/components/cards.js"),
+            project.file("$DIR_JS/components/stats.js"),
             project.file("$DIR_JS/components/input.js"),
             project.file("$DIR_JS/components/list.js"),
             project.file("$DIR_JS/components/navigation.js"),
