@@ -1,111 +1,145 @@
 /*
- <->[numbers] (<-- 0 || random )
+ <->[numbers]
     [stack]<->
- <--[waitingNumbers]<-- (--> skip)
- <--[waitingCounts ]<-- (--> skip)
+ <--[waitingNumbers]<--     (--> skip, previous)
+ <--[waitingCounts ]<--     (--> skip, previous)
  */
 class ScopeCounter {
-    constructor(minValue = 0, maxValue = false, isRandom = false) {
-        this.min = minValue;
-        this.max = maxValue;
+    /**
+     * @param {number} min - inclusive
+     * @param {number|undefined} max - exclusive
+     * @param {boolean} shuffle
+     */
+    constructor(min = 0, max, shuffle) {
+        this.min = min;
+        this.max = max;
         this.stack = [];
         this.numbers = [];
-        this.waitingNumbers = [];
-        this.waitingCounts = [];
-        this.waitingDefault = 5;
-        this.random = isRandom;
+        this.waitings = [];
+        this.counts = [];
+        this.DEFAULT_WAITING = 5;
+        this.shuffle = shuffle;
+        this.state = {};
     }
-    get next() {
+    getValue() {
+        return this.isNumber(this.state.value) ? this.state.value : this.stack.slice(-1)[0];
+    }
+    next() {
         if (this.isEmpty()) {
-            this.reset()
+            this.reset();
         }
         if (this.hasNext()) {
-            if (this.isNextWaiting()){
-                return this.push(this.waitingNumbers.shift())
+            if (this.isWaiting()){
+                this.state.value = this.waitings.shift();
+                return this;
+            } else {
+                this.stack.push(this.numbers.splice(this.shuffle ? this.randomIndex() : 0, 1)[0])
             }
-            return this.push(this.numbers.splice(this.random ? this.randomIndex() : 0, 1)[0])
         }
-        return false
+        this.resetState();
+        return this;
     }
-    get previous() {
+    previous() {
         if (this.hasPrevious()) {
-            this.numbers.unshift(this.stack.pop());
-            return this.stack.slice(-1)[0]
+            // save the current value if is last in stack !
+            const n = this.getValue();
+            // shift (if is not last)
+            if (this.stack.length > 1 && !this.isNumber(this.state.value)) {
+                this.stack.pop()
+                this.numbers.unshift(n);
+            }
+            // remove current value from waiting list
+            this.removeFromWaiting(n);
+            // remove previous value from waiting list
+            this.removeFromWaiting(this.stack.slice(-1)[0])
         }
-        return false
+        this.resetState();
+        return this;
     }
-    /** 
-     * @param {integer} waiting (turns)
-     * Move to the waitings list, and set waitings turns == waiting || waitingDefault.
-     * Only after next in error condition. 
-     * @returns {number}
-     */
-    repeatLast(waiting) {
-        if (this.stack.length > 0) {
-            this.waitingNumbers.push(this.stack.pop());
-            this.waitingCounts.push(waiting ? waiting : this.waitingDefault);
-            return this.waitingNumbers.slice(-1)[0]
+    /** Remove value from waiting list. */
+    removeFromWaiting(value) {
+        if (this.waitings.length) {
+            const i = this.waitings.indexOf(value);
+            if (i > -1) {
+                this.waitings.splice(i, 1);
+                this.counts.splice(i, 1);
+            }
         }
-        return false
     }
-    isNextWaiting() {
-        if (this.waitingNumbers.length === 0) {
-            return false
+    /** Repeats and adds the value to the waiting list. */
+    repeat(waiting) {
+        if (this.hasPrevious()) {
+            const n = this.getValue();
+
+            if (this.waitings.includes(n)) {
+                this.counts[this.waitings.indexOf(n)] = waiting || this.DEFAULT_WAITING;
+            } else {
+                this.waitings.push(n);
+                this.counts.push(waiting || this.DEFAULT_WAITING);
+            }
+        }
+        this.state.repeat = true;
+        return this;
+    }
+    getPreviousCount() {
+        return this.stack.length - this.waitings.length;
+    }
+    isWaiting() {
+        if (this.waitings.length) {
+            this.counts[0]--;
         } else {
-            this.waitingCounts[0]--;
+            return;
         }
-        if (this.waitingCounts[0] < 1 || this.numbers.length === 0) {
-            this.waitingCounts.shift();
-            return true
+        if (this.counts[0] < 1 || !this.numbers.length) {
+            this.counts.shift();
+            return true;
         }
-        return false
     }
-    skipLastWaiting() {
-        if (this.waitingNumbers.length > 0) {
-            this.stack.push(this.waitingNumbers.pop());
-            this.waitingCounts.pop();
+    skip() {
+        // remove last value from waiting list
+        if (this.state.repeat) {
+            this.removeFromWaiting(this.waitings.slice(-1)[0]);
         }
-        return this
+        return this.next();
     }
-    /** @returns {index} Between 0 and numbers.length (exclusive)
-     */
+    /** @returns {number} Between 0 and numbers.length (exclusive) */
     randomIndex() {
-        return Math.floor(Math.random() * this.numbers.length)
+        return Math.floor(Math.random() * this.numbers.length);
     }
     hasNext() {
-        return this.isValid() && this.numbers.length > 0 || this.waitingNumbers.length > 0
+        return this.numbers.length || this.waitings.length;
     }
     hasPrevious() {
-        return this.stack.length > 1;
+        return this.stack.length;
+    }
+    isNumber(v) {
+        return (typeof v === 'number');
     }
     isValid() {
-        return typeof this.max === 'number' && this.min > -1 && this.max > this.min
+        return (this.isNumber(this.max) && (this.min > -1) && (this.max > this.min));
     }
     isEmpty() {
-        return this.numbers.length === 0 && this.waitingNumbers.length === 0 && this.stack.length === 0
+        return !this.numbers.length && !this.waitings.length && !this.stack.length;
     }
     isDone() {
-        return this.numbers.length === 0 && this.waitingNumbers.length === 0 && this.stack.length > 0
+        return !this.numbers.length && !this.waitings.length && this.stack.length;
     }
-    push(number) {
-        if (typeof number === 'number' && !this.stack.includes(number)) {
-            this.stack.push(number);
-            return number
+    resetState() {
+        for(const key of Object.keys(this.state)) {
+            this.state[key] = null;
         }
-        return false
     }
     reset(maxExclusive) {
-        if (typeof maxExclusive === 'number') {
-            this.max = maxExclusive
-        }
+        this.max = this.isNumber(maxExclusive) ? maxExclusive : this.max;
         this.stack.length = 0;
         this.numbers.length = 0;
-        this.waitingNumbers.length = 0;
-        this.waitingCounts.length = 0;
+        this.waitings.length = 0;
+        this.counts.length = 0;
+        this.resetState();
         if (this.isValid()) {
             let i = this.min;
             for (let c = this.min; c < this.max; c++) {
-               this.numbers[i++] = c
+               this.numbers[i++] = c;
             }
         }
     }
@@ -131,5 +165,66 @@ function SimpleCounter(start = 0) {
     }
 }
 
+/**  ScopeCounter TESTS ***************************************************
+  *
+  *
+    function asserts (value, fun) {
+        console.log(value ? true : null)
+        if(fun) {
+            console.log(JSON.stringify(fun))
+        }
+    }
+
+    const counter = new ScopeCounter(0, 3);
+
+    // next, previous
+    asserts(counter.isEmpty())
+    counter.previous() // miss
+    counter.next()
+    asserts(!counter.isEmpty())
+    counter.next()
+    counter.next()
+    counter.previous()
+    counter.next()
+    counter.next() // miss
+    asserts(counter.isDone())
+    asserts(!counter.isEmpty())
+    asserts(true, counter)
+
+    // waitings
+    counter.reset(6);
+    counter.next() // 0
+    counter.next() // 1
+    counter.repeat()
+    counter.repeat() // 1, 1
+    asserts(counter.getValue() === 1)
+    asserts(counter.state.repeat)
+    counter.next()
+    counter.next()
+    counter.next()
+    counter.next() // 5
+    counter.next() // 1
+    asserts(counter.getValue() === 1)
+    counter.next()
+    asserts(counter.getValue() === 5)
+    asserts(counter.isDone)
+    asserts(true, counter)
+
+    // repeat + previous - remove waiting
+    counter.reset(3);
+    counter.repeat() // miss
+    asserts(counter.getValue() === undefined)
+    counter.next()
+    counter.repeat()
+    asserts(counter.getValue() === 0)
+    asserts(counter.stack[0] === 0)
+    asserts(counter.waitings[0] === 0)
+    counter.next()
+    asserts(counter.getValue() === 1)
+    counter.previous()
+    asserts(counter.getValue() === 0)
+    asserts(counter.waitings.length === 0)
+    asserts(true, counter)
+*/
 
 export {SimpleCounter, ScopeCounter}
