@@ -18,9 +18,9 @@ class Flashcards {
         /**
          * @param {number} min Inclusive (default: 0)
          * @param {number} max Exclusive (optional)
-         * @param {boolean} random (shuffle)
+         * @param {boolean} shuffle
          */
-        this.counter = new ScopeCounter(0, false, false);
+        this.counter = new ScopeCounter(0, undefined, undefined);
 
         this.bar = await factory.getInstance("Bar");
         this.list = await factory.getInstance("List");
@@ -56,11 +56,14 @@ class Flashcards {
 
         // finish
         if (!this.counter.hasNext() && (step === 1 || step === 2)) {
+            const c = this.counter.getPreviousCount();
+            const a = this.counter.stack.length;
+            const s = this.input.successCounter.value();
+            const e = this.input.errorsCounter.value();
             this.stop();
             // todo: something more
             page.elements.content.style.display="none" ;
-            notify.clear();
-            notify.msg("success", "", {prefix: "Done!"});
+            notify.msg("success", `${c} | ${a} (${s} successes, ${e} errors)`, {prefix: "Done!"});
             notify.alert("success", "Well done !!!");
             notify.alert("info", "Play again ?");
             return
@@ -68,22 +71,19 @@ class Flashcards {
 
         // next
         if (step === 1) {
-            row = this.counter.next
+            row = this.counter.next().getValue();
         // skip
         } else if (step === 2) {
-            if (this.input.state.repeat) {this.counter.skipLastWaiting()}
             this.input.clear();
-            row = this.counter.next
+            row = this.counter.skip().getValue();
         // previous           
         } else if (step === -1) {
-            row = this.counter.previous;
             this.input.stats.change("success", this.input.successCounter.back())
+            row = this.counter.previous().getValue() || 0;
         // repeat
         } else if (step === 0) {
-            row = this.counter.repeatLast(FLASHCARDS.turnsWaitingToRepeat)
+            row = this.counter.repeat(FLASHCARDS.turnsWaitingToRepeat).getValue();
         }
-
-        console.log({row})
 
         if (!this.list.isValidRow(row)) {
             console.error("Bad row number!");
@@ -95,7 +95,7 @@ class Flashcards {
         }
         else {
             this.cards.setStatus("error", false);
-            this.input.stats.change("done", this.counter.hasPrevious())
+            this.input.stats.change("done", this.counter.getPreviousCount() || 1)
             this.cards.populate(row);
             this.input.next();
             this.bar.row = row + 1
@@ -111,8 +111,8 @@ class Flashcards {
         this.play(-1)
     }
     toggleShuffle() {
-        this.counter.random = !this.counter.random;
-        this.bar.shuffle(this.counter.random);
+        this.counter.shuffle = !this.counter.shuffle;
+        this.bar.shuffle(this.counter.shuffle);
         this.counter.reset();
         this.input.reset();
         this.next()
@@ -127,5 +127,6 @@ class Flashcards {
     }
 }
 factory.addClass(Flashcards)
+
 
 export {Flashcards}
