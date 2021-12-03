@@ -1,6 +1,8 @@
 import factory from "../factory_loader.js";
 import {ScopeCounter} from "../utils/counters.js";
 import {page, notify} from "../factory.js";
+import strings from "../utils/strings.js";
+import CS from "../constants.js";
 
 
 // constants
@@ -11,6 +13,7 @@ FLASHCARDS.turnsWaitingToRepeat = 5;
 class Flashcards {
     constructor() {
         Flashcards.instance = this;
+        this.btnEdit = () => notify.bnt("info", "edit", Flashcards.edit, {callback: {svg: false}});
     }
 
     async render(jsonFile) {
@@ -31,7 +34,8 @@ class Flashcards {
         this.bar.render(this.json);
         this.list.render(this.json);
         this.input.controller = Flashcards.onTextareaChange;
-        this.tags.render()
+        this.tags.render();
+        this.btnEdit();
     }
     start() {
         this.counter.reset(this.json.state.rows);
@@ -123,6 +127,31 @@ class Flashcards {
     resume() {
         if (page.active) {
             this.input.visible(true)
+        }
+    }
+    static edit() {
+        notify.bnt("error", "save", Flashcards.save, {callback: {svg: true}})
+        const that = Flashcards.instance;
+        // console.log(JSON.stringify(that.json))
+
+        that.list.render(that.json, {contenteditable: true})
+        // that.list.coloredTable(CS.colors);
+    }
+    static save() {
+        const that = Flashcards.instance;
+        that.btnEdit();
+
+        const dict = that.json.data;
+        dict.length = 0;
+        for (let row of that.list.read()) {
+            dict.push(row.map(c => strings.removeHTML(c)));
+        }
+
+        that.list.render(that.json);
+
+        if (CS.app.isStatic) {
+            notify.alert("error", CS.msg.server.required)
+            return;
         }
     }
 }
