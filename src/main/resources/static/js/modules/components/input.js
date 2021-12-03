@@ -201,6 +201,7 @@ const KEYBOARDS = {
     }
 }
 
+/** todo: caret ? */
 class MyKeyboard {
     constructor(controller, textarea) {
         MyKeyboard.instance = this;
