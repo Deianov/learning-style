@@ -37,7 +37,10 @@ const strings = {
         }
         if (temp) {result.push(temp)}
         return result;
-    }
+    },
+    removeHTML(s) {
+        return s.replace(/&/g, '').replace(/</g, '').replace(/"/g, '').replace(/'/g, '').replace(/`/g, '');
+    },
 }
 
 /*
