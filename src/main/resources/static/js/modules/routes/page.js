@@ -23,10 +23,11 @@ class Page {
         e.cdate.textContent = `${new Date().getFullYear()}`;
         const row1 = dom.element("div", e.header, "row");
         const row2 = dom.element("div", e.header, "row");
+        dom.element("hr", e.header);
         e.breadcrumb = dom.element(e.breadcrumb.tagName, row1, e.breadcrumb.className);
-        e.notify = dom.element("div", row1, e.notify.className);
         e.subject = dom.element("div", row2, e.subject.className);
-        dom.element("div", row2, CS.dom.notify.className)
+        e.notify1 = dom.element("div", row1, CS.dom.notify.className);
+        e.notify2 = dom.element("div", row2, CS.dom.notify.className);
     }
     static reset() {
         notify.clear();
@@ -112,8 +113,6 @@ function renderSubject(parent, subject, obj) {
             dom.text("a", small, author, formatLink(authorUrl))
         }
     }
-
-    dom.element("hr", parent)
 }
 
 function formatLink(url) {
