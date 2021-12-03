@@ -3,28 +3,28 @@ import factory from "../factory_loader.js";
 import {Page} from "../routes/page.js";
 
 
-/** examples
+/**  examples:
 
  parent
     notify-box
         msg-box
-            msg-item
+            item
         alert-box
-            alert-item
+            item
 
  <div class="notify-box">
      <div class="msg-box">
-         <svg class="msg-item" width="22" height="22" role="img">
+         <svg class="item" width="22" height="22" role="img">
             <use href="#error"></use>
          </svg>
-         <small class="msg-item">Error: </small>
-         <small class="msg-item">This is an error!</small>
+         <small class="item">Error: </small>
+         <small class="item">This is an error!</small>
      </div>
  </div>
 
- * class Msg {
-       render(status, text, options)
-   }
+ class Msg {
+        render(status, text, options)
+ }
 
  * Notify.defaultInit()
      * msg
@@ -58,8 +58,9 @@ const NOTIFY = {
     status: { info: "info", error: "error", success: "success" },
     prefix: { info: "Info: ", error: "Error: ", success: "Success: " },
     size: { small: 20, normal: 22, large: 24 },
-    msg: { className: "msg-box", classNameItem: "msg-item", classNameTitle: "msg-title", capacity: 0, timer: 0},
-    alert: { className: "alert-box", classNameItem: "alert-item", capacity: 2, timer: 10000, ticker: 1, close: 1}
+    msg: { className: "msg-box", classNameItem: "item", classNameTitle: "msg-title", capacity: 0, timer: 0},
+    alert: { className: "alert-box", classNameItem: "item", capacity: 2, timer: 10000, ticker: 1, close: 1},
+    callback: { capacity: 1, callback: {label: "clickMe", svg: true}},
 }
 NOTIFY.msg_default_svg = {width: NOTIFY.size.normal, height: NOTIFY.size.normal, info: {svg: "info"}, success: {svg: "success"}, error: {svg: "error"}};
 NOTIFY.alert_default_svg = {width: NOTIFY.size.normal, height: NOTIFY.size.normal, info: {svg: "info-fill"}, success: {svg: "success-fill"}, error: {svg: "error-fill"}};
@@ -140,8 +141,8 @@ class Notify {
     }
     bnt(status, label, func, options) {
         const myOptions = Object.assign({}, options);
-        myOptions.callback = {label: "clickMe", svg: true};
-        myOptions.capacity = 1;
+        // todo: ?
+        Object.assign(myOptions, NOTIFY.callback);
         Object.assign(myOptions.callback, options ? options.callback : {})
         Object.assign(myOptions.callback, {func})
         Notify.storage.bnt.obj.render(status, label, myOptions)
