@@ -3,6 +3,55 @@ import factory from "../factory_loader.js";
 import {Page} from "../routes/page.js";
 
 
+/** examples
+
+ parent
+    notify-box
+        msg-box
+            msg-item
+        alert-box
+            alert-item
+
+ <div class="notify-box">
+     <div class="msg-box">
+         <svg class="msg-item" width="22" height="22" role="img">
+            <use href="#error"></use>
+         </svg>
+         <small class="msg-item">Error: </small>
+         <small class="msg-item">This is an error!</small>
+     </div>
+ </div>
+
+ * class Msg {
+       render(status, text, options)
+   }
+
+ * Notify.defaultInit()
+     * msg
+         notify.msg("error", "Tish is an error!")
+         notify.msg("error", "Tish is an error!", {prefix: ""})
+         notify.with("msg").render("error", "This is an error!");
+         notify.with("msg").options.prefix = "";                    // change default options
+     * alert
+        notify.alert("error", "Error message!")
+     * bnt
+        notify.bnt("info", "Click Me!", clickMe, {callback: {svg: false}});
+
+ * custom
+     * myMsg
+         const myMsg = notify.create("myMsg", parent, null, "msg", notify.template.msg.text)
+         myMsg("error", "Error message!")
+     * MyBnt
+         const myBnt = notify.create("MyBnt", parent, "info", "msg", notify.template.msg.callback, {
+               callback: {label: "Click Me!", svg: true, func: clickMe}
+         });
+         myBnt()
+         myBnt(newLabel)
+         notify.myBnt()
+         notify.with("myBnt").render("error", "errorLabel", {svg: false})
+ */
+
+
 const NOTIFY = {
     box: { className: "notify-box" },
     type: { msg: "msg", alert: "alert" },
@@ -12,37 +61,31 @@ const NOTIFY = {
     msg: { className: "msg-box", classNameItem: "msg-item", classNameTitle: "msg-title", capacity: 0, timer: 0},
     alert: { className: "alert-box", classNameItem: "alert-item", capacity: 2, timer: 10000, ticker: 1, close: 1}
 }
+NOTIFY.msg_default_svg = {width: NOTIFY.size.normal, height: NOTIFY.size.normal, info: {svg: "info"}, success: {svg: "success"}, error: {svg: "error"}};
+NOTIFY.alert_default_svg = {width: NOTIFY.size.normal, height: NOTIFY.size.normal, info: {svg: "info-fill"}, success: {svg: "success-fill"}, error: {svg: "error-fill"}};
 const NOTIFY_TEMPLATES = {
     msg: {
         symbol_prefix_text: {
             callback: msg_symbol_prefix_text,
-            options: {
-                width: NOTIFY.size.normal,
-                height: NOTIFY.size.normal,
-                info: { svg: "info" },
-                success: { svg: "success" },
-                error: { svg: "error" }
-            }
+            options: NOTIFY.msg_default_svg,
         },
         title_text: {
-            callback: msg_title_text
+            callback: msg_title_text,
         },
         text: {
-            callback: msg_text
+            callback: msg_text,
+        },
+        callback: {
+            callback: notify_callback,
+            options: NOTIFY.msg_default_svg,
         }
     },
     alert: {
-        alert_text: {
+        text: {
             callback: alert_text,
-            options: {
-                width: NOTIFY.size.normal,
-                height: NOTIFY.size.normal,
-                info: { svg: "info-fill" },
-                success: { svg: "success-fill" },
-                error: { svg: "error-fill" }
-            }
+            options: NOTIFY.alert_default_svg,
         }
-    }
+    },
 }
 
 
@@ -60,27 +103,31 @@ class Notify {
      * @param {string} status                   - status or null for all statuses
      * @param {string} type                     - "msg" ot "alert"
      * @param {object} template                 - {callback, options}
-     * @returns {Msg}
+     * @param {object} options                  - options
+     * @returns {function}                      - f(text, options) | f(status, text, options)
      */
-    create(name, parent, status, type, template) {
+    create(name, parent, status, type, template, options) {
+        // merge options
+        const myOptions = Object.assign({}, template.options);
+        Object.assign(myOptions, options);
         // parent element
         Notify.storage[name] = {};
         Notify.storage[name].parent = parent;
         // notify-box element
         const box = Notify.getBox(name);
         // render instance
-        const msg = new Msg(name, box, status, type, template.callback, template.options);
+        const msg = new Msg(name, box, status, type, template.callback, myOptions);
         Notify.storage[name].obj = msg;
         // create render function with name 'name'
         if (status) {
             Notify.prototype[name] = function(text, options) { msg.render(null, text, options) };
         } else {
-            Notify.prototype[name] = function(status, text, options) { msg.render(status, text, options) }
+            Notify.prototype[name] = function(status, text, options) { msg.render(status, text, options) };
         }
-        return msg;
+        return Notify.prototype[name];
     }
     with(name) {
-        return Notify.storage[name]["obj"]
+        return Notify.storage[name]["obj"];
     }
     clear() {
         Object.values(Notify.storage).forEach(msg => msg.obj.clear())
@@ -90,6 +137,14 @@ class Notify {
     }
     alert(status, text, options) {
         Notify.storage.alert.obj.render(status, text, options)
+    }
+    bnt(status, label, func, options) {
+        const myOptions = Object.assign({}, options);
+        myOptions.callback = {label: "clickMe", svg: true};
+        myOptions.capacity = 1;
+        Object.assign(myOptions.callback, options ? options.callback : {})
+        Object.assign(myOptions.callback, {func})
+        Notify.storage.bnt.obj.render(status, label, myOptions)
     }
     static remove(name) {
         if (typeof Notify.storage[name] === "object") {
@@ -101,28 +156,30 @@ class Notify {
         const parent = dom.get(Notify.storage[name].parent);
         return parent.getElementsByClassName(NOTIFY.box.className)[0] || dom.element("div", parent, NOTIFY.box.className);
     }
+    /** notify.msg();  notify.alert();  notify.title();  notify.bnt()  */
     static defaultInit(flag) {
         if (!flag) { return }
         let parent = Page.elements.article;
         let box = Page.elements.messages;
+        let template = NOTIFY_TEMPLATES.msg.symbol_prefix_text;
         box.classList.toggle(NOTIFY.box.className, true);
-        let template;
 
-        template = NOTIFY_TEMPLATES.msg.symbol_prefix_text;
         const msg = new Msg("msg", box, null, "msg", template.callback, template.options);
         Notify.storage.msg = {obj: msg, parent};
 
-        template = NOTIFY_TEMPLATES.msg.title_text;
-        const title = new Msg("title", box, "info", "msg", template.callback, null);
-        Notify.storage.title = {obj: title, parent};
-        Notify.prototype.title = function(text, options) { title.render("info", text, options) }
-
         parent = Page.elements.header.firstChild;
-        box = Page.elements.notify;
+        box = Page.elements.notify1;
+        template = NOTIFY_TEMPLATES.alert.text;
 
-        template = NOTIFY_TEMPLATES.alert.alert_text;
         const alert = new Msg("alert", box, null, "alert", template.callback, template.options);
         Notify.storage.alert = {obj: alert, parent};
+
+        parent = parent.nextSibling;
+        box = Page.elements.notify2;
+        template = NOTIFY_TEMPLATES.msg.callback;
+
+        const bnt = new Msg("bnt", box, null, "msg", template.callback, template.options);
+        Notify.storage.bnt = {obj: bnt, parent};
     }
 }
 factory.addClass(Notify)
@@ -137,23 +194,28 @@ class Msg {
         this.type = type;
         this.callback = callback;
         // merge <- 1.NOTIFY <- 2.TEMPLATES <- render(args)
-        this.options = Object.assign(Object.assign({}, NOTIFY[type]), options);
+        this.options = Object.assign({}, NOTIFY[type]);
+        Object.assign(this.options, options);
     }
     render(status, text, options) {
+        // options
+        const myOptions = Object.assign({}, this.options);
+        Object.assign(myOptions, options);
+        // parent
         if (!document.body.contains(this.parent)) {
             this.parent = Notify.getBox(this.name)
         }
-        if (this.options.capacity > 0 && this.storage.length >= this.options.capacity) {
+        // storage
+        if (myOptions.capacity > 0 && this.storage.length >= myOptions.capacity) {
             dom.remove(this.storage.shift())
         }
-        const myOptions =  Object.assign(Object.assign({}, this.options), options);
         // set ticker
         if (myOptions.timer > 0) {
             this.timeout = myOptions.timer / 1000;
             this.ticker = this.ticker || setInterval(this.tick.bind(this), 1000);
         }
         // render
-        const box = this.callback(this.parent, status || myOptions.status, text, myOptions);
+        const box = this.callback(this.parent, status || this.status, text, myOptions);
         // add close button
         if (myOptions.close) {
             const bnt = dom.svgUse(dom.element("span", box, "btn-close"), "#close-button", "", "24", "24", "button")
@@ -186,73 +248,60 @@ class Msg {
 }
 
 
-/** examples
-
- *notify-box
-     msg-box
-        msg-item
-     alert-box
-        alert-item
-
- <div class="msg-box">
-     <img class="msg-item" src="./assets/images/error.svg" alt="error" width="24" height="24">
-     <small class="msg-item">
-        <strong>Error: </strong>
-     </small>
-     <small class="msg-item">This is an error.</small>
- </div>
-
- * msg
-     notify.create("msg", "messages", null, notify.type.msg, notify.template.msg.symbol_prefix_text);
-     notify.msg("error", "Tish is an error!")
-     notify.msg("error", "Tish is an error!", {prefix: ""})
-     notify.with("msg").render("error", "Tish is an error!");
-     notify.with("msg").options.prefix = "";                    // change default option
-
- * title
-     const title = notify.create("title", "messages", "info", "msg", notify.template.msg.title_text);
-     title.render({title: "Custom information"})
-     title.render({title: "Custom information", data: ["line 1", "line 2", "line 3"]})
-     notify.title(..)
- */
-
-
 // TEMPLATES (renders)
 function msg_symbol_prefix_text (parent, status, text, options) {
-    let {prefix, className, classNameItem, width, height} = options;
-    prefix = prefix ? prefix : prefix === "" ? "" : NOTIFY.prefix[status]
-    const svgId = "#" + options[status].svg;
-    const box = dom.element("div", parent, className)
-    dom.svgUse(box, svgId, classNameItem, width, height);
-    const small = dom.element("small", box, classNameItem)
-    dom.text("strong", small, prefix)
-    dom.text("small", box, text ? text : "" , classNameItem)
-    return box
+    let {prefix, classNameItem} = options;
+    prefix = prefix ? prefix : prefix === "" ? "" : NOTIFY.prefix[status];
+    const box = notify_box(parent, null, options);
+    notify_svg(box, status, options);
+    const small = dom.element("small", box, classNameItem);
+    const _prefix = prefix ? dom.text("strong", small, prefix) : null;
+    const _text = text ? dom.text("small", box, text, classNameItem) : null;
+    return box;
 }
 function msg_title_text (parent, status, text, options) {
     const {title, data} = text || {};
-    const {className, classNameTitle} = options;
-    const box = dom.element("div", parent, className)
-    const div = dom.element("div", box, classNameTitle)
-    dom.node(title, dom.element("p", div))
-    const ul = dom.element("ul", div)
+    const box = notify_box(parent, null, options);
+    const div = dom.element("div", box, options.classNameTitle);
+    dom.node(title, dom.element("p", div));
+    const ul = dom.element("ul", div);
     for (const line of data) {
-        dom.node(line, dom.element("li", ul))
+        dom.node(line, dom.element("li", ul));
     }
-    return box
-}
-function msg_text (parent, status, text, options) {
-    const {tag, className, classNameItem} = options;
-    return dom.text(tag || "strong", dom.element("div", parent, className), text, classNameItem)
-}
-function alert_text (parent, status, text, options) {
-    const {tag, className, classNameItem, width, height} = options;
-    const svgId = "#" + options[status].svg;
-    const box = dom.element("div", parent, className + " " + status);
-    // box.innerHTML = `<svg class="${classNameItem}" width="24" height="24" role="img"><use href="#${svg}"/></svg>`;
-    dom.svgUse(box, svgId, classNameItem, width, height);
-    dom.text(tag || "span", box, text, classNameItem)
     return box;
 }
+function msg_text (parent, status, text, options) {
+    const box = notify_box(parent, null, options);
+    dom.text(options.tag || "strong", box, text, options.classNameItem);
+    return box;
+}
+function alert_text (parent, status, text, options) {
+    const box = notify_box(parent, status, options);
+    notify_svg(box, status, options);
+    dom.text(options.tag || "span", box, text, options.classNameItem);
+    return box;
+}
+function notify_callback (parent, status, text, options) {
+    const {svg, tag, label, func} = options.callback;
+    const box = notify_box(parent, null, options);
+    if (svg) {
+        notify_svg(box, status, options);
+    }
+    const span = dom.element("span", box, options.classNameItem);
+    const bnt = dom.text(tag || "strong", span,text || label, {role: "button"});
+    bnt.addEventListener("click", func);
+    return box;
+}
+// TEMPLATES (helpers)
+function notify_box(parent, status, options) {
+    return dom.element("div", parent, options.className + (status ? (" " + status) : ""));
+}
+function notify_svg(parent, status, options) {
+    const {classNameItem, width, height} = options;
+    const id = "#" + options[status || options.status].svg;
+    return dom.svgUse(parent, id, classNameItem, width, height);
+}
+// box.innerHTML = `<svg class="${classNameItem}" width="24" height="24" role="img"><use href="#${svg}"/></svg>`;
+
 
 export {Notify}
