@@ -2,7 +2,7 @@ package bg.geist.service;
 
 
 import bg.geist.domain.model.service.ExerciseModel;
-import bg.geist.web.api.exercise.ExerciseIndexModel;
+import bg.geist.web.api.model.ExerciseIndexModel;
 import bg.geist.web.api.quizzes.models.QuizCertificationRequestModel;
 import bg.geist.web.api.quizzes.models.QuizCertificationResponseModel;
 

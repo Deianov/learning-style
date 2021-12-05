@@ -12,7 +12,7 @@ import bg.geist.domain.model.service.QuizSimpleModel;
 import bg.geist.exception.ObjectNotFoundException;
 import bg.geist.repository.CategoryRepository;
 import bg.geist.repository.QuizRepository;
-import bg.geist.web.api.exercise.ExerciseIndexModel;
+import bg.geist.web.api.model.ExerciseIndexModel;
 import bg.geist.web.api.quizzes.models.QuizCertificationRequestModel;
 import bg.geist.web.api.quizzes.models.QuizCertificationResponseModel;
 import org.modelmapper.ModelMapper;

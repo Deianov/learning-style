@@ -1,7 +1,7 @@
 package bg.geist.web.api.quizzes;
 
 import bg.geist.service.QuizService;
-import bg.geist.web.api.exercise.ExerciseIndexModel;
+import bg.geist.web.api.model.ExerciseIndexModel;
 import bg.geist.web.api.quizzes.models.QuizCertificationRequestModel;
 import bg.geist.web.api.quizzes.models.QuizCertificationResponseModel;
 import com.sun.istack.NotNull;

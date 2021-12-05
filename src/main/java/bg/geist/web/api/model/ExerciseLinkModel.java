@@ -1,4 +1,4 @@
-package bg.geist.web.api.exercise;
+package bg.geist.web.api.model;
 
 public class ExerciseLinkModel {
     private Long id;

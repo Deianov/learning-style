@@ -2,7 +2,7 @@ package bg.geist.web.api.maps;
 
 import bg.geist.domain.model.service.MapModel;
 import bg.geist.service.MapService;
-import bg.geist.web.api.exercise.ExerciseIndexModel;
+import bg.geist.web.api.model.ExerciseIndexModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

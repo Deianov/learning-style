@@ -10,7 +10,7 @@ import bg.geist.domain.model.service.CardsModel;
 import bg.geist.exception.ObjectNotFoundException;
 import bg.geist.repository.CardsRepository;
 import bg.geist.repository.CategoryRepository;
-import bg.geist.web.api.exercise.ExerciseIndexModel;
+import bg.geist.web.api.model.ExerciseIndexModel;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 

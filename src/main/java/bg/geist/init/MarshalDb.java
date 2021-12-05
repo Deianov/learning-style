@@ -12,7 +12,7 @@ import bg.geist.service.MapService;
 import bg.geist.service.QuizService;
 import bg.geist.service.UserService;
 import bg.geist.util.FilesUtil;
-import bg.geist.web.api.exercise.ExerciseIndexModel;
+import bg.geist.web.api.model.ExerciseIndexModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 

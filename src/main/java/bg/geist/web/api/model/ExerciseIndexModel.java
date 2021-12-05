@@ -1,4 +1,4 @@
-package bg.geist.web.api.exercise;
+package bg.geist.web.api.model;
 
 import java.util.ArrayList;
 import java.util.Collection;

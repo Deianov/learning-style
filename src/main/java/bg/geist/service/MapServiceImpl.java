@@ -9,7 +9,7 @@ import bg.geist.exception.EntityName;
 import bg.geist.exception.ObjectNotFoundException;
 import bg.geist.repository.CategoryRepository;
 import bg.geist.repository.MapRepository;
-import bg.geist.web.api.exercise.ExerciseIndexModel;
+import bg.geist.web.api.model.ExerciseIndexModel;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

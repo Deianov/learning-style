@@ -1,7 +1,7 @@
 package bg.geist.service;
 
 import bg.geist.domain.model.service.MapModel;
-import bg.geist.web.api.exercise.ExerciseIndexModel;
+import bg.geist.web.api.model.ExerciseIndexModel;
 
 import java.util.Collection;
 
