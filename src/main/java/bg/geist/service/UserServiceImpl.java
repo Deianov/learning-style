@@ -73,6 +73,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserProfileModel profile(final String username, final String password) {
+        UserEntity userEntity = getBy(username);
+        if (passwordEncoder.matches(password, userEntity.getPassword())) {
+            return map(userEntity);
+        }
+        return null;
+    }
+
+    @Override
     public UserAdministrationModel userAdministrationModel(final UserEntity userEntity) {
         return new UserAdministrationModel(
                 userEntity.getId(),
@@ -227,6 +236,7 @@ public class UserServiceImpl implements UserService {
         profileModel.setEmail(userEntity.getEmail());
         profileModel.setUsername(userEntity.getUsername());
         profileModel.setFullname(userEntity.getFullname());
+        profileModel.setAdmin(userEntity.hasRole(UserRole.ADMIN));
         return profileModel;
     }
 

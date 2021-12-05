@@ -19,6 +19,7 @@ public interface UserService {
     void roleRemove(Long userId, String role);
 
     UserProfileModel profile(Long id);
+    UserProfileModel profile(final String username, final String password);
     UserAdministrationModel userAdministrationModel(final UserEntity userEntity);
     SimpleProfileView currentProfile();
 
