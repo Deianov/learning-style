@@ -1,6 +1,6 @@
 import factory from "../factory_loader.js";
 import {ScopeCounter} from "../utils/counters.js";
-import {page, notify} from "../factory.js";
+import {page, notify, data} from "../factory.js";
 import strings from "../utils/strings.js";
 import CS from "../constants.js";
 
@@ -137,7 +137,7 @@ class Flashcards {
         that.list.render(that.json, {contenteditable: true})
         // that.list.coloredTable(CS.colors);
     }
-    static save() {
+    static async save() {
         const that = Flashcards.instance;
         that.btnEdit();
 
@@ -152,6 +152,14 @@ class Flashcards {
         if (CS.app.isStatic) {
             notify.alert("error", CS.msg.server.required)
             return;
+        }
+
+        const res = await data.getJsonWithPayload(that.json.json.path, {
+            username: CS.app.username || "",
+            data: dict,
+        });
+        if (res) {
+            notify.alert(res.status === 200 ? "success" : "error", res.message)
         }
     }
 }

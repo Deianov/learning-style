@@ -1,4 +1,5 @@
 import CS from "./constants.js";
+import {notify} from "./factory.js";
 
 /** todo: change inmemory with LocalStorage */
 const files = {};
@@ -57,13 +58,14 @@ class Data {
         if (cashable) {
             res = this.getCashable(name)
             if (res) {
-                return res
+                return res;
             }
         }
         res = await repository.getByName(name);
         if(!res) {
             return null;
         }
+        res.path = name;
         if (adaptable) {
             res = this.adapt(res)
         }
@@ -209,19 +211,25 @@ async function postData(path, data) {
         redirect: "follow", // manual, *follow, error
         referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
         body: JSON.stringify(data) // body data type must match "Content-Type" header
-    }).then(response => {
-        if (!response.ok) {
-            throw new Error("HTTP error, status = " + response.status);
-        }
-        // todo: (response.status == 401) 401 Unauthorized / 403 Forbidden -> ?
-        if (response.redirected) {
-            window.location.assign(response.url);
-            return;
-        }
-        return response.json();
-    }).catch(err => {
-        return err.message
-    });
+    })
+        .then(res => {
+            const size = res.headers.get("content-length");
+            const type = res.headers.get("content-type");
+
+            // todo: (res.status == 401) -> 401 Unauthorized / 403 Forbidden -> ?
+            if (res.redirected) {
+                window.location.assign(res.url);
+                return;
+            }
+            return res.text();
+        })
+        .then((text) => {
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                return text;
+            }
+        });
 }
 
 const localRepository = new LocalRepository();

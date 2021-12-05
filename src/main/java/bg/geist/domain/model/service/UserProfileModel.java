@@ -8,6 +8,7 @@ public class UserProfileModel {
     private String fullname;
     private String password;
     private String imageUrl;
+    private boolean isAdmin;
 
 
     public Long getId() {
@@ -56,5 +57,13 @@ public class UserProfileModel {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
     }
 }
