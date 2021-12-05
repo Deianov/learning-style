@@ -13,6 +13,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import javax.servlet.http.HttpServletRequest;
+
 @Configuration
 @EnableWebSecurity
 public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
@@ -44,7 +46,7 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
 //                .antMatchers(HttpMethod.GET,"/api/**").permitAll()
             .and()
                 .authorizeRequests()
-                .antMatchers("/home", "/logout").authenticated()
+                .antMatchers("/client", "/home", "/logout").authenticated()
                 .antMatchers("/users/profiles/{id}").access("@guard.isAuthorized(authentication,#id)")
                 .antMatchers("/admin", "/admin/**").hasRole("ADMIN")
                 // protect all other pages
@@ -61,7 +63,7 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 // the name of the user password input field in OUR login form is password (optional)
                 .passwordParameter(UsernamePasswordAuthenticationFilter.SPRING_SECURITY_FORM_PASSWORD_KEY)
                 // on login success redirect here
-                .defaultSuccessUrl("/home", true)
+                .defaultSuccessUrl("/client", true)
                 // on login failure redirect here
                 .failureForwardUrl("/users/login-error")
             .and()
@@ -69,7 +71,7 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 // which endpoint performs logout, e.g. http://localhost:8080/logout (!this should be POST request)
                 .logoutUrl("/logout")
                 // where to land after logout
-                .logoutSuccessUrl("/")
+                .logoutSuccessUrl("/?username=")
                 // remove the session from the server
                 .invalidateHttpSession(true)
                 // delete the session cookie

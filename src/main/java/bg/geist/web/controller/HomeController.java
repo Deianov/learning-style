@@ -4,6 +4,7 @@ import bg.geist.constant.Constants;
 import bg.geist.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -21,11 +22,16 @@ public class HomeController {
     }
 
 
-    @GetMapping
-    public String index(@AuthenticationPrincipal final UserDetails principal) {
+    @GetMapping("/client")
+    public String client(@AuthenticationPrincipal final UserDetails principal) {
         if (principal != null) {
-            return "redirect:/home";
+            return "redirect:/home?username=" + principal.getUsername();
         }
+        return "index";
+    }
+
+    @GetMapping
+    public String index() {
         return "index";
     }
 

@@ -1,4 +1,5 @@
 import routes from "./routes.js";
+import CS from "../constants.js";
 
 /*
 if (location.protocol !== "https:"){
@@ -45,6 +46,9 @@ class Router {
      * @returns {Promise<void>}
      */
     async navigate(page, id, params) {
+        if (params && params.username) {
+            CS.app.username = params.username;
+        }
 
         if (params && params.page) {
             await this.navigate(params.page, params.id, null);
@@ -78,6 +82,9 @@ class Router {
         }
         if (params.has("id")) {
             res.id = params.get("id");
+        }
+        if(params.has("username")) {
+            res.username = params.get("username")
         }
         return res;
     }
