@@ -133,12 +133,9 @@ class Flashcards {
     }
     static edit() {
         notify.btn("error", "save", Flashcards.save)
-        notify.btnAdd("add");
+        notify.btnAdd("info", "add");
         const that = Flashcards.instance;
-        // console.log(JSON.stringify(that.json))
-
         that.list.render(that.json, {contenteditable: true})
-        // that.list.coloredTable(CS.colors);
     }
     static async save() {
         const that = Flashcards.instance;
@@ -162,6 +159,7 @@ class Flashcards {
             username: CS.app.username || "",
             data: dict,
         });
+
         if (res) {
             notify.alert(res.status === 200 ? "success" : "error", res.message)
         }

@@ -93,7 +93,7 @@ const dom = {
             s.setAttributeNS(null, 'class', className);
         }
         s.setAttributeNS(null, 'width', w);
-        s.setAttributeNS(null, 'height', h);
+        s.setAttributeNS(null, 'height', (h || w));
         s.setAttributeNS(null, 'role', role);
         u.setAttributeNS(null, 'href', href);
         s.appendChild(u);
