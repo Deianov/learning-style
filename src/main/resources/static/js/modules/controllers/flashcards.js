@@ -13,9 +13,11 @@ FLASHCARDS.turnsWaitingToRepeat = 5;
 class Flashcards {
     constructor() {
         Flashcards.instance = this;
-        this.btnEdit = () => notify.bnt("info", "edit", Flashcards.edit, {callback: {svg: false}});
+        this.btnEdit = () => notify.btn("info", "edit", Flashcards.edit, {hideSvg: false, button: {svg: {id: "edit", width: 14}}});
+        this.btnAdd = notify.create("btnAdd", page.elements.messages, "info", "msg", notify.template.msg.button, {
+           capacity: 1, button: {func: () => Flashcards.instance.list.add(), svg: {id: "plus", width: 22, height: 22, color: "green"}}
+        })
     }
-
     async render(jsonFile) {
         this.json = jsonFile;
         /**
@@ -130,7 +132,8 @@ class Flashcards {
         }
     }
     static edit() {
-        notify.bnt("error", "save", Flashcards.save, {callback: {svg: true}})
+        notify.btn("error", "save", Flashcards.save)
+        notify.btnAdd("add");
         const that = Flashcards.instance;
         // console.log(JSON.stringify(that.json))
 
@@ -140,6 +143,7 @@ class Flashcards {
     static async save() {
         const that = Flashcards.instance;
         that.btnEdit();
+        notify.with("btnAdd").clear();
 
         const dict = that.json.data;
         dict.length = 0;
