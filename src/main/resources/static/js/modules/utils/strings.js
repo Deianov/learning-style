@@ -3,18 +3,25 @@ const charsIgnore = [".", ",", ":", ";", "_", "?", "!", "`"];
 // const charsSplit = [" "];
 
 const strings = {
+    isEmpty(str) {
+        return (!str || !str.length);
+    },
+    isBlank(str) {
+        return (!str || !str.trim().length);
+    },
+    isValid(str) {
+        return (typeof str === "string" && str.trim().length);
+    },
     clear(text) {
-        return (text || '').trim().replace('  ', ' ')
+        return (text || '').trim().replace('  ', ' ');
     },
     mask(text, char) {
         let len;
         let str = text || '';
         return this.split(str.toLowerCase()).map(w => {
             len = w.length;
-            return len > 3 ? w.substr(0,1) + char.repeat(len - 2) + w.slice(-1) :
-                len > 2 ? w.substr(0,1) + char.repeat(len - 1) :
-                    len > 1 ? char.repeat(len) : w;
-        }).join('')
+            return len > 3 ? w.substr(0,1) + char.repeat(len - 2) + w.slice(-1) : len > 2 ? w.substr(0,1) + char.repeat(len - 1) : len > 1 ? char.repeat(len) : w;
+        }).join('');
     },
     split(text) {
         const arr = Array.from(this.clear(text));
@@ -24,15 +31,15 @@ const strings = {
         for (let index = 0; index < arr.length; index++) {
             c = arr[index];
             if (charsIgnore.includes(c)) {
-                result.push(c)
+                result.push(c);
             } else if (c === ' ' || c === "-") {
                 if (temp) {
                     result.push(temp);
-                    temp = ''
+                    temp = '';
                 }
-                result.push(c)
+                result.push(c);
             } else {
-                temp += c
+                temp += c;
             }
         }
         if (temp) {result.push(temp)}
