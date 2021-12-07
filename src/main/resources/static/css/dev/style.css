@@ -338,6 +338,7 @@ table th {
     caret-color: red;
     border: 1px solid var(--border);
     font-weight: normal;
+    height: 2.5rem;
 }
 
 [contenteditable='true']:hover,

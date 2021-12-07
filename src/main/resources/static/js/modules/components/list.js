@@ -8,51 +8,91 @@ class List extends Component {
     constructor(parent = "content") {
         List.default = {
             className: "lists",
-            tagName: "table"
+            tagName: "table",
         }
-        super(parent, null, List.default.tagName, List.default.className)
+        super(parent, null, List.default.tagName, List.default.className);
+        this.i = this;
     }
-    render(jsonFile, options) {
+    async render(jsonFile, options) {
         super.reset();
         this.json = jsonFile;
-        populateTable(this.element, this.json.data, this.json.state.tabs.length, options)
+        this.cols = this.json.state.tabs.length;
+        this.opt = options;
+        List.renderRows(this.element, this.cols ,this.json.data, this.opt);
         /** editable */
-        if (options && options.contenteditable) {
-            dom.setOptions(this.element, {spellcheck: "false", autocapitalize: "none", autocomplete: "off"})
+        if (this.opt && this.opt.contenteditable) {
+            dom.setOptions(this.element, {spellcheck: "false", autocapitalize: "none", autocomplete: "off"});
         }
     }
-    visibleContent(col, flag) {
-        tableVisibility(this.element, col, flag)
-    }
-    update(index) {
+    /** @param {number|null} column - update column|columns visibility from state */
+    update(column) {
         if (!this.element || !this.json) {
-            return
+            return;
         }
-        if (typeof index === "number") {
-            this.visibleContent(index, this.json.state.tabs[index])
+        if (typeof column === "number") {
+            List.visibleColumn(this.element, column, this.json.state.tabs[column]);
         } else {
-            for (let col = 0; col < this.json.state.tabs.length; col++) {
-                this.visibleContent(col, this.json.state.tabs[col])
+            for (let col = 0; col < this.cols; col++) {
+                List.visibleColumn(this.element, col, this.json.state.tabs[col]);
             }
         }
     }
     isValidRow(row) {
-        return Number.isInteger(row) && row > -1 && row < this.json.data.length
+        return Number.isInteger(row) && row > -1 && row < this.json.data.length;
+    }
+    isFilled(row) {
+        for (let c = 0; c < row.length; c++) {
+            if (strings.isBlank(row[c].textContent)) {
+                return false;
+            }
+        }
+        return true;
     }
     read() {
         if (this.element) {
             const rows = this.element.rows.length;
-            /** static length ! */
+            /** constant length - matrix ! */
             const cols = this.element.rows[0].cells.length;
-            const arr = Array(rows);
+            const arr = [];
+            const empty = [];
             for (let r = 0; r < rows; r++) {
-                const row = Array(cols);
-                for (let c = 0; c < cols; c++) {
-                    row[c] = strings.removeHTML(this.element.rows[r].cells[c].textContent || "");
+                const a = Array(cols);
+                const cells = this.element.rows[r].cells;
+                /** skip rows with empty cell */
+                if (this.isFilled(cells)) {
+                    for (let c = 0; c < cols; c++) {
+                        a[c] = cells[c].textContent || "";
+                    }
+                    /** removing duplicates */
+                    if (!arr.some(ar => ar.every((v, i) => v === a[i]))) {
+                        arr.push(a);
+                    }
+                } else {
+                    empty.push(this.element.rows[r]);
                 }
-                arr[r] = row;
             }
+            empty.forEach(tr => dom.remove(tr));
             return arr;
+        }
+    }
+    add() {
+        List.renderRow(this.element, this.cols, [], this.opt);
+    }
+    static renderRow(table, cols, data, opt) {
+        const tr = dom.element("tr", table);
+        for (let c = 0; c < cols; c++) {
+            dom.text("th", tr, data[c] || "", opt);
+        }
+    }
+    static renderRows(table, cols, data, opt) {
+        for (const row of data || []) {
+            List.renderRow(table, cols, row, opt);
+        }
+    }
+    static visibleColumn(table, col, flag) {
+        const rows = table.getElementsByTagName("tr");
+        for (let row = 0; row < rows.length; row++) {
+            rows[row].children[col].style.display = flag ? null : "none";
         }
     }
     /** debug only
@@ -63,33 +103,16 @@ class List extends Component {
         for (const obj of colors) {
             const tr = dom.element("tr", this.element);
             if (obj.name) {
-                dom.text("th", tr, obj.name)
+                dom.text("th", tr, obj.name);
                 obj.colors.forEach(c => {
-                    const e = dom.text("th", tr, c)
+                    const e = dom.text("th", tr, c);
                     e.style.backgroundColor = c;
-                })
+                });
             }
         }
     }
 }
-factory.addClass(List)
-
-function populateTable(parent, data, cols, opt) {
-    let tr;
-    for (const row of data) {
-        tr = dom.element("tr", parent);
-        for (let col = 0; col < cols; col++) {
-            dom.text("th", tr, row[col], opt)
-        }
-    }
-}
-
-function tableVisibility (table, col, flag) {
-    const rows = table.getElementsByTagName("tr");
-    for (let row = 0; row < rows.length; row++) {
-        rows[row].children[col].style.display = flag ? null : "none";
-    }
-}
+factory.addClass(List);
 
 
 export default List;
