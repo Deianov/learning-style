@@ -46,7 +46,7 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
 //                .antMatchers(HttpMethod.GET,"/api/**").permitAll()
             .and()
                 .authorizeRequests()
-                .antMatchers("/client", "/home", "/logout").authenticated()
+                .antMatchers("/home", "/logout").authenticated()
                 .antMatchers("/users/profiles/{id}").access("@guard.isAuthorized(authentication,#id)")
                 .antMatchers("/admin", "/admin/**").hasRole("ADMIN")
                 // protect all other pages
@@ -63,7 +63,7 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 // the name of the user password input field in OUR login form is password (optional)
                 .passwordParameter(UsernamePasswordAuthenticationFilter.SPRING_SECURITY_FORM_PASSWORD_KEY)
                 // on login success redirect here
-                .defaultSuccessUrl("/client", true)
+                .defaultSuccessUrl("/", true)
                 // on login failure redirect here
                 .failureForwardUrl("/users/login-error")
             .and()
