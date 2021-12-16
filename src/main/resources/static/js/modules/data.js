@@ -1,50 +1,82 @@
 import CS from "./constants.js";
-import {notify} from "./factory.js";
-
-/** todo: change inmemory with LocalStorage */
-const files = {};
+import strings from "./utils/strings.js";
 
 
-class LocalRepository {
-    existsByName(name) {
-        return files.hasOwnProperty(name)
-    }
-    getByName(name) {
-        return files[name]
-    }
-    save(name, obj) {
-        files[name] = obj;
-        return this.getByName(name)
-    }
-    remove(name) {
-        if (this.existsByName(name)) {
-            delete files[name]
+const inMemoryRepository = (function (){
+    const files = {};
+    return {
+        existsByName(name) {
+            return files.hasOwnProperty(name)
+        },
+        getByName(name) {
+            return files[name]
+        },
+        save(name, obj) {
+            files[name] = obj;
+            return this.getByName(name)
+        },
+        remove(name) {
+            if (this.existsByName(name)) {
+                delete files[name]
+            }
         }
     }
+}());
+
+const cookie = {
+    encode(str) { /*! js-cookie v3.0.1 | MIT */
+        return encodeURIComponent(str).replace(/%(2[346B]|5E|60|7C)/g, decodeURIComponent).replace(/[()]/g, escape);
+    },
+    props(days) {
+        const defaultDays = 365; // 365 * 24 * 60 * 60 = 31536000 (1 year)
+        const expiresDate = new Date(Date.now() + (days || defaultDays) * 864e5).toUTCString();
+        return "; expires=" + expiresDate + "; path=/; SameSite=Lax";
+    },
+    getItem(key) {
+        const arr = (document.cookie || "").split('; ');
+        const f = this.encode(key) + "=";
+        const str = arr.find(s => s.indexOf(f) === 0);
+        return str ? strings.b64_to_utf8(str.substring(f.length)) : null;
+    },
+    setItem(key, data) {
+        const f = this.encode(key) + "=";
+        return (document.cookie = ((f + strings.utf8_to_b64(data)) + this.props()));
+    }
 }
 
-class Repository {
+const localRepository = (function (){
+    const storage = CS.system.isMobile || !localStorage ? cookie : localStorage;
+    return {
+        getItem(key) {
+            return storage.getItem(key);
+        },
+        setItem(key, data) {
+            storage.setItem(key, data);
+        }
+    }
+}());
 
-    // switch between static/api version
-    async getByName(name) {
-        const fun = CS.app.isStatic ? this.fetchStatic : this.fetchApi;
-        return await fun(name)
+const repository = (function () {
+    const isStatic = CS.app.isStatic;
+    const server = CS.server.json;
+    return {
+        async getByName(name) {
+            // switch between static/api version
+            const fun = isStatic ? this.fetchStatic : this.fetchApi;
+            return await fun(name);
+        },
+        // static
+        async fetchStatic(fileName) {
+            const req = server + (fileName.startsWith("/") ? "" : "/") + fileName + ".json";
+            const res = await fetch(req);
+            return await res.json();
+        },
+        // api
+        async fetchApi(apiPath) {
+            return await sendRequest(apiPath);
+        },
     }
-    // static
-    async fetchStatic(fileName) {
-        const req = Repository.requestString(fileName);
-        const res = await fetch(req);
-        return await res.json()
-    }
-    // api
-    async fetchApi(apiPath) {
-        return await sendRequest(apiPath)
-    }
-    static requestString(value) {
-        // replace(/\\/g, '/')
-        return CS.server.json + (value.startsWith("/") ? "" : "/") + value + ".json"
-    }
-}
+}());
 
 
 class Data {
@@ -65,23 +97,21 @@ class Data {
         if(!res) {
             return null;
         }
-        res.path = name;
         if (adaptable) {
             res = this.adapt(res)
         }
         if (cashable) {
-            res = localRepository.save(name, res)
+            res = inMemoryRepository.save(name, res)
         }
-        // console.log(files);
         return res
     }
     async getJsonWithPayload(api, data) {
         return await postData(api, data);
     }
     getCashable(name) {
-        if (localRepository.existsByName(name)) {
+        if (inMemoryRepository.existsByName(name)) {
             console.debug("cashed: " + name + ".json")
-            return localRepository.getByName(name)
+            return inMemoryRepository.getByName(name)
         }
     }
     adapt(json) {
@@ -90,45 +120,46 @@ class Data {
 }
 
 /**
- * @param {object} json base format from server
- * @returns {object} result {"json":json, "data":[adapted data], ...meta}
+ * @param {{}} jsonFile base format from server
+ * @returns {{}} result {..., "data":[adapted data], state: {}}
  */
-function dataAdapter(json) {
-    const result = {};
-    const adapterIndex = json.options["adapter"];
-    const sourceData = json["dictionaries"];
-    result.json = json;
-
-    if (isNaN(adapterIndex)) {
-        result.data = sourceData.slice();
+function dataAdapter(jsonFile) {
+    const json = jsonFile;
+    const adapterId = json.props["adapter"];
+    const labels = Object.entries(json.props)
+        .filter((en) => en[0].startsWith("label"))
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map((en) => en[1]);
+    json.labels = labels;
+    json.props.card = parseInt(json.props.card);
+    if(!isNaN(adapterId)) {
+        if (adapterId === "0") {
+            json.data = arrayToMatrix(json.data, labels.length);
+        }
+        else{
+            const adapter = getAdapter(json, (parseInt(adapterId)));
+            json.data = json.data.map(row => adapter(row));
+        }
     }
-    else if (adapterIndex === 0) {
-        result.data = arrayToMatrix(sourceData, json.labels.length)
+    // state
+    json.state = {
+        counts: Array(json.data.length).fill(0),
+        status: false,
+        rows: json.data.length,
+        row: 0,
+        tabs: Array(labels.length).fill(true),
+        card: json.props.card,
     }
-    else {
-        const adapter = getAdapter(json, (parseInt(adapterIndex)));
-        result.data = sourceData.map(row => adapter(row))
-    }
-
-    // append metadata
-    result.counts = Array(result.data.length).fill(0);
-    result.state = {
-        "status":false,
-        "rows":result.data.length,
-        "row":0,
-        "tabs":Array(json.labels.length).fill(true),
-        "card":json.options.card,
-    }
-    result.state.tabs[result.state.card] = false;
-    return result
+    json.state.tabs[json.state.card] = false;
+    return json
 }
 
 /**
  * @param {object} json Server file
- * @param {number} adapterIndex  json["adapter"]
+ * @param {number} adapterId  json["adapter"]
  * @returns {Function} adapter function
  */
-function getAdapter(json, adapterIndex) {
+function getAdapter(json, adapterId) {
     const labels = json.labels.map(o => o.toLowerCase());
 
     /**
@@ -151,7 +182,7 @@ function getAdapter(json, adapterIndex) {
         arrayToMatrix,
         adapter1
     ]
-    return adapters[adapterIndex]  
+    return adapters[adapterId]
 }
 
 function arrayToMatrix(arr, cols) {
@@ -168,7 +199,6 @@ function arrayToMatrix(arr, cols) {
  * server requests
  *
  */
-
 
 function requestString(path) {
     return CS.server.api + (path.startsWith("/") ? "" : "/") + path
@@ -195,7 +225,6 @@ async function sendRequest(path, method, body) {
         return { error: error.message || "Unknown error" };
     }
 }
-
 
 async function postData(path, data) {
     return fetch(requestString(path), {
@@ -232,6 +261,5 @@ async function postData(path, data) {
         });
 }
 
-const localRepository = new LocalRepository();
-const repository = new Repository();
-export {Data};
+
+export {Data, localRepository};
