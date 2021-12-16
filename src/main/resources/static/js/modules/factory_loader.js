@@ -48,6 +48,6 @@ const factory = (function() {
         instance,
         props
     }
-})();
+}());
 
 export default factory;
