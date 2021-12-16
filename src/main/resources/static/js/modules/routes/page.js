@@ -41,10 +41,11 @@ class Page {
         this.elements.messages.innerHTML = "";
         this.elements.bottom.innerHTML = "";
     }
-    blank(subject, category, obj) {
+    blank(obj) {
+        const {name, category} = obj || {};
         Page.reset();
         renderBreadcrumb(category);
-        renderSubject(this.elements.subject, subject || router.route.subject, obj)
+        renderSubject(this.elements.subject, name || router.route.subject, obj)
     }
     play(flag) {
         notify.clear();
@@ -85,7 +86,8 @@ function renderSubject(parent, subject, obj) {
     dom.text("h3", parent, subject)
     if (obj) {
         // split to array
-        const arr = Object.values(obj);
+        // const arr = Object.values(obj);
+        const arr = [obj.source, obj.sourceUrl, obj.author, obj.authorUrl];
         const tmp = arr.map(value => value ? value.split(";") : []);
         const sum = tmp.map(value => value.length).reduce((a, b) => a + b, 0);
 

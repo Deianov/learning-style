@@ -36,7 +36,7 @@ class Bar extends Component {
         BAR.elements.onPlay.row.disabled = true;
 
         for (let i = 0; i < this.activeTabs.length; i++) {
-            this.tabs.push(dom.element("button", BAR.elements.tabs, {"key":i, "textContent":this.json.json.labels[i]}));
+            this.tabs.push(dom.element("button", BAR.elements.tabs, {"key":i, "textContent":this.json.labels[i]}));
             this.setActiveTab(i, true);
         }
     }

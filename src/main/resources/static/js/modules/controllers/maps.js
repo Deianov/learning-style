@@ -11,7 +11,7 @@ class Maps {
         this.parent = dom.get(parent)
     }
     async render(jsonFile) {
-        const maps = Object.entries(jsonFile.options).sort(((a, b) => a[1] - b[1])).map(v => v[0]);
+        const maps = Object.entries(jsonFile.props).sort(((a, b) => a[1].localeCompare(b[1]))).map(v => v[0]);
         const [name, file1, file2] = maps;
 
         let imp;

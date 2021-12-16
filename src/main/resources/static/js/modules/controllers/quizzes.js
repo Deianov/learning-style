@@ -73,7 +73,7 @@ class Quizzes {
 
         /* server validation */
         if (!this.correct) {
-            const res = await data.getJsonWithPayload(`/quizzes/${this.json.id}/certification`, {"answers": getUserAnswers()});
+            const res = await data.getJsonWithPayload(`/quizzes/${this.json.exercise.id}/certification`, {"answers": getUserAnswers()});
             if (res) {
                 Quizzes.instance.correct = res.correct;
             }
