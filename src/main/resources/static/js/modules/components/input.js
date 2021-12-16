@@ -5,7 +5,7 @@ import {Component} from "./components.js";
 import {SimpleCounter} from "../utils/counters.js";
 import {notify} from "../factory.js";
 import {Stats} from "./stats.js";
-import {numbers} from "../utils/numbers.js";
+import numbers from "../utils/numbers.js";
 
 
 class UserInput extends Component {
@@ -21,7 +21,6 @@ class UserInput extends Component {
         super.reset(); // create this.element
         this.json = jsonFile;
         dom.removeAll(this.element);
-
         this.stats.render(this.element)
         this.input.render(this.element)
         this.reset()
@@ -253,8 +252,8 @@ class MyKeyboard {
         div = dom.element("div", this.keyboard, this.opt.classNameOther);
         dom.element("button", div, {textContent: " ", value: " ", type: "button", role: "button", className: this.opt.classNameItem})
     }
-    renderKeys(str = "") {
-        if (this.opt.mode.off || this.opt.mode.static) {
+    renderKeys(str) {
+        if (this.opt.mode.off || this.opt.mode.static || !str) {
             return;
         }
         this.clear();
