@@ -1,8 +1,9 @@
 import factory from "../factory_loader.js";
 import {ScopeCounter} from "../utils/counters.js";
 import {page, notify, data} from "../factory.js";
-import strings from "../utils/strings.js";
 import CS from "../constants.js";
+import strings from "../utils/strings.js";
+import numbers from "../utils/numbers.js";
 
 
 // constants
@@ -57,22 +58,26 @@ class Flashcards {
         this.list.render(this.json);
         page.play(false)
     }
+    finish(result) {
+        this.stop();
+        page.elements.content.style.display="none";
+        this.controller.finish(result);
+    }
     play(step) {
         let row = false;
 
         // finish
         if (!this.counter.hasNext() && (step === 1 || step === 2)) {
-            const c = this.counter.getPreviousCount();
-            const a = this.counter.stack.length;
-            const s = this.input.successCounter.value();
-            const e = this.input.errorsCounter.value();
-            this.stop();
-            // todo: something more
-            page.elements.content.style.display="none" ;
-            notify.msg("success", `${c} | ${a} (${s} successes, ${e} errors)`, {prefix: "Done!"});
-            notify.alert("success", "Well done !!!");
-            notify.alert("info", "Play again ?");
-            return
+            this.finish({
+                    path: this.json.exercise.path,
+                    count: this.counter.getPreviousCount(),
+                    stack: this.counter.stack.length,
+                    success: this.input.successCounter.value(),
+                    errors: this.input.errorsCounter.value(),
+                    timer: numbers.timer.stop(this.startTime, 0, 1, 1, 0),
+                }
+            );
+            return;
         }
 
         // next
@@ -142,27 +147,35 @@ class Flashcards {
         that.btnEdit();
         notify.with("btnAdd").clear();
 
-        const dict = that.json.data;
-        dict.length = 0;
+        const tmp = [];
         for (let row of that.list.read()) {
-            dict.push(row.map(c => strings.removeHTML(c)));
+            tmp.push(row.map(c => strings.removeHTML(c)));
         }
 
-        that.list.render(that.json);
-
+        // static
         if (CS.app.isStatic) {
+            // sort and remove numbering
+            that.json.data = tmp.sort((a, b) => a[0].localeCompare(b[0])).map(d => d.slice(1));
+            that.list.render(that.json);
+
             notify.alert("error", CS.msg.server.required)
             return;
         }
 
-        const res = await data.getJsonWithPayload(that.json.json.path, {
+        // server
+        const res = await data.getJsonWithPayload(that.json.exercise.path, {
             username: CS.app.username || "",
-            data: dict,
+            data: tmp,
         });
 
         if (res) {
+            // update data
+            if (res.status === 200) {
+                that.json.data = res.data || [];
+            }
             notify.alert(res.status === 200 ? "success" : "error", res.message)
         }
+        that.list.render(that.json);
     }
 }
 factory.addClass(Flashcards)

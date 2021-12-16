@@ -13,40 +13,27 @@ const strings = {
         return (typeof str === "string" && str.trim().length);
     },
     clear(text) {
-        return (text || '').trim().replace('  ', ' ');
+        return (text || "").trim().replace("  ", " ");
     },
     mask(text, char) {
         let len;
-        let str = text || '';
+        let str = text || "";
         return this.split(str.toLowerCase()).map(w => {
             len = w.length;
-            return len > 3 ? w.substr(0,1) + char.repeat(len - 2) + w.slice(-1) : len > 2 ? w.substr(0,1) + char.repeat(len - 1) : len > 1 ? char.repeat(len) : w;
-        }).join('');
+            return len > 3 ? (w.substr(0,1) + char.repeat(len - 2) + w.slice(-1)) : len > 2 ? (w.substr(0,1) + char.repeat(len - 1)) : w;
+        }).join("");
     },
     split(text) {
-        const arr = Array.from(this.clear(text));
-        const result = [];
-        let temp = '';
-        let c;
-        for (let index = 0; index < arr.length; index++) {
-            c = arr[index];
-            if (charsIgnore.includes(c)) {
-                result.push(c);
-            } else if (c === ' ' || c === "-") {
-                if (temp) {
-                    result.push(temp);
-                    temp = '';
-                }
-                result.push(c);
-            } else {
-                temp += c;
-            }
-        }
-        if (temp) {result.push(temp)}
-        return result;
+        return this.clear(text).split(/([ .,:;_\-?!'`]+)/);
     },
     removeHTML(s) {
-        return s.replace(/&/g, '').replace(/</g, '').replace(/"/g, '').replace(/'/g, '').replace(/`/g, '');
+        return s.replace(/&/g, "").replace(/</g, "").replace(/"/g, "").replace(/'/g, "").replace(/`/g, "");
+    },
+    utf8_to_b64( str ) {
+        return window.btoa(unescape(encodeURIComponent(str)));
+    },
+    b64_to_utf8( str ) {
+        return decodeURIComponent(escape(window.atob( str )));
     },
 }
 

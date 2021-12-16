@@ -11,8 +11,30 @@ const numbers = {
         return Math.floor(Math.random() * (max - min) + min);
     },
     /** Generate a Random UUID: 128-bit value; */
-    getRandomUUID
+    getRandomUUID,
+    /** Timer */
+    timer: {
+        start(){
+            return new Date();
+        },
+        stop(startTime, hours, minutes, seconds, hundredths) {
+            const diff = new Date() - startTime;
+            const text = this.text(diff, hours, minutes, seconds, hundredths);
+            return {
+                diff,
+                text,
+            }
+        },
+        text(diff, hours, minutes, seconds, hundredths) {
+            const sec = 1000, min = 60 * sec, hrs = 60 * min;
+            let text = "";
+            text += hours ? `${Math.floor(diff/hrs)}:` : "";
+            text += `${Math.floor((diff % hrs) / min).toLocaleString('de-DE', {minimumIntegerDigits: 2})}`;
+            text += seconds ? `:${Math.floor((diff % min) / sec).toLocaleString('de-DE', {minimumIntegerDigits: 2})}` : "";
+            text += seconds && hundredths ? `.${Math.floor(diff % sec).toLocaleString('de-DE', {minimumIntegerDigits: 4, useGrouping: false})}` : "";
+            return text;
+        }
+    },
 }
 
-
-export {numbers};
+export default numbers;
