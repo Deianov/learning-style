@@ -24,13 +24,13 @@ public class UserInterceptor implements HandlerInterceptor {
     /**
      * Executed before actual handler is executed
      **/
-    @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object object) throws Exception {
-        if (isUserLogged()) {
-            addToModelUserDetails(request.getSession());
-        }
-        return true;
-    }
+//    @Override
+//    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object object) throws Exception {
+//        if (isUserLogged()) {
+//            addToModelUserDetails(request.getSession());
+//        }
+//        return true;
+//    }
 
     /**
      * Executed before after handler is executed. If view is a redirect view, we don't need to execute postHandle
@@ -38,17 +38,19 @@ public class UserInterceptor implements HandlerInterceptor {
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object object, ModelAndView model) throws Exception {
 
-        if (!isRedirectView(model) && isUserLogged()) {
-            addToModelUserDetails(model);
-        }
+//        if (!isRedirectView(model) && isUserLogged()) {
+//            addToModelUserDetails(model);
+//        }
 
         // don't change !
-        if (!isRedirectView(model) && isAuthenticated()) {
-            if (model.getModel().containsKey(Constants.PROFILE_KEY)) {
-                return;
+        if (model != null) {
+            if (!isRedirectView(model) && isAuthenticated()) {
+                if (model.getModel().containsKey(Constants.PROFILE_KEY)) {
+                    return;
+                }
+                model.addObject(Constants.PROFILE_KEY, request.getSession().getAttribute(Constants.PROFILE_KEY));
+                log.info("add profile attributes to view: " + model.getViewName());
             }
-            model.addObject(Constants.PROFILE_KEY, request.getSession().getAttribute(Constants.PROFILE_KEY));
-            log.info("add profile attributes to view: " + model.getViewName());
         }
     }
 

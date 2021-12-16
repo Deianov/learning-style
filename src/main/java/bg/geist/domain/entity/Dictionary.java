@@ -1,9 +1,5 @@
 package bg.geist.domain.entity;
 
-import bg.geist.domain.entity.enums.Lang;
-import bg.geist.domain.entity.enums.Level;
-import bg.geist.domain.entity.enums.TextRole;
-import bg.geist.domain.entity.enums.TextType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
@@ -12,148 +8,147 @@ import java.util.stream.Stream;
 
 @Entity
 @Table(name = "dictionary")
-public class Dictionary extends BaseEntity {
+public class Dictionary{
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false, updatable = false)
+    private Long id;
+
     @Column
     private int value = 0;
 
-    @Column
+    @Column(nullable = false)
     private String att1;
 
-    @Column
+    @Column(nullable = false)
     private String att2;
 
     @Column
     private String att3;
-
-    @Enumerated(EnumType.STRING)
-    @Column
-    private Lang lang1;
-
-    @Enumerated(EnumType.STRING)
-    @Column
-    private Lang lang2;
-
-    @Enumerated(EnumType.STRING)
-    @Column
-    private TextType type;
-
-    @Enumerated(EnumType.STRING)
-    @Column
-    private Level level;
-
-    @Enumerated(EnumType.STRING)
-    @Column
-    private TextRole role2;
-
-    @Enumerated(EnumType.STRING)
-    @Column
-    private TextRole role3;
 
     @JsonIgnore
     @ManyToOne
     private DictionaryCollection collection;
 
 
-    public String[] toArray() {
-        return Stream.of(att1, att2, att3).filter(Objects::nonNull).toArray(String[]::new);
+    public Dictionary() {}
+    public Dictionary(int value , String[] arr) {
+        this.update(arr);
+        this.value = value;
+    }
+
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public int getValue() {
         return value;
     }
 
-    public Dictionary setValue(int value) {
+    public void setValue(int value) {
         this.value = value;
-        return this;
     }
 
     public String getAtt1() {
         return att1;
     }
 
-    public Dictionary setAtt1(String att1) {
+    public void setAtt1(String att1) {
         this.att1 = att1;
-        return this;
     }
 
     public String getAtt2() {
         return att2;
     }
 
-    public Dictionary setAtt2(String att2) {
+    public void setAtt2(String att2) {
         this.att2 = att2;
-        return this;
     }
 
     public String getAtt3() {
         return att3;
     }
 
-    public Dictionary setAtt3(String att3) {
+    public void setAtt3(String att3) {
         this.att3 = att3;
-        return this;
-    }
-
-    public Lang getLang1() {
-        return lang1;
-    }
-
-    public Dictionary setLang1(Lang lang1) {
-        this.lang1 = lang1;
-        return this;
-    }
-
-    public Lang getLang2() {
-        return lang2;
-    }
-
-    public Dictionary setLang2(Lang lang2) {
-        this.lang2 = lang2;
-        return this;
-    }
-
-    public TextType getType() {
-        return type;
-    }
-
-    public Dictionary setType(TextType type) {
-        this.type = type;
-        return this;
-    }
-
-    public Level getLevel() {
-        return level;
-    }
-
-    public Dictionary setLevel(Level level) {
-        this.level = level;
-        return this;
-    }
-
-    public TextRole getRole2() {
-        return role2;
-    }
-
-    public Dictionary setRole2(TextRole role2) {
-        this.role2 = role2;
-        return this;
-    }
-
-    public TextRole getRole3() {
-        return role3;
-    }
-
-    public Dictionary setRole3(TextRole role3) {
-        this.role3 = role3;
-        return this;
     }
 
     public DictionaryCollection getCollection() {
         return collection;
     }
 
-    public Dictionary setCollection(DictionaryCollection collection) {
+    public void setCollection(DictionaryCollection collection) {
         this.collection = collection;
-        return this;
+    }
+
+    // custom methods
+
+    public String[] toArray() {
+        return Stream.of(att1, att2, att3).filter(Objects::nonNull).toArray(String[]::new);
+    }
+
+    public void update(String[] arr) {
+        if (arr == null) {
+            return;
+        }
+        // move index if arr has value
+        int m;
+        if (att1 == null) {
+            // constructor
+            m = 0;
+        } else {
+            // update (first index is row number)
+            m = (arr.length > ((att3 == null) ? 2 : 3)) ? 1 : 0;
+        }
+        if ((arr.length + m) < 2) {
+            return;
+        }
+        this.att1 = arr[m];
+        this.att2 = arr[1 + m];
+        this.att3 = arr.length > (2 + m) ? arr[2 + m] : null;
+    }
+
+    public boolean equalsTo(String[] arr) {
+        return compareTo(arr, true) == 3;
+    }
+
+    // arr = ["value", att1, att2, att3] || [att1, att2, att3]
+    public int compareTo(String[] arr, boolean compareValues) {
+        if (arr == null || arr.length < 3 || att1 == null || att2 == null || value == 0) {
+            return 0;
+        }
+        int i = 0;
+        boolean hasValue = arr.length > ((att3 == null) ? 2 : 3);
+        // compare values
+        if (!compareValues || !hasValue || String.valueOf(value).equals(arr[0])) {
+            i += 1;
+        }
+        int m = hasValue ? 1 : 0;
+        // compare attributes
+        if (att1.equals(arr[m]) && (att2.equals(arr[1 + m]) && (att3 == null || att3.equals(arr[2 + m])))) {
+            i += 2;
+        }
+        return i;
+    }
+
+    // todo: change with business id
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Dictionary that = (Dictionary) o;
+        return value == that.value && att1.equals(that.att1) && att2.equals(that.att2);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value, att1, att2);
     }
 }

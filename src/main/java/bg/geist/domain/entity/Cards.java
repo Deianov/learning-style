@@ -3,42 +3,52 @@ package bg.geist.domain.entity;
 import bg.geist.domain.entity.enums.ExerciseType;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Entity
 @Table(name = "cards")
-public class Cards extends Exercise{
+public class Cards extends ExercisePlay{
+    private static final ExerciseType EXERCISE_TYPE = ExerciseType.CARDS;
 
     @OneToOne
-    private Options labels;
+    private Exercise exercise;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dictionary_collection_id")
     private DictionaryCollection dictionaryCollection;
 
 
-    public Cards() {
-        super(ExerciseType.CARDS);
-    }
-    public Cards(String name, String description, int value) {
-        super(ExerciseType.CARDS, name, description, value);
-    }
-
-
-    public Options getLabels() {
-        return labels;
+    public Cards() { super(EXERCISE_TYPE); }
+    public Cards(Exercise exercise) {
+        this();
+        this.exercise = exercise;
     }
 
-    public Cards setLabels(Options labels) {
-        this.labels = labels;
-        return this;
-    }
 
+    public Exercise getExercise() {
+        return exercise;
+    }
+    public void setExercise(Exercise exercise) {
+        this.exercise = exercise;
+    }
     public DictionaryCollection getDictionaryCollection() {
         return dictionaryCollection;
     }
-
-    public Cards setDictionaryCollection(DictionaryCollection dictionaryCollection) {
+    public void setDictionaryCollection(DictionaryCollection dictionaryCollection) {
         this.dictionaryCollection = dictionaryCollection;
-        return this;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Cards cards = (Cards) o;
+        return exercise.equals(cards.exercise);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(exercise);
     }
 }

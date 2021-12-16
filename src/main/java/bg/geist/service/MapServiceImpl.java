@@ -1,13 +1,10 @@
 package bg.geist.service;
 
-import bg.geist.constant.Constants;
-import bg.geist.domain.entity.Category;
-import bg.geist.domain.entity.Map;
-import bg.geist.domain.entity.Options;
+import bg.geist.domain.entity.*;
+import bg.geist.domain.entity.enums.ExerciseType;
 import bg.geist.domain.model.service.MapModel;
 import bg.geist.exception.EntityName;
 import bg.geist.exception.ObjectNotFoundException;
-import bg.geist.repository.CategoryRepository;
 import bg.geist.repository.MapRepository;
 import bg.geist.web.api.model.ExerciseIndexModel;
 import org.modelmapper.ModelMapper;
@@ -19,30 +16,30 @@ import java.util.Collection;
 
 @Service
 public class MapServiceImpl implements MapService {
+    private static final ExerciseType EXERCISE_TYPE = ExerciseType.MAPS;
+    private static final EntityName ENTITY_NAME = EntityName.MAP;
 
     private final MapRepository repository;
-    private final CategoryRepository categoryRepository;
-    private final ModelMapper mapper;
+    private final CategoryService categoryService;
+    private final ExerciseService exerciseService;
 
 
     @Autowired
-    public MapServiceImpl(MapRepository repository, CategoryRepository categoryRepository, ModelMapper mapper) {
+    public MapServiceImpl(MapRepository repository, CategoryService categoryService, ExerciseService exerciseService) {
         this.repository = repository;
-        this.categoryRepository = categoryRepository;
-        this.mapper = mapper;
+        this.categoryService = categoryService;
+        this.exerciseService = exerciseService;
     }
 
     @Override
     public Collection<ExerciseIndexModel> getIndex() {
         Collection<ExerciseIndexModel> result = new ArrayList<>();
-        Collection<Category> categories = categoryRepository.
-                findAllByParentId(Constants.CATEGORY_ID_MAPS);
 
-        for (Category category : categories) {
+        for (Category category : categoryService.getCategories(EXERCISE_TYPE)) {
             ExerciseIndexModel exerciseCategory = new ExerciseIndexModel(category.getName());
             repository
-                    .findAllByCategoryId(category.getId())
-                    .forEach(maps -> exerciseCategory.addLink(maps.getId(), maps.getName()));
+                .findAllByCategory(category)
+                .forEach(type -> exerciseCategory.addLink(type.getId(), type.getExercise().getName()));
             // skip empty categories
             if (!exerciseCategory.getLinks().isEmpty()) {
                 result.add(exerciseCategory);
@@ -53,16 +50,14 @@ public class MapServiceImpl implements MapService {
 
     @Override
     public MapModel getById(Long id) {
-        Map map = repository.findById(id)
-                .orElseThrow(() -> new ObjectNotFoundException(EntityName.MAP, id));
-
-        MapModel mapModel = mapper.map(map, MapModel.class);
-        categoryRepository.findById(map.getCategoryId())
-                .ifPresent(category -> mapModel.setCategory(category.getName()));
-        Options options = map.getOptions();
-        if (options != null) {
-            mapModel.setOptions(options.toMap());
-        }
+        Map map = getBy(id);
+        MapModel mapModel = new MapModel();
+        mapModel.setExercise(exerciseService.map(map.getExercise(), map));
+        mapModel.setProps(Prop.toMap(map.getProps()));
         return mapModel;
+    }
+
+    private Map getBy(Long id) {
+        return repository.findById(id).orElseThrow(() -> new ObjectNotFoundException(ENTITY_NAME, id));
     }
 }

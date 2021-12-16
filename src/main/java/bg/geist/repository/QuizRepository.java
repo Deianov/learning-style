@@ -1,5 +1,6 @@
 package bg.geist.repository;
 
+import bg.geist.domain.entity.Category;
 import bg.geist.domain.entity.Quiz;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface QuizRepository extends JpaRepository<Quiz, Long> {
 
-    Collection<Quiz> findAllByCategoryId(long categoryId);
+    Collection<Quiz> findAllByCategory(Category category);
 
     // force eager fetch by custom HQL query
     @Query("select e from Quiz e left join fetch e.questions b where e.id = ?1")

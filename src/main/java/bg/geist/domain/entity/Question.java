@@ -21,14 +21,6 @@ public class Question extends BaseEntity{
 
     @Enumerated(EnumType.STRING)
     @Basic
-    private Level level;
-
-    @Enumerated(EnumType.STRING)
-    @Basic
-    private Lang lang;
-
-    @Enumerated(EnumType.STRING)
-    @Basic
     private Type type;
 
     @Basic
@@ -36,17 +28,15 @@ public class Question extends BaseEntity{
 
     @ManyToOne
     @JoinColumn(name = "answers_collection_id")
-    private AnswersCollection answersCollection;
+    private AnswerCollection answerCollection;
 
     public Question() {}
     public Question(String text) {
         this.text = text;
     }
-    public Question(String text, int value, Level level, Lang lang) {
+    public Question(String text, int value) {
         this.text = text;
         this.value = value;
-        this.level = level;
-        this.lang = lang;
     }
 
     public String getText() {
@@ -64,24 +54,6 @@ public class Question extends BaseEntity{
 
     public Question setValue(int value) {
         this.value = value;
-        return this;
-    }
-
-    public Level getLevel() {
-        return level;
-    }
-
-    public Question setLevel(Level level) {
-        this.level = level;
-        return this;
-    }
-
-    public Lang getLang() {
-        return lang;
-    }
-
-    public Question setLang(Lang lang) {
-        this.lang = lang;
         return this;
     }
 
@@ -103,12 +75,12 @@ public class Question extends BaseEntity{
         return this;
     }
 
-    public AnswersCollection getAnswersCollection() {
-        return answersCollection;
+    public AnswerCollection getAnswersCollection() {
+        return answerCollection;
     }
 
-    public Question setAnswersCollection(AnswersCollection answersCollection) {
-        this.answersCollection = answersCollection;
+    public Question setAnswersCollection(AnswerCollection answerCollection) {
+        this.answerCollection = answerCollection;
         return this;
     }
 }

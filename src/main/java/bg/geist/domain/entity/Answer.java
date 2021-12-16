@@ -1,7 +1,5 @@
 package bg.geist.domain.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import javax.persistence.*;
 
 @Entity
@@ -15,10 +13,10 @@ public class Answer extends BaseEntity{
     private int value;
 
     @ManyToOne
-    private AnswersCollection collection;
+    private AnswerCollection collection;
 
     public Answer() {}
-    public Answer(String text, int value, AnswersCollection collection) {
+    public Answer(String text, int value, AnswerCollection collection) {
         this.text = text;
         this.value = value;
         this.collection = collection;
@@ -42,11 +40,11 @@ public class Answer extends BaseEntity{
         return this;
     }
 
-    public AnswersCollection getCollection() {
+    public AnswerCollection getCollection() {
         return collection;
     }
 
-    public Answer setCollection(AnswersCollection collection) {
+    public Answer setCollection(AnswerCollection collection) {
         this.collection = collection;
         return this;
     }

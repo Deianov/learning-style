@@ -1,0 +1,32 @@
+[
+    {
+        "text": "True",
+        "value": 1,
+        "collectionName": "BOOLEAN"
+    },
+    {
+        "text": "False",
+        "value": 2,
+        "collectionName": "BOOLEAN"
+    },
+    {
+        "text": "Yes",
+        "value": 1,
+        "collectionName": "BOOLEAN_EN"
+    },
+    {
+        "text": "No",
+        "value": 2,
+        "collectionName": "BOOLEAN_EN"
+    },
+    {
+        "text": "Ja",
+        "value": 1,
+        "collectionName": "BOOLEAN_DE"
+    },
+    {
+        "text": "Nein",
+        "value": 2,
+        "collectionName": "BOOLEAN_DE"
+    }
+]

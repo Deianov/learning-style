@@ -10,9 +10,9 @@ import java.io.IOException;
 
 
 @Component
-public class Init implements CommandLineRunner {
-    private final static boolean DO_EXPORT_TO_JSON = false;
-    private final static boolean DO_INIT = false;
+class Init implements CommandLineRunner {
+    private static final boolean DO_EXPORT_TO_JSON = false;
+    private static final boolean DO_INIT = false;
 
     private final SeedDb seedDb;
     private final MarshalDb marshalDb;
@@ -21,7 +21,7 @@ public class Init implements CommandLineRunner {
     private final Resource ymlFile;
 
 
-    public Init(SeedDb seedDb, MarshalDb marshalDb, CategoryRepository categoryRepository,
+    Init(SeedDb seedDb, MarshalDb marshalDb, CategoryRepository categoryRepository,
                 @Value("${myapp.version}") String version,
                 @Value("classpath:application.yml") Resource ymlFile){
         this.seedDb = seedDb;
@@ -41,7 +41,7 @@ public class Init implements CommandLineRunner {
             seedDb.seedUsers();
             seedDb.seedCategories();
             seedDb.seedCards();
-            seedDb.seedAnswersCollectionTemplates();
+            seedDb.seedAnswerTemplates();
             seedDb.seedQuizzes();
             seedDb.seedMaps();
         }
@@ -56,7 +56,7 @@ public class Init implements CommandLineRunner {
         }
     }
 
-    public void showVersion() throws IOException {
+    final void showVersion() throws IOException {
         System.out.println(ymlFile.getFile().toString());
         System.out.printf("version: %s%n", version);
     }

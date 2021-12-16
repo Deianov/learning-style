@@ -1,14 +1,17 @@
 {
+"exercise": {
     "subject": "Test",
-    "date": "08.01.2021",
-    "labels": ["EN", "DE"],
-    "options": {
-        "card": 1,
-        "adapter": 0
-    },
-    "data": [
-        "0", "0",
-        "1", "1",
-        "2", "2"
-    ]
+    "date": "08.01.2021"
+},
+"props": {
+    "card": "1",
+    "adapter": "0",
+    "label1": "EN",
+    "label2": "DE"
+},
+"data": [
+    "0", "0",
+    "1", "1",
+    "2", "2"
+]
 }

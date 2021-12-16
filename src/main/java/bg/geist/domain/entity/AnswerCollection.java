@@ -5,7 +5,7 @@ import java.util.Collection;
 
 @Entity
 @Table(name = "answers_collections")
-public class AnswersCollection extends BaseEntity{
+public class AnswerCollection extends BaseEntity{
 
     @Basic
     private String name;
@@ -16,8 +16,8 @@ public class AnswersCollection extends BaseEntity{
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "collection")
     private Collection<Answer> answers;
 
-    public AnswersCollection() {}
-    public AnswersCollection(String name) {
+    public AnswerCollection() {}
+    public AnswerCollection(String name) {
         this.name = name;
     }
 
@@ -25,7 +25,7 @@ public class AnswersCollection extends BaseEntity{
         return name;
     }
 
-    public AnswersCollection setName(String name) {
+    public AnswerCollection setName(String name) {
         this.name = name;
         return this;
     }
@@ -34,7 +34,7 @@ public class AnswersCollection extends BaseEntity{
         return value;
     }
 
-    public AnswersCollection setValue(int value) {
+    public AnswerCollection setValue(int value) {
         this.value = value;
         return this;
     }
@@ -43,7 +43,7 @@ public class AnswersCollection extends BaseEntity{
         return answers;
     }
 
-    public AnswersCollection setAnswers(Collection<Answer> answers) {
+    public AnswerCollection setAnswers(Collection<Answer> answers) {
         this.answers = answers;
         return this;
     }

@@ -4,9 +4,15 @@ import bg.geist.domain.entity.*;
 import bg.geist.domain.entity.Dictionary;
 import bg.geist.domain.entity.Map;
 import bg.geist.domain.entity.enums.*;
+import bg.geist.init.dto.AnswerDto;
+import bg.geist.init.dto.CategoryDto;
+import bg.geist.init.dto.ExerciseDto;
+import bg.geist.init.dto.UserDto;
 import bg.geist.init.adapter.ArrayToMatrixAdapter;
 import bg.geist.init.dto.*;
 import bg.geist.repository.*;
+import bg.geist.service.CategoryService;
+import bg.geist.service.ExerciseService;
 import bg.geist.util.FilesUtil;
 import bg.geist.util.Flags;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -23,14 +29,16 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static bg.geist.constant.Constants.*;
 import static bg.geist.constant.Constants.INIT.*;
 import static bg.geist.constant.Constants.PRJ.*;
 
 @Component
-public class SeedDb {
+class SeedDb {
+    private static final String JSON_INPUT_PATH = "json/input/";
+
+
     private final Resource jsonFile;
     private final ObjectMapper objectMapper;
     private final UserRepository userRepository;
@@ -39,17 +47,19 @@ public class SeedDb {
     private final BCryptPasswordEncoder passwordEncoder;
     private final QuizRepository quizRepository;
     private final QuestionRepository questionRepository;
-    private final AnswersCollectionRepository answersCollectionRepository;
+    private final AnswerCollectionRepository answerCollectionRepository;
     private final AnswerRepository answerRepository;
     private final CategoryRepository categoryRepository;
+    private final CategoryService categoryService;
     private final CardsRepository cardsRepository;
-    private final OptionsRepository optionsRepository;
     private final DictionaryCollectionRepository dictionaryCollectionRepository;
     private final DictionaryRepository dictionaryRepository;
     private final MapRepository mapRepository;
+    private final PropRepository propRepository;
+    private final ExerciseService exerciseService;
 
 
-    public SeedDb(@Value("classpath:myapp.json") Resource jsonFile, ObjectMapper objectMapper, UserRepository userRepository, UserRoleRepository userRoleRepository, UserProfileRepository userProfileRepository, BCryptPasswordEncoder passwordEncoder, QuizRepository quizRepository, QuestionRepository questionRepository, AnswersCollectionRepository answersCollectionRepository, AnswerRepository answerRepository, CategoryRepository categoryRepository, CardsRepository cardsRepository, OptionsRepository optionsRepository, DictionaryCollectionRepository dictionaryCollectionRepository, DictionaryRepository dictionaryRepository, MapRepository mapRepository) {
+    SeedDb(@Value("classpath:myapp.json") Resource jsonFile, ObjectMapper objectMapper, UserRepository userRepository, UserRoleRepository userRoleRepository, UserProfileRepository userProfileRepository, BCryptPasswordEncoder passwordEncoder, QuizRepository quizRepository, QuestionRepository questionRepository, AnswerCollectionRepository answerCollectionRepository, AnswerRepository answerRepository, CategoryRepository categoryRepository, CategoryService categoryService, CardsRepository cardsRepository, DictionaryCollectionRepository dictionaryCollectionRepository, DictionaryRepository dictionaryRepository, MapRepository mapRepository, PropRepository propRepository, ExerciseService exerciseService) {
         this.jsonFile = jsonFile;
         this.objectMapper = objectMapper;
         this.userRepository = userRepository;
@@ -58,24 +68,31 @@ public class SeedDb {
         this.passwordEncoder = passwordEncoder;
         this.quizRepository = quizRepository;
         this.questionRepository = questionRepository;
-        this.answersCollectionRepository = answersCollectionRepository;
+        this.answerCollectionRepository = answerCollectionRepository;
         this.answerRepository = answerRepository;
         this.categoryRepository = categoryRepository;
+        this.categoryService = categoryService;
         this.cardsRepository = cardsRepository;
-        this.optionsRepository = optionsRepository;
         this.dictionaryCollectionRepository = dictionaryCollectionRepository;
         this.dictionaryRepository = dictionaryRepository;
         this.mapRepository = mapRepository;
+        this.propRepository = propRepository;
+        this.exerciseService = exerciseService;
     }
 
-    public void showVersion() throws IOException {
+    final void showVersion() throws IOException {
+        /* example constructor: @Value("classpath:myapp.json") Resource jsonFile */
         System.out.println(jsonFile.getFile().toString());
+        /* example jackson + TypeReference */
         HashMap<String, String> options = objectMapper
                 .readValue(jsonFile.getFile(), new TypeReference<HashMap<String, String>>() {});
-        System.out.printf("version: %s%n", options.get("version"));
+        System.out.printf("showVersion: %s%n", options.get("version"));
     }
 
-    public void seedUsers() {
+    final void seedUsers() throws IOException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        System.out.printf("seedUsers: %s%n", authentication != null ? authentication.getName() : "SecurityContextHolder");
+
         UserRoleEntity adminRole = new UserRoleEntity().setRole(UserRole.ADMIN);
         UserRoleEntity userRole = new UserRoleEntity().setRole(UserRole.USER);
         userRoleRepository.saveAll(List.of(adminRole, userRole));
@@ -84,176 +101,184 @@ public class SeedDb {
         UserProfile adminProfile = userProfileRepository.save(new UserProfile(null));
         admin.setProfile(adminProfile);
         admin.setRoles(List.of(adminRole, userRole));
+        userRepository.saveAll(List.of(admin));
 
-        UserEntity user = new UserEntity(USER_NAME, passwordEncoder.encode(USER_PASSWORD), USER_FULLNAME, USER_EMAIL);
-        UserProfile userProfile = userProfileRepository.save(new UserProfile(USER_IMAGE));
-        user.setProfile(userProfile);
-        user.setRoles(List.of(userRole));
+        Resource resource = getResource("users.json");
+        UserDto[] users = objectMapper.readValue(resource.getFile(), UserDto[].class);
 
-        userRepository.saveAll(List.of(admin, user));
+        for (UserDto dto: users) {
+            UserEntity user = new UserEntity(dto.username, dto.password, dto.fullname, dto.email);
+            UserProfile profile = userProfileRepository.save(new UserProfile(dto.imageUrl));
+            user.setProfile(profile);
+            user.setRoles(List.of(userRole));
+            userRepository.save(user);
+        }
+        System.out.printf("seedUsers: %s%n", users.length + 1);
     }
 
-    public String currentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication.getName();
+    final void seedCategories() throws IOException {
+        Resource resource = getResource("categories.json");
+        CategoryDto[] categories = objectMapper.readValue(resource.getFile(), CategoryDto[].class);
+
+        for (CategoryDto dto : categories) {
+            Category category = new Category(dto.name, dto.parentId, dto.sortId);
+            category.setId(dto.id);
+            categoryRepository.save(category);
+        }
+        System.out.printf("seedCategories: %s%n", categories.length);
     }
 
-    public void seedCategories() {
-        // parent
-        categoryRepository.save(new Category("Cards"));
-        categoryRepository.save(new Category("Quizzes"));
-        categoryRepository.save(new Category("Maps"));
-        for (int i = 0; i < 2; i++) { categoryRepository.save(new Category("-")); }
-        // cards
-        categoryRepository.save(new Category("German", CATEGORY_ID_CARDS, 1));
-        categoryRepository.save(new Category("Custom", CATEGORY_ID_CARDS, 2));
-        // quizzes
-        categoryRepository.save(new Category("JavaScript Advanced", CATEGORY_ID_QUIZZES, 1));
-        categoryRepository.save(new Category("Vue", CATEGORY_ID_QUIZZES, 2));
-        categoryRepository.save(new Category("GIS", CATEGORY_ID_QUIZZES, 3));
-        // maps
-        categoryRepository.save(new Category("Germany", CATEGORY_ID_MAPS, 1));
+    private int CompareNames(File f1, File f2) {
+        if (f1 == null || f2 == null) {
+            return 0;
+        }
+        String a = f1.getName();
+        String b = f2.getName();
+        if (a.matches(JSON_FILENAME_PATTERN) && b.matches(JSON_FILENAME_PATTERN)) {
+            int ai = Integer.parseInt(a.substring(0, a.lastIndexOf(".")));
+            int bi = Integer.parseInt(b.substring(0, b.lastIndexOf(".")));
+            return ai - bi;
+        } else {
+            return a.compareTo(b);
+        }
     }
 
-    public void seedCards() throws IOException {
-        String[] files = Arrays.stream(FilesUtil.listFiles(RESOURCES_PATH_INPUT + "\\" + DIRECTORY_NAME_CARDS))
-                .filter(File::isFile)
-                .map(File::getName)
-                .toArray(String[]::new);
+    /* resources example: files (absolute path) */
+    private File[] getFiles(String directoryName) {
+        final String path = RESOURCES_PATH_INPUT + "\\" + directoryName;
+        return Arrays.stream(FilesUtil.listFiles(path))
+            .filter(File::isFile)
+            .sorted(this::CompareNames)
+            .toArray(File[]::new);
+    }
 
-        for (String fileName: files) {
+    /* resources example: ClassPathResource (relative path) */
+    private Resource getResource(String filePath) {
+        final String path = JSON_INPUT_PATH + filePath;
+        return new ClassPathResource(path);
+    }
 
-            // ClassPathResource example
-            Resource resource = new ClassPathResource(String.format("json/input/cards/%s", fileName));
+    /* resources example: ClassPathResources (relative path) */
+    private Resource[] getResources(String directoryPath) {
+        return Arrays.stream(getFiles(directoryPath))
+            .map(File::getName)
+            .map(fileName -> getResource(directoryPath + "/" + fileName))
+            .toArray(Resource[]::new);
+    }
+
+    final void seedCards() throws IOException {
+
+        int value = 1;
+        for (Resource resource: getResources(DIRECTORY_NAME_CARDS)) {
+
             JsonNode jsonNode = objectMapper.readTree(resource.getFile());
-            CardsDto cardsDto = objectMapper.readValue(jsonNode.traverse(), CardsDto.class);
+            ExerciseDto exerciseDto = objectMapper.readValue(jsonNode.traverse(), ExerciseDto.class);
 
+            // data
             String[][] data;
-            if(fileName.equals("3.json")) {
-                String[] arr = objectMapper.treeToValue(jsonNode.get("dictionaries"), String[].class);
+            if(exerciseDto.props.containsKey("adapter")) {
+                String[] arr = objectMapper.treeToValue(jsonNode.get("data"), String[].class);
                 data = ArrayToMatrixAdapter.toMatrix(arr, 2);
             } else {
-                data = objectMapper.treeToValue(jsonNode.get("dictionaries"), String[][].class);
+                data = objectMapper.treeToValue(jsonNode.get("data"), String[][].class);
             }
 
-            switch (fileName) {
-                case "1.json":   // Die 200 wichtigsten deutschen Adjektive
-                    seedCard(cardsDto, data, 1,
-                            Lang.DE, Lang.DE, TextType.ADJECTIVE, TextRole.OPPOSITE, TextRole.TRANSLATION);
-                    break;
-                case "2.json":   // 34 special characters
-                    seedCard(cardsDto, data, 2,
-                            Lang.EN, Lang.DE, TextType.NOUN, TextRole.TRANSLATION, TextRole.CODE);
-                    break;
-                case "3.json":   // Diana's top 200
-                    seedCard(cardsDto, data, 3,
-                            Lang.BG, Lang.DE, TextType.SENTENCE, TextRole.TRANSLATION, null);
-                    break;
-                case "test.json": // Test
-                    seedCard(cardsDto, data, 1,
-                            Lang.EN, Lang.DE, TextType.NOUN, TextRole.TRANSLATION, TextRole.CODE);
+            // exercise
+            Exercise exercise = exerciseService.seed(exerciseService.map(exerciseDto));
+            // type
+            Cards cards = new Cards(exercise);
+            // props
+            Set<Prop> props = Prop.fromMap(exerciseDto.props);
+            props.forEach(propRepository::save);
+            cards.setProps(props);
+            // category
+            Category category = categoryService.getByName(exerciseDto.exercise.get("category"), ExerciseType.CARDS);
+            cards.setCategory(category);
+            // dictionaryCollection
+            DictionaryCollection dictionaryCollection = dictionaryCollectionRepository
+                .save(new DictionaryCollection("cards_" + value++, data.length));
+            cards.setDictionaryCollection(dictionaryCollection);
+            // dictionaries
+            Dictionary dictionary;
+            int c = 1;
+            for (String[] row : data) {
+                dictionary = new Dictionary(c++, row);
+                dictionary.setCollection(dictionaryCollection);
+                dictionaryCollection.getDictionaries().add(dictionaryRepository.save(dictionary));
             }
+            // save
+            dictionaryCollectionRepository.save(dictionaryCollection);
+            cardsRepository.save(cards);
+            System.out.printf("seedCards: %s%n", cards.getExercise().getName());
         }
     }
 
-    public void seedCard(CardsDto cardsDto, String[][] data, int value,
-                         Lang lang1, Lang lang2, TextType textType, TextRole textRole, TextRole attRole) {
+    final void seedAnswerTemplates() throws IOException {
+        Resource resource = getResource("answers.json");
+        AnswerDto[] answers = objectMapper.readValue(resource.getFile(), AnswerDto[].class);
+        HashMap<String, AnswerCollection> collections = new HashMap<>();
 
-        Cards cards = new Cards(cardsDto.name, cardsDto.description, value);
-        cards.setSource(cardsDto.source)
-                .setSourceUrl(cardsDto.sourceUrl).setAuthor(cardsDto.author).setAuthorUrl(cardsDto.authorUrl)
-                .setCategoryId(categoryRepository.findByName(cardsDto.category).getId())
-                .setCreatedBy(ADMIN_NAME);
-
-        Options labels = new Options();
-        Arrays.stream(cardsDto.labels).forEach(labels::add);
-        cards.setLabels(optionsRepository.save(labels));
-
-        Options options = new Options().fromMap(cardsDto.options);
-        cards.setOptions(optionsRepository.save(options));
-
-        DictionaryCollection dictionaryCollection = dictionaryCollectionRepository
-                .save(new DictionaryCollection(null, data.length));
-        cards.setDictionaryCollection(dictionaryCollection);
-
-        Dictionary dictionary;
-        int c = 1;
-        for (String[] row : data) {
-            dictionary = new Dictionary();
-            dictionary.setValue(c++)
-                    .setAtt1(row[0])
-                    .setAtt2(row.length > 1 ? row[1] : null)
-                    .setAtt3(row.length > 2 ? row[2] : null)
-                    .setLang1(lang1)
-                    .setLang2(lang2)
-                    .setType(textType)
-                    .setRole2(textRole)
-                    .setRole3(attRole)
-                    .setCollection(dictionaryCollection);
-            dictionaryCollection.getDictionaries().add(dictionaryRepository.save(dictionary));
+        for (AnswerDto dto : answers) {
+            AnswerCollection collection = collections.get(dto.collectionName);
+            if(collection == null) {
+                collection = new AnswerCollection(dto.collectionName);
+                int count = Arrays.stream(answers).filter(a -> a.collectionName.equals(dto.collectionName)).map(e -> 1).reduce(0, Integer::sum);
+                collection.setValue(count);
+                collection = answerCollectionRepository.save(collection);
+                collections.put(collection.getName(), collection);
+            }
+            answerRepository.save(new Answer(dto.text, dto.value, collection));
         }
-        dictionaryCollectionRepository.save(dictionaryCollection);
-        cardsRepository.save(cards);
-        System.out.printf("flashcards: %s%n", cards.getName());
+        System.out.printf("seedAnswerTemplates: %s%n", answers.length);
     }
 
-    public void seedAnswersCollectionTemplates() {
-        AnswersCollection answersCollectionBoolean = new AnswersCollection("BOOLEAN");
-        answersCollectionBoolean.setValue(2);
-        answersCollectionRepository.save(answersCollectionBoolean);
-        answerRepository.save(new Answer("True",1, answersCollectionBoolean));
-        answerRepository.save(new Answer("False",2, answersCollectionBoolean));
-    }
-
-    public void seedQuizzes() throws IOException, NullPointerException {
+    final void seedQuizzes() throws IOException, NullPointerException {
         int quizValue = 0;
         String lastCategoryName = "";
-        int filesCount = FilesUtil.listFiles(RESOURCES_PATH_INPUT + "\\" + DIRECTORY_NAME_QUIZZES).length;
+        File[] files = getFiles(DIRECTORY_NAME_QUIZZES);
 
-        for (int i = 1; i <= filesCount; i++) {
+
+        for (File file: files) {
             // unmarshal from json
-            Resource resource = new ClassPathResource(String.format("json/input/quizzes/%s.json", i));
-            QuizDto quizDto = objectMapper.readValue(resource.getFile(), QuizDto.class);
+            QuizDto quizDto = objectMapper.readValue(file, QuizDto.class);
+
+            // exercise
+            ExerciseDto exerciseDto = objectMapper.readValue(objectMapper.readTree(file).traverse(), ExerciseDto.class);
+            Exercise exercise = exerciseService.seed(exerciseService.map(exerciseDto));
 
             // category
-            String categoryName = quizDto.category;
-            long categoryId = categoryRepository.findByName(categoryName).getId();
+            String categoryName = exerciseDto.exercise.get("category");
+            Category category = categoryService.getByName(categoryName, ExerciseType.QUIZZES);
 
             // sort value
             quizValue = categoryName.equals(lastCategoryName) ? quizValue + 1 : 1;
             lastCategoryName = categoryName;
 
             // quiz
-            Quiz quiz = new Quiz(quizDto.name, quizDto.description, quizValue);
-            quiz.setAuthor(quizDto.author);
-            quiz.setAuthorUrl(quizDto.authorUrl);
-            quiz.setSource(quizDto.source);
-            quiz.setSourceUrl(quizDto.sourceUrl);
-            quiz.setCategoryId(categoryId);
-            quiz.setCreatedBy(ADMIN_NAME);
+            Quiz quiz = new Quiz(exercise);
+            quiz.setCategory(category);
 
-            // certification (Certification.NONE, ON_SERVER; ON_SERVER_STRICT)
-            if (quizDto.options != null && quizDto.options.containsKey(QUIZZES_CERTIFICATION_KEY)) {
-                quiz.setCertification(Certification.byOrdinal(quizDto.options.get(QUIZZES_CERTIFICATION_KEY)));
-                quizDto.options.remove(QUIZZES_CERTIFICATION_KEY);
+            // props
+            if (exerciseDto.props != null && exerciseDto.props.containsKey(QUIZZES_CERTIFICATION_KEY)) {
+                // certification (Certification.NONE, ON_SERVER; ON_SERVER_STRICT)
+                quiz.setCertification(Certification.byOrdinal(Integer.parseInt(exerciseDto.props.get(QUIZZES_CERTIFICATION_KEY))));
+//                exerciseDto.props.remove(QUIZZES_CERTIFICATION_KEY);
             } else {
                 quiz.setCertification(QUIZZES_CERTIFICATION);
             }
+            quiz.setLang(Lang.valueOf(exerciseDto.props.remove("lang")));
+            quiz.setLevel(Level.valueOf(exerciseDto.props.remove("level")));
+            Set<Prop> props = Prop.fromMap(exerciseDto.props);
+            props.forEach(propRepository::save);
+            quiz.setProps(props);
 
-            // options
-            if (quizDto.options != null && quizDto.options.size() > 0) {
-                Options options = new Options().fromMap(quizDto.options);
-                quiz.setOptions(optionsRepository.save(options));
-            }
 
             // questions
-            Level level = categoryName.equals("GIS") ? Level.BASIC : Level.ADVANCED;
-            Lang lang = categoryName.equals("JavaScript Advanced") ? Lang.BG : Lang.EN;
             Integer[] correct = quizDto.correct.toArray(Integer[]::new);
             int count = 0;
             for (QuestionDto questionDto : quizDto.questions) {
                 int flags = correct[count];
-                Question question = new Question(questionDto.text, count++, level, lang);
+                Question question = new Question(questionDto.text, count++);
 
                 // correct, flags and type
                 question.setCorrect(flags);
@@ -270,44 +295,46 @@ public class SeedDb {
             }
             // save
             quizRepository.save(quiz);
-            System.out.printf("quiz: %s%n", quiz.getName());
+            System.out.printf("seedQuizzes: %s%n", exercise.getName());
         }
     }
 
-    public void createAnswers (Question question, Collection<AnswerDto> answerDtos) {
+    void createAnswers (Question question, Collection<AnswerDto> answerDtos) {
         String[] answers = answerDtos.stream().map(answerDto -> answerDto.text).toArray(String[]::new);
 
         if (question.getType() == Question.Type.BOOLEAN) {
-            question.setAnswersCollection(answersCollectionRepository.getOne(1L));
+            question.setAnswersCollection(answerCollectionRepository.getOne(1L));
         } else {
-            AnswersCollection answersCollection = new AnswersCollection();
-            answersCollection.setValue(answers.length);
-            answersCollectionRepository.save(answersCollection);
-            question.setAnswersCollection(answersCollection);
+            AnswerCollection answerCollection = new AnswerCollection();
+            answerCollection.setValue(answers.length);
+            answerCollectionRepository.save(answerCollection);
+            question.setAnswersCollection(answerCollection);
 
             for (int i = 0; i < answers.length; i++) {
-                answerRepository.save(new Answer(answers[i], Flags.toBits(i), answersCollection));
+                answerRepository.save(new Answer(answers[i], Flags.toBits(i), answerCollection));
             }
         }
     }
 
-    public void seedMaps () {
+    public final void seedMaps () throws IOException {
+        for (File file: getFiles(DIRECTORY_NAME_MAPS)) {
 
-        Options options = new Options();
-        options.add("lands", 0);
-        options.add("maps-de.js", 1);
-        options.add("maps-de-full.js", 2);
+            JsonNode jsonNode = objectMapper.readTree(file);
 
-        long categoryId = categoryRepository.findByName("Germany").getId();
-        Map map = new Map();
-        map.setName("Die deutschen Bundesländer");
-        map.setSource("tutorial;Land (Deutschland)");
-        map.setSourceUrl("https://www.mediaevent.de/tutorial/svg.html;https://de.wikipedia.org/wiki/Land_(Deutschland)");
-        map.setAuthor("mediaevent.de;wikipedia.org");
-        map.setAuthorUrl("https://www.mediaevent.de;https://de.wikipedia.org");
-        map.setCategoryId(categoryId);
-        map.setCreatedBy(ADMIN_NAME);
-        map.setOptions(optionsRepository.save(options));
-        mapRepository.save(map);
+            // exercise
+            ExerciseDto exerciseDto = objectMapper.readValue(jsonNode.traverse(), ExerciseDto.class);
+            Exercise exercise = exerciseService.seed(exerciseService.map(exerciseDto));
+            // props
+            Set<Prop> props = Prop.fromMap(exerciseDto.props);
+            props.forEach(propRepository::save);
+            // map
+            Map map = new Map(exercise);
+            map.setProps(props);
+            map.setCategory(categoryService.getByName(exerciseDto.exercise.get("category"), ExerciseType.MAPS));
+            map.setCreatedBy(ADMIN_NAME);
+            mapRepository.save(map);
+
+            System.out.printf("seedMaps: %s%n", exercise.getName());
+        }
     }
 }

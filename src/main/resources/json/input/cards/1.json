@@ -1,20 +1,23 @@
 {
-  "name": "Die 200 wichtigsten deutschen Adjektive",
-  "category": "German",
-  "description": "-",
-  "source": "E-Book",
-  "sourceUrl": "",
-  "author": "deutschlernerblog.de",
-  "authorUrl": "https://deutschlernerblog.de/materialien-fuer-den-deutschunterricht-zum-herunterladen/",
-  "labels": [
-    "DE",
-    "DE",
-    "BG"
-  ],
-  "options": {
-    "card": 1
-  },
-"dictionaries":[
+"exercise": {
+    "name": "Die 200 wichtigsten deutschen Adjektive",
+    "category": "German",
+    "description": "-",
+    "source": "E-Book",
+    "sourceUrl": "",
+    "author": "deutschlernerblog.de",
+    "authorUrl": "https://deutschlernerblog.de/materialien-fuer-den-deutschunterricht-zum-herunterladen/"
+},
+"props": {
+    "card": "1",
+    "label1": "DE",
+    "label2": "DE",
+    "label3": "BG",
+    "textType": "ADJECTIVE",
+    "role1": "OPPOSITE",
+    "role3": "TRANSLATION"
+},
+"data":[
     ["alt","neu","стар - нов"],
     ["altmodisch","modern","старомоден - модерен"],
     ["angenehm","unangenehm","приятен - неприятен"],

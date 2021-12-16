@@ -5,15 +5,8 @@ import java.util.HashMap;
 
 
 public class QuizDto {
-    public String name;
-    public String category;
-    public String description;
-    public String source;
-    public String sourceUrl;
-    public String author;
-    public String authorUrl;
-    public HashMap<String, Integer> options;
-
+    public HashMap<String, String> exercise;
+    public HashMap<String, String> props;
     public Collection<Integer> correct;
     public Collection<QuestionDto> questions;
 }

@@ -8,4 +8,5 @@ import java.util.Collection;
 public interface CardsService {
     Collection<ExerciseIndexModel> getIndex();
     CardsModel getById(Long id);
+    int update(Long id, CardsModel model);
 }

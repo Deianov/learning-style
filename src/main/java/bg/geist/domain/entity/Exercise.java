@@ -1,28 +1,25 @@
 package bg.geist.domain.entity;
 
-
-import bg.geist.domain.entity.enums.ExerciseType;
-import bg.geist.domain.entity.enums.Certification;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.util.*;
 
-// TODO: 15.03.2021 current user
+@Entity
+@Table(name = "exercises")
+public class Exercise {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false, updatable = false)
+    private Long id;
 
-@MappedSuperclass
-public abstract class Exercise extends BaseEntity {
-
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Basic
     private String description;
-
-    @Basic
-    private int value;
 
     @Basic
     private String source;
@@ -40,164 +37,115 @@ public abstract class Exercise extends BaseEntity {
     @CreationTimestamp
     private Date timeStamp;
 
-    @Column(name = "created_by", nullable = false)
-    private String createdBy;
-
     @Column(name = "updated", nullable = false)
     @UpdateTimestamp
     private Date updated;
 
-    @Transient
-    private ExerciseType type;
+    @Column(name = "created_by")
+    private String createdBy;
 
-    @Column(name = "category_id")
-    private long categoryId;
-
-    @OneToOne
-    private Options options;
-
-    @Enumerated(value = EnumType.ORDINAL)
-    @Basic
-    private Certification certification;
-
-    public Integer getOption(String key) {
-        return (this.options != null) ? this.options.toMap().get(key) : null;
-    }
-
-
-    public Exercise() { }
-    public Exercise(ExerciseType type) {
-        this.type = type;
-    }
-    public Exercise(ExerciseType type, String name, String description, int value){
-        this(type);
+    public Exercise() {};
+    public Exercise(String name, String description, String source, String sourceUrl, String author, String authorUrl, String createdBy) {
         this.name = name;
         this.description = description;
-        this.value = value;
+        this.source = source;
+        this.sourceUrl = sourceUrl;
+        this.author = author;
+        this.authorUrl = authorUrl;
+        this.createdBy = createdBy;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
         return name;
     }
 
-    public Exercise setName(String name) {
+    public void setName(String name) {
         this.name = name;
-        return this;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public Exercise setDescription(String description) {
+    public void setDescription(String description) {
         this.description = description;
-        return this;
-    }
-
-    public int getValue() {
-        return value;
-    }
-
-    public Exercise setValue(int value) {
-        this.value = value;
-        return this;
     }
 
     public String getSource() {
         return source;
     }
 
-    public Exercise setSource(String source) {
+    public void setSource(String source) {
         this.source = source;
-        return this;
     }
 
     public String getSourceUrl() {
         return sourceUrl;
     }
 
-    public Exercise setSourceUrl(String sourceUrl) {
+    public void setSourceUrl(String sourceUrl) {
         this.sourceUrl = sourceUrl;
-        return this;
     }
 
     public String getAuthor() {
         return author;
     }
 
-    public Exercise setAuthor(String author) {
+    public void setAuthor(String author) {
         this.author = author;
-        return this;
     }
 
     public String getAuthorUrl() {
         return authorUrl;
     }
 
-    public Exercise setAuthorUrl(String authorUrl) {
+    public void setAuthorUrl(String authorUrl) {
         this.authorUrl = authorUrl;
-        return this;
     }
 
     public Date getTimeStamp() {
         return timeStamp;
     }
 
-    public Exercise setTimeStamp(Date timeStamp) {
+    public void setTimeStamp(Date timeStamp) {
         this.timeStamp = timeStamp;
-        return this;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public Exercise setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-        return this;
     }
 
     public Date getUpdated() {
         return updated;
     }
 
-    public Exercise setUpdated(Date updated) {
+    public void setUpdated(Date updated) {
         this.updated = updated;
-        return this;
     }
 
-    public ExerciseType getType() {
-        return type;
+    public String getCreatedBy() {
+        return createdBy;
     }
 
-    public Exercise setType(ExerciseType type) {
-        this.type = type;
-        return this;
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 
-    public long getCategoryId() {
-        return categoryId;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Exercise exercise = (Exercise) o;
+        return name.equals(exercise.name);
     }
 
-    public Exercise setCategoryId(long categoryId) {
-        this.categoryId = categoryId;
-        return this;
-    }
-
-    public Options getOptions() {
-        return options;
-    }
-
-    public Exercise setOptions(Options options) {
-        this.options = options;
-        return this;
-    }
-
-    public Certification getCertification() {
-        return certification;
-    }
-
-    public void setCertification(Certification certification) {
-        this.certification = certification;
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
     }
 }

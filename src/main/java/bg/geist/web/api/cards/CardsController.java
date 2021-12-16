@@ -49,25 +49,31 @@ public class CardsController {
     // todo: fast home fix
     @PostMapping("/{id}")
     public ResponseEntity<ResponseModel> patchDictionary(@PathVariable Long id, @RequestBody RequestModel model) {
-        final String MSG_ACCEPTED = "Accepted";
-        final String MSG_ADMIN = "Administrator required";
+        final String MSG_UPDATED = "UPDATED: %d";
+        final String MSG_ADMIN = "Administrator required.";
+        final String MSG_NO_CHANGES = "NOT FOUND CHANGES!";
 
         if (id == null || model == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        if (model.getData().length == 0) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
 
         String username = model.getUsername();
         if (username != null && !username.isEmpty()) {
             UserProfileModel profile = userService.profile(model.getUsername(), model.getUsername());
             if (profile != null && profile.isAdmin()) {
-                return new ResponseEntity<>(new ResponseModel(MSG_ACCEPTED), HttpStatus.OK);
+
+                CardsModel cardsModel = new CardsModel();
+                cardsModel.setData(model.getData());
+                int updated = cardsService.update(id, cardsModel);
+
+                String msg = updated > 0 ? String.format(MSG_UPDATED, updated) : MSG_NO_CHANGES;
+                String [][] data = cardsService.getById(id).getData();
+
+                ResponseModel response = new ResponseModel(msg, HttpStatus.OK, cardsService.getById(id).getData());
+                return new ResponseEntity<>(response, HttpStatus.OK);
             }
         }
-
-        return new ResponseEntity<>(new ResponseModel(MSG_ADMIN, HttpStatus.FORBIDDEN.value()), HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(new ResponseModel(MSG_ADMIN, HttpStatus.FORBIDDEN), HttpStatus.FORBIDDEN);
     }
 }

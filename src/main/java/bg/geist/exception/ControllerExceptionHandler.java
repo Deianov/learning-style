@@ -77,6 +77,10 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ModelAndView defaultErrorHandler(final HttpServletRequest req, final Exception ex) throws Exception {
+        ModelAndView mav = new ModelAndView(DEFAULT_ERROR_VIEW);
+        if(ex == null) {
+           return mav;
+        }
         logger.error(ex.getMessage(), ex);
         // If the exception is annotated with @ResponseStatus rethrow it and let
         // the framework handle it - like the ObjectNotFoundException example
@@ -95,13 +99,11 @@ public class ControllerExceptionHandler {
             status = HttpStatus.valueOf(Integer.parseInt((String) statusCode)).toString();
         }
 
-        ModelAndView mav = new ModelAndView();
         mav.addObject("status", status);
         mav.addObject("statusCode", statusCode);
         mav.addObject("url", req.getRequestURL());
         mav.addObject("message", ex.getMessage());
         mav.addObject("exception", ex);
-        mav.setViewName(DEFAULT_ERROR_VIEW);
         return mav;
     }
 }

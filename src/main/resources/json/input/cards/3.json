@@ -1,20 +1,22 @@
 {
-  "name": "Diana's top 200",
-  "category": "German",
-  "description": "-",
-  "source": null,
-  "sourceUrl": null,
-  "author": "learning-style.com",
-  "authorUrl": "/",
-  "labels": [
-    "BG",
-    "DE"
-  ],
-  "options": {
-    "card": 1,
-    "adapter": 0
-  },
-  "dictionaries": [
+"exercise": {
+    "name": "Diana's top 200",
+    "category": "German",
+    "description": "-",
+    "source": null,
+    "sourceUrl": null,
+    "author": "learning-style.com",
+    "authorUrl": "/"
+},
+"props": {
+    "card": "1",
+    "adapter": "0",
+    "label1": "BG",
+    "label2": "DE",
+    "textType": "SENTENCE",
+    "role1": "TRANSLATION"
+},
+"data": [
     "Заради нарастващото търсене",
     "Aufgrund der wachsenden Nachfrage",
     "търсене",
@@ -457,5 +459,5 @@
     "ein abwertender Ausdruck",
     "В противен случай щеше да е по-лошо",
     "Sonst wäre es schlimmer gewesen"
-  ]
+]
 }
