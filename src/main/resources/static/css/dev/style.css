@@ -348,6 +348,13 @@ table th {
     font-weight: bold;
 }
 
+table.numbering tr > th:first-child {
+    width: 3rem;
+    font-weight: bold;
+    background-color: var(--color-bg);
+    text-align: center;
+}
+
 /* ------------------------------------------------------------------------ */
 /* Cards */
 /* ------------------------------------------------------------------------ */
