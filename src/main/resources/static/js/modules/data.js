@@ -110,8 +110,8 @@ class Data {
     }
     getCashable(name) {
         if (inMemoryRepository.existsByName(name)) {
-            console.debug("cashed: " + name + ".json")
-            return inMemoryRepository.getByName(name)
+            // console.debug("cashed: " + name + ".json")
+            return inMemoryRepository.getByName(name);
         }
     }
     adapt(json) {
