@@ -5,7 +5,6 @@
 
 ####### todo
 - filter (response) utf-8 (?)
-- localStorage
+- localStorage (OK)
 - notify.js (OK)
-- stats - render templates and css refactoring (float -> flex item)  
-- quizzes - use Stats class
+- quizzes - "props": {"highlight": "javascript"}; (prismjs ???)

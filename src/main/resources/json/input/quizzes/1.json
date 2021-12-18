@@ -13,7 +13,8 @@
     },
     "props": {
         "level": "ADVANCED",
-        "lang": "BG"
+        "lang": "BG",
+        "highlight": "javascript"
     },
     "correct": [
         2,
