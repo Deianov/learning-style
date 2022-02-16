@@ -91,7 +91,7 @@ public class CardsServiceImpl implements CardsService {
             };
             // is edited;
             if (arr != null && !dictionary.equalsTo(arr)) {
-                dictionary.update(arr);
+                dictionary.update(null, arr);
                 dictionaryRepository.save(dictionary);
                 i++;
             }

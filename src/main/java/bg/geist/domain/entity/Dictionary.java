@@ -34,8 +34,7 @@ public class Dictionary{
 
     public Dictionary() {}
     public Dictionary(int value , String[] arr) {
-        this.update(arr);
-        this.value = value;
+        this.update(value, arr);
     }
 
 
@@ -93,25 +92,17 @@ public class Dictionary{
         return Stream.of(att1, att2, att3).filter(Objects::nonNull).toArray(String[]::new);
     }
 
-    public void update(String[] arr) {
+    public void update(Integer value, String[] arr) {
         if (arr == null) {
             return;
         }
-        // move index if arr has value
-        int m;
-        if (att1 == null) {
-            // constructor
-            m = 0;
-        } else {
-            // update (first index is row number)
-            m = (arr.length > ((att3 == null) ? 2 : 3)) ? 1 : 0;
+        if (value != null) {
+            this.value = value;
         }
-        if ((arr.length + m) < 2) {
-            return;
-        }
-        this.att1 = arr[m];
-        this.att2 = arr[1 + m];
-        this.att3 = arr.length > (2 + m) ? arr[2 + m] : null;
+        // skip index 0 - value in arr
+        this.att1 = arr[1];
+        this.att2 = arr[2];
+        this.att3 = arr.length > 3 ? arr[3] : null;
     }
 
     public boolean equalsTo(String[] arr) {
