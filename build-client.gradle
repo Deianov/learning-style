@@ -1,77 +1,97 @@
-class ConcatTask extends DefaultTask {
-    @InputFiles
-    ArrayList<String> filters
-    @InputFiles
-    FileCollection files
-    @OutputFile
-    File target
-    @TaskAction
-    void concat() {
-        int count =  FilesUtil.concat(files, target, filters)
-        println("ConcatTask: ${count} files to ${target.toString()}.")
-    }
+
+// static
+static def getDate() {
+    return new Date().format('dd.MM.yyyy')
 }
-
-class FilesUtil {
-
-    static File create(File file) {
-        file.getParentFile().mkdirs()
-        if (!file.exists()) {
-            file.createNewFile()
-        }
-        return file
-    }
-
-    static boolean isValid(String line, ArrayList<String> filters) {
-        def result = true;
-        filters.each { str ->
-            if (line.startsWith(str)) {
-                result = false
-            }
-        }
-        return result
-    }
-
-    static int concat(FileCollection files, File target, ArrayList<String> filters) {
-        int i = 0;
-        target.withWriter('UTF-8') { writer ->   // withPrintWriter
-            files.each { file ->
-                if (file.isFile()) {
-                    file.eachLine { line ->
-                        if (FilesUtil.isValid(line, filters)) {
-                            writer.println(line)
-                        }
-                    }
-                    i++
-                }
-            }
-        }
-        return i
-    }
-
-    static int extract(File source, File target, String start, String stop, boolean isOuter, ArrayList<String> filters) {
-        int i = 0;
-        boolean isExtract = isOuter;
-        target.withWriter('UTF-8') { writer ->
-            source.eachLine { line ->
-                if (line.startsWith(start)) {
-                    isExtract = !isExtract
-                }
-                if (isExtract && FilesUtil.isValid(line, filters)) {
-                    writer.println(line)
-                    i++
-                }
-                if ((isExtract != isOuter) && line.startsWith(stop)) {
-                    isExtract = !isExtract
-                }
-            }
-        }
-        return i
-    }
-}
-
+def currentDate = getDate()
 def DIR_CSS = project.file("src/main/resources/static/css/dev")
 def DIR_JS = project.file("src/main/resources/static/js/modules")
+def dirClient = "$buildDir/client"
+def dirMin = "$buildDir/min"
+// from gradle.properties
+def dirTomcat = "${tomcatHome}/webapps/${appName}"
+
+tasks.register('cclean') {
+    doFirst {
+        println "clean: build directory"
+        file("$buildDir").list().each {
+            f -> delete "$buildDir/${f}"
+        }
+    }
+}
+
+tasks.register('client') {
+    doFirst {
+        println "Create static JS client..."
+
+        copy {
+            println "copy: json files"
+            from "src/main/resources/json/output"
+            into "$buildDir/client/json"
+            include('**/*.json')
+        }
+        copy {
+            println "copy: tailwindcss"
+            from "src/main/resources/static/css/external/tailwind.min.form.css"
+            into "$buildDir/client/node_modules/tailwindcss/dist"
+        }
+        copy {
+            println "copy: static"
+            println "copy: assets"
+            from "src/main/resources/static"
+            exclude ('**/js', '**/css') // '**/temp', '**/tmp', '**/_tmp'
+            println "copy: package.json"
+            from layout.projectDirectory.file("package.json")
+            println "copy: robots.txt"
+            from layout.projectDirectory.file("robots.txt")
+            println "copy: favicon.ico"
+            from layout.projectDirectory.file("src/main/resources/static/assets/images/favicon.ico")
+            into dirClient
+        }
+        copy {
+            println "copy: html"
+            from layout.projectDirectory.file("src/main/resources/templates/index.html")
+            from layout.projectDirectory.file("src/main/resources/templates/static/login.html")
+            filter { String line ->
+                line.replaceAll('/users/login', "/login.html")
+            }
+            filter { String line ->
+                line.contains('favicon.ico') ? "<link rel=\"icon\" href=\"favicon.ico?v=${currentDate}\">" : line
+            }
+            filter { String line ->
+                line.contains('/main.css') ? "<link rel=\"stylesheet\" href=\"/css/style.css?v=${currentDate}\" type=\"text/css\">" : line
+            }
+            filteringCharset = 'UTF-8'
+            into dirClient
+        }
+        copy {
+            println "copy: style.css"
+            from "$buildDir/min/css/style.min.css"
+            into "$buildDir/client/css"
+            rename("style.min.css", "style.css")
+        }
+        copy {
+            println "copy: main.js"
+            from layout.projectDirectory.file("src/main/resources/static/js/main.js")
+            into "$buildDir/client/js"
+            filter { String line ->
+                line.replaceAll("./modules/factory.js", "./modules/modules.js")
+            }
+        }
+        copy {
+            println "copy: maps"
+            from "src/main/resources/static/js/modules/components/maps"
+            into "$buildDir/client/js/modules/components/maps"
+        }
+    }
+    doLast {
+        project.sync {
+            println "sync to tomcat/webapps/${appName}"
+            from dirClient
+            into dirTomcat
+        }
+    }
+}
 
 task concatCSS(type: ConcatTask) {
     files = files(
@@ -88,7 +108,6 @@ task concatCSS(type: ConcatTask) {
 }
 
 task concatJS(type: DefaultTask) {
-    def currentDate = getDate()
     doFirst {
         copy {
             println "copy: constants.js"
@@ -159,10 +178,10 @@ task concatJS_files(type: ConcatTask) {
     target = project.file("$buildDir/concat/js/modules.js")
     filters = ["import", "export"]
     finalizedBy('JsMinify')
-//    finalizedBy('finalMerge')
+//    finalizedBy('concatJS_finalize')
 }
 
-task finalMerge(type: ConcatTask) {
+task concatJS_finalize(type: ConcatTask) {
     files = files(
 //            project.file("$buildDir/concat/js/modules.js"),
             project.file("$buildDir/min/js/modules.min.js"),
@@ -174,6 +193,79 @@ task finalMerge(type: ConcatTask) {
     doLast {
         target.append("const {data, page, topics, breadcrumb, router, navigation, notify} = await factory.init();")
         target.append("export {router}")
+    }
+}
+
+
+class ConcatTask extends DefaultTask {
+    @InputFiles
+    ArrayList<String> filters
+    @InputFiles
+    FileCollection files
+    @OutputFile
+    File target
+    @TaskAction
+    void concat() {
+        int count =  FilesUtil.concat(files, target, filters)
+        println("ConcatTask: ${count} files to ${target.toString()}.")
+    }
+}
+
+class FilesUtil {
+
+    static File create(File file) {
+        file.getParentFile().mkdirs()
+        if (!file.exists()) {
+            file.createNewFile()
+        }
+        return file
+    }
+
+    static boolean isValid(String line, ArrayList<String> filters) {
+        def result = true;
+        filters.each { str ->
+            if (line.startsWith(str)) {
+                result = false
+            }
+        }
+        return result
+    }
+
+    static int concat(FileCollection files, File target, ArrayList<String> filters) {
+        int i = 0;
+        target.withWriter('UTF-8') { writer ->   // withPrintWriter
+            files.each { file ->
+                if (file.isFile()) {
+                    file.eachLine { line ->
+                        if (FilesUtil.isValid(line, filters)) {
+                            writer.println(line)
+                        }
+                    }
+                    i++
+                }
+            }
+        }
+        return i
+    }
+
+    static int extract(File source, File target, String start, String stop, boolean isOuter, ArrayList<String> filters) {
+        int i = 0;
+        boolean isExtract = isOuter;
+        target.withWriter('UTF-8') { writer ->
+            source.eachLine { line ->
+                if (line.startsWith(start)) {
+                    isExtract = !isExtract
+                }
+                if (isExtract && FilesUtil.isValid(line, filters)) {
+                    writer.println(line)
+                    i++
+                }
+                if ((isExtract != isOuter) && line.startsWith(stop)) {
+                    isExtract = !isExtract
+                }
+            }
+        }
+        return i
     }
 }
 

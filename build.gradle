@@ -8,20 +8,28 @@ plugins {
 	id 'org.springframework.boot' version '2.4.3'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
-	id 'war'
 	id "org.gradlewebtools.minify" version "${minifyPluginVersion}"
 }
 
+/**
+ *  build War for Tomcat:
+ *  1.) uncomment 'spring-boot-starter-tomcat'
+ *  2.) uncomment war configs
+ */
+apply plugin:'war'
+bootWar {
+	enabled = true
+	archiveName 'ROOT.war'
+}
+
 group = 'bg'
-version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '15'
-//targetCompatibility = '14'
+//version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+//targetCompatibility = '11'
 
 repositories {
 	mavenCentral()
 }
-
-
 
 dependencies {
 //	implementation 'com.google.code.gson:gson:2.8.6' -> Jackson
@@ -39,7 +47,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'mysql:mysql-connector-java'
-	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat' // remove for Docker
 	// test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
@@ -50,6 +58,7 @@ test {
 //	useJUnitPlatform()
 }
 
+
 /**
  * 	Custom tasks ...................................................................
  *
@@ -57,107 +66,8 @@ test {
  * 	...
  * 		01. Run Git Bash or Terminal in build.gradle directory
  * 		02. _$ gradle client
- *
  **/
-
-tasks.register('customClean') {
-	doFirst {
-		println "clean: build directory"
-		file("$buildDir").list().each {
-			f -> delete "$buildDir/${f}"
-		}
-	}
-}
-
-static def getDate() {
-	return new Date().format('dd.MM.yyyy')
-}
-
-// 01. Run Git Bash or Terminal in build.gradle directory
-// 02. _$ gradle client
-
-tasks.register('client') {
-
-	// Groovy variables by using the 'def' keyword
-	def dirClient = layout.buildDirectory.dir('client')
-	def dirMin = layout.buildDirectory.dir('min')
-	def dirTomcat = "c://dev/tomcat/webapps/root"
-	def currentDate = getDate()
-
-	doFirst {
-		println "Create static JS client..."
-
-		copy {
-			println "copy: json files"
-			from "src/main/resources/json/output"
-			into "$buildDir/client/json"
-			include('**/*.json')
-		}
-		copy {
-			println "copy: tailwindcss"
-			from "src/main/resources/static/css/external/tailwind.min.form.css"
-			into "$buildDir/client/node_modules/tailwindcss/dist"
-		}
-		copy {
-			println "copy: static"
-			println "copy: assets"
-			from "src/main/resources/static"
-			exclude ('**/js', '**/css') // '**/temp', '**/tmp', '**/_tmp'
-			println "copy: package.json"
-			from layout.projectDirectory.file("package.json")
-			println "copy: robots.txt"
-			from layout.projectDirectory.file("robots.txt")
-			println "copy: favicon.ico"
-			from layout.projectDirectory.file("src/main/resources/static/assets/images/favicon.ico")
-			into dirClient
-		}
-		copy {
-			println "copy: html"
-			from layout.projectDirectory.file("src/main/resources/templates/index.html")
-			from layout.projectDirectory.file("src/main/resources/templates/static/login.html")
-			filter { String line ->
-				line.replaceAll('/users/login', "/login.html")
-			}
-			filter { String line ->
-				line.contains('favicon.ico') ? "<link rel=\"icon\" href=\"favicon.ico?v=${currentDate}\">" : line
-			}
-			filter { String line ->
-				line.contains('/main.css') ? "<link rel=\"stylesheet\" href=\"/css/style.css?v=${currentDate}\" type=\"text/css\">" : line
-			}
-			filteringCharset = 'UTF-8'
-			into dirClient
-		}
-		copy {
-			println "copy: style.css"
-			from "$buildDir/min/css/style.min.css"
-			into "$buildDir/client/css"
-			rename("style.min.css", "style.css")
-		}
-		copy {
-			println "copy: main.js"
-			from layout.projectDirectory.file("src/main/resources/static/js/main.js")
-			into "$buildDir/client/js"
-			filter { String line ->
-				line.replaceAll("./modules/factory.js", "./modules/modules.js")
-			}
-		}
-		copy {
-			println "copy: maps"
-			from "src/main/resources/static/js/modules/components/maps"
-			into "$buildDir/client/js/modules/components/maps"
-		}
-	}
-	doLast {
-		project.sync {
-			println "sync to tomcat/webapps/root"
-			from dirClient
-			into dirTomcat
-		}
-	}
-}
-
-apply from: 'build-concat.gradle'
-
+apply from: 'build-client.gradle'
 
 task CssMinify(type: org.gradlewebtools.minify.CssMinifyTask) {
 	srcDir = project.file("$buildDir/concat/css")
@@ -167,15 +77,15 @@ task CssMinify(type: org.gradlewebtools.minify.CssMinifyTask) {
 task JsMinify(type: org.gradlewebtools.minify.JsMinifyTask) {
 	srcDir = project.file("$buildDir/concat/js")
 	dstDir = project.file("$buildDir/min/js")
-	finalizedBy('finalMerge')
+	finalizedBy('concatJS_finalize')
 }
 
 client {
-	dependsOn('customClean')
+	dependsOn('cclean')
 	dependsOn('concatCSS')
 	dependsOn('concatJS')
 
-	concatCSS.shouldRunAfter('customClean')
+	concatCSS.shouldRunAfter('cclean')
 	concatJS.shouldRunAfter('concatCSS')
 	shouldRunAfter('concatJS')
 }
