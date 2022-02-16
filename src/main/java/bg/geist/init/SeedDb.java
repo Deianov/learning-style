@@ -13,21 +13,20 @@ import bg.geist.init.dto.*;
 import bg.geist.repository.*;
 import bg.geist.service.CategoryService;
 import bg.geist.service.ExerciseService;
-import bg.geist.util.FilesUtil;
 import bg.geist.util.Flags;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 import static bg.geist.constant.Constants.*;
@@ -37,9 +36,8 @@ import static bg.geist.constant.Constants.PRJ.*;
 @Component
 class SeedDb {
     private static final String JSON_INPUT_PATH = "json/input/";
+    private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
-
-    private final Resource jsonFile;
     private final ObjectMapper objectMapper;
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
@@ -57,10 +55,11 @@ class SeedDb {
     private final MapRepository mapRepository;
     private final PropRepository propRepository;
     private final ExerciseService exerciseService;
+    private final ResourceUtils resourceUtils;
+    private final ResourceLoader resourceLoader;
 
 
-    SeedDb(@Value("classpath:myapp.json") Resource jsonFile, ObjectMapper objectMapper, UserRepository userRepository, UserRoleRepository userRoleRepository, UserProfileRepository userProfileRepository, BCryptPasswordEncoder passwordEncoder, QuizRepository quizRepository, QuestionRepository questionRepository, AnswerCollectionRepository answerCollectionRepository, AnswerRepository answerRepository, CategoryRepository categoryRepository, CategoryService categoryService, CardsRepository cardsRepository, DictionaryCollectionRepository dictionaryCollectionRepository, DictionaryRepository dictionaryRepository, MapRepository mapRepository, PropRepository propRepository, ExerciseService exerciseService) {
-        this.jsonFile = jsonFile;
+    SeedDb(ObjectMapper objectMapper, UserRepository userRepository, UserRoleRepository userRoleRepository, UserProfileRepository userProfileRepository, BCryptPasswordEncoder passwordEncoder, QuizRepository quizRepository, QuestionRepository questionRepository, AnswerCollectionRepository answerCollectionRepository, AnswerRepository answerRepository, CategoryRepository categoryRepository, CategoryService categoryService, CardsRepository cardsRepository, DictionaryCollectionRepository dictionaryCollectionRepository, DictionaryRepository dictionaryRepository, MapRepository mapRepository, PropRepository propRepository, ExerciseService exerciseService, ResourceLoader resourceLoader) {
         this.objectMapper = objectMapper;
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
@@ -78,16 +77,24 @@ class SeedDb {
         this.mapRepository = mapRepository;
         this.propRepository = propRepository;
         this.exerciseService = exerciseService;
+        this.resourceLoader = resourceLoader;
+        this.resourceUtils = new ResourceUtils();
     }
 
-    final void showVersion() throws IOException {
-        /* example constructor: @Value("classpath:myapp.json") Resource jsonFile */
-        System.out.println(jsonFile.getFile().toString());
-        /* example jackson + TypeReference */
-        HashMap<String, String> options = objectMapper
-                .readValue(jsonFile.getFile(), new TypeReference<HashMap<String, String>>() {});
-        System.out.printf("showVersion: %s%n", options.get("version"));
+
+    final void readJsonExample() throws IOException {
+        // example jackson + TypeReference
+        Resource resource = resourceLoader.getResource("classpath:myapp.json");
+        try {
+            File jsonFile = resource.getFile();
+            HashMap<String, String> options = objectMapper
+                .readValue(jsonFile, new TypeReference<HashMap<String, String>>() {});
+            System.out.printf(" -seedDb: classpath:myapp.json : %s%n", options.get("name"));
+        } catch (IOException e) {
+            System.out.printf(" -seedDb: %s%n", "unable to read classpath:myapp.json");
+        }
     }
+
 
     final void seedUsers() throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -103,8 +110,8 @@ class SeedDb {
         admin.setRoles(List.of(adminRole, userRole));
         userRepository.saveAll(List.of(admin));
 
-        Resource resource = getResource("users.json");
-        UserDto[] users = objectMapper.readValue(resource.getFile(), UserDto[].class);
+        String resource = resourceUtils.getContent(JSON_INPUT_PATH + "users.json");
+        UserDto[] users = objectMapper.readValue(resource, UserDto[].class);
 
         for (UserDto dto: users) {
             UserEntity user = new UserEntity(dto.username, dto.password, dto.fullname, dto.email);
@@ -117,61 +124,21 @@ class SeedDb {
     }
 
     final void seedCategories() throws IOException {
-        Resource resource = getResource("categories.json");
-        CategoryDto[] categories = objectMapper.readValue(resource.getFile(), CategoryDto[].class);
+        String resource = resourceUtils.getContent(JSON_INPUT_PATH + "categories.json");
+        CategoryDto[] categories = objectMapper.readValue(resource, CategoryDto[].class);
 
         for (CategoryDto dto : categories) {
             Category category = new Category(dto.name, dto.parentId, dto.sortId);
             category.setId(dto.id);
             categoryRepository.save(category);
         }
-        System.out.printf("seedCategories: %s%n", categories.length);
-    }
-
-    private int CompareNames(File f1, File f2) {
-        if (f1 == null || f2 == null) {
-            return 0;
-        }
-        String a = f1.getName();
-        String b = f2.getName();
-        if (a.matches(JSON_FILENAME_PATTERN) && b.matches(JSON_FILENAME_PATTERN)) {
-            int ai = Integer.parseInt(a.substring(0, a.lastIndexOf(".")));
-            int bi = Integer.parseInt(b.substring(0, b.lastIndexOf(".")));
-            return ai - bi;
-        } else {
-            return a.compareTo(b);
-        }
-    }
-
-    /* resources example: files (absolute path) */
-    private File[] getFiles(String directoryName) {
-        final String path = RESOURCES_PATH_INPUT + "\\" + directoryName;
-        return Arrays.stream(FilesUtil.listFiles(path))
-            .filter(File::isFile)
-            .sorted(this::CompareNames)
-            .toArray(File[]::new);
-    }
-
-    /* resources example: ClassPathResource (relative path) */
-    private Resource getResource(String filePath) {
-        final String path = JSON_INPUT_PATH + filePath;
-        return new ClassPathResource(path);
-    }
-
-    /* resources example: ClassPathResources (relative path) */
-    private Resource[] getResources(String directoryPath) {
-        return Arrays.stream(getFiles(directoryPath))
-            .map(File::getName)
-            .map(fileName -> getResource(directoryPath + "/" + fileName))
-            .toArray(Resource[]::new);
+        System.out.printf("seedCategories: %s/%s%n", categories.length, categoryRepository.count());
     }
 
     final void seedCards() throws IOException {
-
         int value = 1;
-        for (Resource resource: getResources(DIRECTORY_NAME_CARDS)) {
-
-            JsonNode jsonNode = objectMapper.readTree(resource.getFile());
+        for (Resource resource: resourceUtils.getAll(JSON_INPUT_PATH + DIRECTORY_NAME_CARDS)) {
+            JsonNode jsonNode = objectMapper.readTree(resourceUtils.read(resource));
             ExerciseDto exerciseDto = objectMapper.readValue(jsonNode.traverse(), ExerciseDto.class);
 
             // data
@@ -214,8 +181,8 @@ class SeedDb {
     }
 
     final void seedAnswerTemplates() throws IOException {
-        Resource resource = getResource("answers.json");
-        AnswerDto[] answers = objectMapper.readValue(resource.getFile(), AnswerDto[].class);
+        String resource = resourceUtils.getContent(JSON_INPUT_PATH + "answers.json");
+        AnswerDto[] answers = objectMapper.readValue(resource, AnswerDto[].class);
         HashMap<String, AnswerCollection> collections = new HashMap<>();
 
         for (AnswerDto dto : answers) {
@@ -235,15 +202,17 @@ class SeedDb {
     final void seedQuizzes() throws IOException, NullPointerException {
         int quizValue = 0;
         String lastCategoryName = "";
-        File[] files = getFiles(DIRECTORY_NAME_QUIZZES);
 
+        Resource[] resources = resourceUtils.getAll(JSON_INPUT_PATH + DIRECTORY_NAME_QUIZZES);
 
-        for (File file: files) {
+        for (Resource resource: resources) {
+            String content = resourceUtils.read(resource);
+
             // unmarshal from json
-            QuizDto quizDto = objectMapper.readValue(file, QuizDto.class);
+            QuizDto quizDto = objectMapper.readValue(content, QuizDto.class);
 
             // exercise
-            ExerciseDto exerciseDto = objectMapper.readValue(objectMapper.readTree(file).traverse(), ExerciseDto.class);
+            ExerciseDto exerciseDto = objectMapper.readValue(objectMapper.readTree(content).traverse(), ExerciseDto.class);
             Exercise exercise = exerciseService.seed(exerciseService.map(exerciseDto));
 
             // category
@@ -316,10 +285,12 @@ class SeedDb {
         }
     }
 
-    public final void seedMaps () throws IOException {
-        for (File file: getFiles(DIRECTORY_NAME_MAPS)) {
+    final void seedMaps () throws IOException {
+        Resource[] resources = resourceUtils.getAll(JSON_INPUT_PATH + DIRECTORY_NAME_MAPS);
 
-            JsonNode jsonNode = objectMapper.readTree(file);
+        for (Resource resource: resources) {
+
+            JsonNode jsonNode = objectMapper.readTree(resourceUtils.read(resource));
 
             // exercise
             ExerciseDto exerciseDto = objectMapper.readValue(jsonNode.traverse(), ExerciseDto.class);

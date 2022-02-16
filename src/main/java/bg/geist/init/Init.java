@@ -1,43 +1,38 @@
 package bg.geist.init;
 
 import bg.geist.repository.CategoryRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
 
 
 @Component
 class Init implements CommandLineRunner {
     private static final boolean DO_EXPORT_TO_JSON = false;
-    private static final boolean DO_INIT = false;
+    private static final boolean DO_INIT = true;
+    private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     private final SeedDb seedDb;
     private final MarshalDb marshalDb;
     private final CategoryRepository categoryRepository;
     private final String version;
-    private final Resource ymlFile;
 
 
-    Init(SeedDb seedDb, MarshalDb marshalDb, CategoryRepository categoryRepository,
-                @Value("${myapp.version}") String version,
-                @Value("classpath:application.yml") Resource ymlFile){
+    Init(@Value("${myapp.version}") String version, SeedDb seedDb, MarshalDb marshalDb, CategoryRepository categoryRepository){
         this.seedDb = seedDb;
         this.marshalDb = marshalDb;
         this.categoryRepository = categoryRepository;
         this.version = version;
-        this.ymlFile = ymlFile;
     }
 
     @Override
     public void run(String... args) throws Exception {
-
-        showVersion();
+        LOGGER.debug(String.format("%n***%n%s version: %s%n -init: run", "learning-style", version));
 
         if (DO_INIT && categoryRepository.count() == 0) {
-            seedDb.showVersion();
+            seedDb.readJsonExample();
             seedDb.seedUsers();
             seedDb.seedCategories();
             seedDb.seedCards();
@@ -45,7 +40,6 @@ class Init implements CommandLineRunner {
             seedDb.seedQuizzes();
             seedDb.seedMaps();
         }
-
         if (DO_EXPORT_TO_JSON) {
             marshalDb.prepareDirectories();
             marshalDb.marshalUsers();
@@ -54,10 +48,5 @@ class Init implements CommandLineRunner {
             marshalDb.marshalQuizzes();
             marshalDb.marshalMaps();
         }
-    }
-
-    final void showVersion() throws IOException {
-        System.out.println(ymlFile.getFile().toString());
-        System.out.printf("version: %s%n", version);
     }
 }
