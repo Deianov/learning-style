@@ -15,12 +15,13 @@ plugins {
  *  build War for Tomcat:
  *  1.) uncomment 'spring-boot-starter-tomcat'
  *  2.) uncomment war configs
- */
+
 apply plugin:'war'
 bootWar {
 	enabled = true
 	archiveName 'ROOT.war'
 }
+ */
 
 group = 'bg'
 //version = '0.0.1-SNAPSHOT'
@@ -47,7 +48,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'mysql:mysql-connector-java'
-	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat' // remove for Docker
+//	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat' // remove for Docker
 	// test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'

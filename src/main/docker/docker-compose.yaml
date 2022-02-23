@@ -1,0 +1,31 @@
+version: "3.3"
+services:
+    db:
+        image: mysql:5.7
+        container_name: lStyledb
+        ports:
+            - 3307:3306
+        networks:
+            - lStylenet
+        command: [ '--character-set-server=utf8mb4', '--collation-server=utf8mb4_bin' ]
+        environment:
+            - MYSQL_INITDB_SKIP_TZINFO=1
+            - MYSQL_DATABASE=style_db
+            - MYSQL_ROOT_PASSWORD=1234
+#        restart: always / on-failure
+    app:
+        image: deianov/learning-style:v1
+        container_name: lStyleapp
+        ports:
+            - 8080:8080
+        networks:
+            - lStylenet
+        depends_on:
+            - db
+        environment:
+            - MYSQLHOST=db
+            - MYSQLPORT=3306
+            - MYSQLUSER=root
+            - MYSQLPASS=1234
+networks:
+    lStylenet:
