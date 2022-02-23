@@ -9,7 +9,7 @@ const constants_app = {
 name: "learning-style",
 title: "Learning-Style",
 isStatic: false,
-version: "06.10.2021",
+version: "25.01.2022",
 state: "development",
 lang: "en",
 /** keyboard - 0: default, 1: virtual, 2: virtual (only word keys) */
